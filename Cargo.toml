@@ -1,0 +1,3 @@
+[workspace]
+members = ["crates/iimg-core", "crates/iimg-cli"]
+resolver = "2"
