@@ -1,0 +1,22 @@
+name: Sanitizer fuzzing
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "32 3 * * 2"
+permissions:
+  contents: read
+jobs:
+  decode:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+      - run: cargo install cargo-fuzz --version 0.12.0 --locked
+      - run: cargo fetch --locked --manifest-path fuzz/Cargo.toml
+      - run: |
+          mkdir -p fuzz/corpus/decode
+          cp examples/hello.iimg tests/fixtures/v0.2/*.iimg tests/fixtures/v1.0/*.iimg fuzz/corpus/decode/
+      - run: cargo +nightly fuzz run decode -- -max_len=65537 -max_total_time=600
+        env:
+          CARGO_NET_OFFLINE: "true"

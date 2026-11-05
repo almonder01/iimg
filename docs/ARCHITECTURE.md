@@ -1,12 +1,19 @@
 # Architecture
 
 ## Boundaries
-1. **Container:** validates magic, lengths, CRC, ordering and feature flags. Never trusts metadata.
-2. **Document model (future):** validated scene graph, resources, interactive state; no raw script execution.
-3. **Runtime (future):** deterministic finite-state transitions with resource budgets.
-4. **Renderer (future):** independent of parsing; never reads unvalidated binary data.
-5. **Host adapters (future):** browser WASM, Android JNI, iOS FFI, desktop.
-6. **Tooling:** CLI, encoder, editor, conformance harness.
+
+| Component | Responsibility | Location |
+| --- | --- | --- |
+| Container | Bounds, version, chunk order and CRC validation | `crates/iimg-core/src/lib.rs` |
+| Visual model | Typed payloads, geometry, embedded assets and PNG decoding | `crates/iimg-core/src/visual.rs` |
+| Runtime | Ordered synchronous events, focus, toggle state and replay | `crates/iimg-core/src/interaction.rs` |
+| Renderer | Pixel-center sampling of validated shapes with a work budget | `visual::Scene` and `interaction::Runtime` |
+| Authoring | Source validation, generated preview and draft migration | `crates/iimg-core/src/author.rs` |
+| Web host | WASM buffers, canvas presentation, controls and offline editing | `crates/iimg-web/` and `viewers/web/` |
+| Android host | Bounded content-URI reads and the bundled web host | `viewers/android/` |
+| Independent implementation | Envelope, PNG, scene and trace evaluation in Python | `tests/conformance/` |
+
+The [SDK guide](SDK.md) describes the public APIs, validation sequence, failure handling and WebAssembly buffer ownership.
 
 ## Principles
 - Treat all files as attacker-controlled, including fixtures.
@@ -16,4 +23,4 @@
 - Maintain independent decoder tests to avoid shared-bug false positives.
 
 ## Design decisions
-See `docs/adr/0001-container-first.md`. Future ADRs: scene format, CBOR vs JSON, compression, preview codec, renderer, font strategy.
+See [the initial container decision](adr/0001-container-first.md), [wire compatibility](../rfcs/0001-wire-compatibility.md), [raster assets](../rfcs/0002-raster-assets.md) and the [Core candidate](../spec/IIMG-1.0-candidate.md). Additional capability proposals need explicit timing, resource, compatibility and conformance rules.

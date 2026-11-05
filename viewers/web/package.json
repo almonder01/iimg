@@ -1,0 +1,14 @@
+{
+  "name": "iimg-web-tests",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "test:schemas": "node schema-test.mjs",
+    "test": "node browser-test.mjs"
+  },
+  "devDependencies": {
+    "ajv": "8.20.0",
+    "playwright-core": "1.58.2"
+  }
+}

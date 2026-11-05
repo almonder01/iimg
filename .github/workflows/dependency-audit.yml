@@ -1,0 +1,31 @@
+name: Dependency advisory audit
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "47 3 * * 4"
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.6.0"
+      - run: cargo fetch --locked
+      - run: cargo fetch --locked --manifest-path fuzz/Cargo.toml
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: "platform-tools platforms;android-35 build-tools;36.0.0"
+      - run: gradle -p viewers/android --init-script "$GITHUB_WORKSPACE/scripts/android_dependency_report.gradle" iimgAndroidDependencyReport --no-daemon
+      - run: python -B scripts/audit_dependencies.py --android-report viewers/android/build/reports/iimg-dependencies.json

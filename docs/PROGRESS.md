@@ -1,0 +1,125 @@
+# IIMG delivery progress
+
+The active goal is an interoperable IIMG 1.0 release. See the [implementation plan](IMPLEMENTATION-PLAN.md) for scope, dependencies and release gates.
+
+| Milestone | Status | Exit evidence |
+| --- | --- | --- |
+| M0 · Verified foundation | Gate verified | Linux, Windows and macOS CI and review packages passed on published revision `252ebc9`; main protection and private reporting verified |
+| M1 · Visual document | Local gate verified | Typed scene, bounded PNG preview, independent reference pixels and malformed fixture parity |
+| M2 · Interaction | Local gate verified | Chromium offline reload, local file open, mouse, emulated touch and keyboard; native replay matches |
+| M3 · Viewers and sharing | In progress | Offline web, Android picker, system-injected touch, reset, fallback, VIEW/SEND and loopback email verified locally. Physical devices and third-party transfer pending |
+| M4 · Authoring | In progress | Shared source compiler, CLI export and offline editor with live validation. Public contributor workflow pending |
+| M5 · Stable 1.0 | In progress | Candidate wire, migration and initial independent parity evidence |
+
+## M0 work
+
+- [x] Establish the Git and test baseline from commit `9b14d09`.
+- [x] Apply Rust formatting and generate the workspace lockfile.
+- [x] Add a Linux, Windows and macOS CI matrix and validate the original sample with a byte-for-byte regeneration check.
+- [x] Bound CLI file reads and validate encoder structure and total size before serialization.
+- [x] Verify the updated workflow on GitHub and configure required checks.
+- [x] Confirm Apache-2.0 for code and fixtures, and CC BY 4.0 for documentation and specifications.
+- [x] Enable and verify GitHub private vulnerability reporting.
+- [x] Add the legal texts corresponding to the declared README policy and include project and Cargo dependency notices in review archives.
+- [x] Add structural JSON Schema models with a locked validator and explicit semantic validation tests.
+- [x] Record the historical fixture in a versioned manifest.
+- [x] Draft the visual container and compatibility proposal in [RFC 0001](../rfcs/0001-wire-compatibility.md).
+- [x] Add the decoder fuzz target and seed instructions.
+- [x] Run the decoder fuzz target on a host with nightly Rust and cargo-fuzz.
+
+Local verification on Windows with Cargo 1.88 passed formatting, Clippy, 10 core tests, 2 CLI integration tests and CLI validation of the historical sample.
+The fixture manifest's byte count and SHA-256 were checked against the sample. The expanded fuzz target ran under Windows AddressSanitizer with Rust nightly 1.101.0 and cargo-fuzz 0.12.0. It completed 23,965 runs in 21 seconds from six checked-in fixtures without a reported crash. Windows required the MSVC AddressSanitizer DLL directory on the process PATH. The regular Rust suite passed 32 tests, including deterministic mutations of the envelope, JSON payloads, assets, IDAT and replay. Scheduled Linux sanitizer runs and independent review remain open.
+
+The updated [contributor checks](TESTING.md#local-developer-checks) use the lockfile and preserve the historical sample. The listed Rust, independent conformance and loopback SMTP commands all passed locally on Windows.
+
+The initial implementation was recorded in commit `ce524c201a5f125384c2f65bd1ff70bb8d7422aa` on review branch `work/iimg-core-candidate`. The [changelog](../CHANGELOG.md) records the current candidate features, compatibility changes and migration path.
+
+The review branch is published in [PR 1](https://github.com/almonder01/iimg/pull/1). On 2026-11-05, revision `252ebc9a9c307e5797819dc2ae14011dd72b4dcd` passed all six Rust/web jobs in [PR CI](https://github.com/almonder01/iimg/actions/runs/42011192509), the [Android APK workflow](https://github.com/almonder01/iimg/actions/runs/42011192386), and all three [candidate-package jobs](https://github.com/almonder01/iimg/actions/runs/42011192784). The desktop review archives and debug APK are available from those workflow artifacts. The CI fixes specify a local SMTP hostname, initialize the Android SDK explicitly and include an atomic sequence in parallel CLI test directory names.
+
+The `main` branch requires all six Rust/web checks and all three package checks, an up-to-date branch, one approving review and approval after the last push. Stale approvals are dismissed and conversations must be resolved. These rules apply to administrators; force pushes and deletion are disabled. Android's path-filtered build remains a separate check. The [governance policy](GOVERNANCE.md) additionally requires two independent reviews for wire-format/security-sensitive changes. PR 1 remains open for review; no stable release or merge is implied by passing CI.
+
+On 2026-11-05, the repository owner approved the license scopes for code, fixtures, documentation and specifications and authorized publication of the review branch. Fixture manifests and generated Android manifests now carry the approved SPDX license expression.
+
+The owner subsequently selected Apache-2.0 as the sole license for the current code and project-authored fixtures. Crate metadata, manifests and packaging now use that scope, with the canonical Apache text in `LICENSE` and project attribution in `NOTICE`. Review archives and the Android viewer include these files. Earlier published dual-license grants remain recorded in Git history; documentation and specifications remain CC BY 4.0.
+
+## Next
+
+The [visual profile draft](../spec/IIMG-0.2-visual.md), typed scene validation, bounded reference rasterizer and independently generated visual fixture are in place. The CLI renders the initial scene as RGB PPM and extracts a validated embedded PNG. Rust validates the exact zlib stream length and checksum before reconstructing RGB scanlines, and the independent fixture script compares the decoded preview with CLI output.
+
+Static preview extraction now checks the entire envelope, including CRCs after the preview, and tolerates unsupported capabilities and unknown critical extensions in preview-only mode. Full validation still rejects unsupported scene features.
+
+PNG reconstruction now reuses the scanline buffer for RGB pixels, avoiding a second 12 MiB pixel allocation at 2048 × 2048. The maximum-canvas regression verifies the final two rows, including an Up filter with wrapping arithmetic. The Windows suite passed 36 Rust tests, Clippy and independent conformance, and the rebuilt WASM passed the Node smoke test. This allocation count is separate from end-to-end process memory.
+
+The updated decoder completed 82,561 fuzz executions in 121 seconds under Windows AddressSanitizer with no reported crash. The run started from the six checked-in IIMG fixtures and exercised structured mutations, including IDAT replacement with a valid outer CRC. The scheduled Linux run and independent security review remain open.
+
+The [embedded raster proposal](../rfcs/0002-raster-assets.md) is implemented in Rust. The mixed vector/raster fixture exercises asset lookup, decode and layer ordering against an independent preview.
+
+The [toggle interaction draft](../spec/IIMG-0.2-interaction.md) and Rust runtime validate control targets and expose deterministic pointer, focus, keyboard activation and reset events. Tests compare the independent lamp preview with the initial and reset frames and verify overlap and focus order.
+
+The two-control fixture and portable pointer and keyboard traces exercise the same final state. The CLI replays a validated trace into a PPM frame.
+
+The [web viewer](../viewers/web/README.md) loads a local file into the Rust WebAssembly adapter, renders RGB pixels on a canvas and exposes accessible toggle buttons. A Node smoke test drives the built WASM module through pointer and focused activation, reset, unsupported capability fallback and corrupted input.
+
+The browser test passed on Windows in Chromium 156.0.8078.74. It reloads with browser networking disabled, opens the local two-control file, verifies canvas pixels and accessible pressed states after mouse and emulated touch input, then checks Tab, Enter and Space. The service worker caches only the application shell.
+
+The Windows, Linux and macOS CI matrix now builds WASM and runs the Node and browser suites with the Playwright-locked headless Chromium. The same suite passed locally using headless Chromium 145.0.7632.6 and installed Chrome 156.0.8078.74. The pinned browser download worked locally, but installer extraction stalled. Direct extraction of the same downloaded archive enabled the pinned-mode test. GitHub execution of the matrix remains open.
+
+The [Android viewer](../viewers/android/README.md) bundles the shared viewer and Rust WASM, opens Android content URIs with a bounded reader and handles file-picker, open-with and share intents. The Windows build passed with the installed Android Studio JDK 21, Gradle 8.11.1 and Build Tools 35.0.0. APK asset checks and debug signature verification passed. The SHA-256 of that local build is `8bfb370b55303cab4efd1de61f6f064aefdb5edd86896941c0f822bf422554cd`. The Android CI workflow is configured to build and verify the debug artifact.
+
+The APK installed on API 37 and API 34 emulators. On API 37, the MediaStore fixture round-tripped byte for byte and ACTION_VIEW resolved to the IIMG activity, but system dialogs interrupted UI observation. The dedicated fixture provider removed the MediaStore dependency on API 34. Both ACTION_VIEW and ACTION_SEND passed in Android WebView 113.0.5672.136 on API 34. The sender verified the fixture SHA-256 before granting read access. The test then checked both control labels, the initial canvas color, and the changed color and pressed state after scripted activation in the actual WebView. The picker, Android physical input and third-party attachment transfers remain separate checks.
+
+The [authoring tools](AUTHORING.md) compile vector scenes and toggle controls into a self-contained IIMG file. The CLI and offline web source editor use the same Rust compiler, which validates the scene and generates a PNG from its initial render. The native suite passed 31 tests. Chromium rejected malformed source while offline, compiled the valid source, downloaded the file, reopened it, and verified that its toggle changed the canvas pixels.
+
+The CLI and web editor can now author Core 1.0 candidate files directly. Chromium verified the downloaded 1.0 header offline and reopened and activated the file. The independent conformance suite accepted a direct CLI export, and the Rust suite verified that direct authoring and migration produce identical bytes for the lamp source. The native suite now passes 33 tests.
+
+Authoring now includes embedded PNG assets declared in source JSON. The Rust tests preserve the original asset bytes and compare the generated preview with the rendered scene. The independent reader accepted the mixed candidate from CLI, and Chromium exported, reopened and verified the image and toggle pixels offline. The native suite passed 35 tests.
+
+The [web source editor](AUTHORING.md) validates automatically after a short pause, removes the previous download link as soon as source or version changes, and keeps the current image visible until preview is requested. The new browser regression failed against the previous editor and passed in Chromium 156.0.8078.74 with networking disabled. It checked live syntax errors, link invalidation and replacement, mixed raster preview, the 1.0 export header and interaction after reopening the file.
+
+The [SDK guide](SDK.md) documents the Rust validation sequence, structured failures, normalized input, accessibility state and WebAssembly buffer ownership and status codes. The core API reference includes an executable author/load/preview/activate/replay example. Rustdoc built on Windows with warnings denied, and the example passed. The CI matrix now includes documentation generation and its existing workspace test command runs the example. The review specification archive includes the guide and its local document links.
+
+Six [JSON schemas](../spec/schemas/README.md) now cover shared types, candidate metadata, scenes, controls, source authoring and portable traces. Pinned Ajv 8.20.0 compiled them in strict mode and passed 25 positive and 17 negative structural cases. Ten structurally valid sources were rejected by the WASM compiler for semantic or lexical violations, including geometry, duplicate IDs and fields, UTF-8 label size, whitespace-only labels, Unicode scalars, Base64, render budget and negative zero. The extracted specification archive's runner passed using the matching extracted WASM and npm dependencies installed offline from cache. The CI web matrix includes this suite.
+
+The [Core 1.0 candidate](../spec/IIMG-1.0-candidate.md) has separate version/profile values and an explicit migration from 0.2. The independent Python conformance runner matched the Rust CLI on 47 envelope and preview cases, 29 semantic rejections, four invalid traces and three final interaction frames on Windows. The suite exercises both 0.2 and 1.0 semantic failures and verifies migration preserves known payloads while dropping unknown ancillary data. The WebAssembly smoke test verifies that malformed declarations report a diagnostic distinct from unsupported capabilities. Candidate review and cross-platform run evidence remain open.
+
+Differential probes found that Rust accepted positional arrays where the schema requires named-field objects. Shared object decoding now enforces that requirement for metadata, scenes, shapes, controls, source assets and replay events. The regression suite verifies that rejected replay arrays preserve the previous focus and frame. The draft now specifies unsigned numeric tokens and Unicode scalar strings, and the independent reader rejects negative zero and unpaired surrogate escapes while accepting an Arabic label with a paired emoji escape. Windows passed 37 Rust tests, Clippy, 68 envelope/preview cases, 47 semantic rejections, eight invalid traces, the WASM checks and Chromium offline authoring and interaction.
+
+The JSON object enforcement changes completed 47,428 fuzz executions in 61 seconds under Windows AddressSanitizer without a reported crash, starting from the six checked-in binary fixtures.
+
+The [local candidate packaging procedure](RELEASES.md#local-candidate-package) produced Windows CLI, web and specification/conformance archives, two CycloneDX dependency files and checksums. Two packaging runs with the same input binaries and source files matched byte for byte. The extracted CLI passed independent conformance and the extracted WASM passed the Node smoke test. This was a dirty checkout and is not signed release provenance.
+
+The manual candidate-package workflow now configures Windows, Linux and macOS review artifacts. A fresh Windows package passed the reusable verifier, including all six artifact checksums, extracted conformance, both loopback attachment modes and WASM behavior. The clean-checkout guard rejected the local package as expected. Workflow execution and publication on GitHub remain open.
+
+A refreshed Windows review package includes the live editor and the optimized PNG decoder. The six artifact checksums and extracted CLI, SMTP and WASM checks passed. The build record identifies the modified local checkout.
+
+The [license policy](../LICENSES.md) now links the declared MIT, Apache-2.0 and CC BY 4.0 texts. The web crate declares the existing project code license in its Cargo metadata. Each CLI and web review archive contains 30 license/notice files for 13 resolved Cargo dependencies, including the Unicode notice. The verifier checks inventory coverage against the SBOM and notice SHA-256 values. Negative checks removed a project license, removed a dependency and changed a notice, then recalculated outer checksums. Each modified package was rejected. Owner approval of publication scopes and fixture terms remains open.
+
+Two packages generated from the same updated source and binaries, including the license inventories, matched byte for byte.
+
+A review package built from clean local commit `ce524c2` passed `verify_candidate_package.py --require-clean`. Its record reports `dirty_worktree: false`, and both supplied binary digests match the source-only reproducibility check. The extracted conformance, loopback SMTP and WASM checks passed. The commit and package remain local and unsigned.
+
+The [dependency advisory check](SECURITY-MODEL.md#android-dependency-inventory) resolved the seven remaining Android build-tool advisories through scoped fixed-version overrides. The post-fix OSV run covered 149 distinct versions across Rust, npm and Maven and returned no matches. Both APKs rebuilt and the viewer APK passed asset and debug signature checks. Independent security review remains open.
+
+The post-fix viewer APK has SHA-256 `627f457ce9f2df48c6b2d82691fc4452fbe26f0d8059b0b26182f10e5cd28769`. It passed both VIEW and SEND WebView pixel and activation checks on API 34 with WebView 113.0.5672.136. The handoff runner now uses the actual rendered frame as evidence instead of waiting for Android's separate activity-start timing report.
+
+The APK rebuilt with the in-place PNG decoder, passed the asset and v2 signature checks, and installed on the API 34 emulator. Its SHA-256 is `9495fb63d2da52f133bbdcaa1338d475669f83ae7b4ffeae543302c790ea0352`. The fixture copied into Downloads matched the repository SHA-256, and Android resolved the open-document intent to DocumentsUI. A System UI ANR covered the viewer and prevented verification of selection and touch. The handoff rerun also timed out before a WebView page became available. The [device instructions](../viewers/android/README.md#device-and-sharing-checks) now include read-only pixel and control-state checks for manual touch and reset.
+
+A new isolated API 34 emulator with host GPU rendering allowed the remaining picker checks. Android's exit records identified GMS FontsProvider death as the cause of viewer termination during startup. After disabling Google Play Services in that test emulator, the candidate file opened through DocumentsUI, two Android input taps matched the pointer trace, and a native reset tap restored the initial frame. Every canvas RGB pixel matched independently evaluated Python reference PPMs. Unsupported-capability and corrupt files selected through the picker produced a static preview and a diagnostic respectively. A valid file reopened and interacted correctly after the failure. Current VIEW/SEND handoff checks also passed.
+
+The current APK passed asset and v2 signature checks with SHA-256 `fc265e2af22272240ca1d3f511b37e619dffbb7dc2954cf068c8e8f5a1555395`. The tested 1.0 candidate was 637 bytes with SHA-256 `6a7804433626ae2163f447c3e66646a72642063d1d0e952547245754515992bd`. The [fixture generator](../tests/conformance/android_fixtures.py) reproduced all tested file and frame bytes. Physical-device checks with normal system services and third-party attachment transport remain open.
+
+The full-frame checker also rejected an intentionally incorrect reference frame. The current CI matrix generates the Android cases alongside conformance, and Android build triggers include the fixture sources. The isolated emulator was stopped, its two temporary data directories were removed, and the workspace keeps the test screenshots and generated cases under ignored `target/`.
+
+The extracted specification suite and CLI reproduced all three Android case files and both independent frame files inside the workspace. The fixture generator rejected an existing output directory without changing its manifest.
+
+The loopback SMTP test recovered the candidate file as generic binary and experimental IIMG MIME attachments, including an Arabic filename. Both downloads preserved the original SHA-256 and replay frame. The test is configured in the cross-platform CI matrix. Third-party mail and messaging delivery remain separate evidence.
+
+Two source-only Windows snapshots built from the worktree without Git metadata or prior build products. Formatting, Clippy, 32 Rust tests, independent conformance and the WASM smoke test passed. WASM binaries matched directly after path remapping. Default MSVC links differed in 20 executable bytes, including the PE timestamp. Relinking with `/Brepro` made the CLI binaries identical and the relinked CLI passed independent conformance. GitHub still points to the original foundation commit, so remote CI and published-revision provenance remain open.
+
+A fresh check copied 108 source files into each of two new snapshots. Formatting, Clippy, 37 native Rust tests, the executable documentation example, rustdoc with warnings denied, independent conformance and WASM checks passed. Both CLI and WASM release builds matched byte for byte after path remapping and `/Brepro`. The CLI digest was `fd5b45c8aa561786de264e391cab32b952c72d6d5263e062719164fa77eb7d5c`, and the WASM digest was `4fa8f90b0da5efdfe78a7646f7dd26e30cfc675c4e7a40e200f39d27b8d7c252`.
+
+Local Linux verification was attempted through the installed Docker Desktop. Startup failed while initializing its Inference manager because the runtime endpoint could not be removed. The processes started for that attempt were closed after the normal stop command timed out. Linux and macOS execution evidence remains open.
+
+The [Chromium performance baseline](BENCHMARKS.md) records 50 repetitions each for the vector and raster-backed lamp fixtures, including IIMG open, activation and observed WASM linear memory. SVG and HTML fixture sizes, parse/mount timings and painted screenshot pixels are verified. The three formats share an activation-to-next-animation-frame measurement. Rive equivalents, resident memory and physical event-to-display measurements remain open.
+
+The paragraphs above preserve earlier local checkpoints; the publication and cross-platform results at the top supersede their pending GitHub and licensing notes. Next, verify a physical Android device with normal system services, record third-party attachment transport results, and obtain independent specification/security review before stable release preparation. Track external [adoption and registration](ADOPTION.md) separately.

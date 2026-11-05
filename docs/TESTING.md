@@ -1,25 +1,33 @@
 # Testing and Verification Strategy
 
 ## Local developer checks
+
+Run from the repository root with stable Rust, rustfmt, Clippy and Python 3.12. The CLI integration tests generate temporary files and compare the historical sample byte for byte.
+
 ```sh
 cargo fmt --all -- --check
-cargo clippy --workspace --all-targets -- -D warnings
-cargo test --workspace
-cargo run -p iimg-cli -- sample examples/hello.iimg
-cargo run -p iimg-cli -- validate examples/hello.iimg
+cargo clippy --locked --workspace --all-targets -- -D warnings
+cargo test --locked --workspace
+cargo run --locked -p iimg-cli -- validate examples/hello.iimg
+python -B tests/conformance/check.py
+python -B tests/conformance/mail_transport.py
 ```
+
+Use the [web viewer checks](../viewers/web/README.md) for the WASM and Chromium suites and the [Android device checks](../viewers/android/README.md) for the native adapter.
+
+After building WASM and installing the locked npm development dependencies, run `npm --prefix viewers/web run test:schemas`. This checks the [JSON schemas](../spec/schemas/README.md) against valid and invalid structural cases and verifies that Core enforces the remaining semantic and lexical rules.
+
+The [SDK guide](SDK.md) includes the commands for generating and testing the Rust API documentation. The CI matrix generates documentation with `RUSTDOCFLAGS=-D warnings`, and the workspace tests execute the core integration example.
 
 ## Test pyramid
 - **Unit:** CRC vectors, lengths, header parsing, chunk ordering, unknown critical/ancillary behavior, integer overflow.
 - **Integration:** encoder→decoder roundtrip, CLI error codes, sample file consistency.
 - **Regression:** each fixed bug includes a minimized malicious/invalid fixture and test named after issue.
-- **Conformance (future):** versioned `valid/`, `invalid/`, `edge/` fixtures; expected diagnostics and independent implementations.
+- **Conformance:** the independent Python runner compares acceptance, diagnostic categories, preview pixels, migration and replay frames with the Rust CLI.
 - **Property-based (future):** encode/decode invariants, random chunk order and sizes.
-- **Fuzzing (future):** arbitrary input decoder fuzz target, sanitizer jobs, corpus minimization, crash deduplication.
-- **Differential (future):** compare independent Rust/JS decoders, not just same library roundtrip.
-- **Rendering (future):** pixel snapshots at defined viewport/DPI and event sequence; compare with tolerance and reference images.
-- **Interaction (future):** event replay traces, deterministic state hashes, touch/mouse/keyboard parity.
-- **Performance (future):** cold open, warm open, memory peak, event latency, decompression ratio, battery impact.
+- **Fuzzing:** a deterministic mutation test runs on stable Rust. The libFuzzer target exercises the same harness with raw envelopes, repaired checksums for semantic payloads, arbitrary zlib streams and replay traces. A scheduled Linux workflow runs the sanitizer target.
+- **Rendering and interaction:** compare exact fixture pixels and normalized traces. Chromium exercises mouse, emulated touch and keyboard, offline reload and authoring.
+- **Performance:** [benchmarks](BENCHMARKS.md) record measurements and remaining comparisons.
 - **Security:** file size limits, resource exhaustion, malformed UTF-8, oversized dimensions, corrupt CRC, decompression bombs, unknown capabilities.
 - **Compatibility:** Windows/Linux/macOS and browsers; Android/iOS when adapters exist.
 
@@ -37,5 +45,18 @@ cargo run -p iimg-cli -- validate examples/hello.iimg
 ## Fixture review
 Never replace an existing fixture silently. Give each fixture an ID, origin, expected result, feature set, spec version and checksum. Preserve old fixtures for backward-compatibility testing.
 
+## Decoder fuzzing
+
+On a host with nightly Rust and cargo-fuzz installed, seed a scratch corpus with the historical sample and run a time-limited smoke test from the repository root.
+
+```sh
+mkdir -p fuzz/corpus/decode
+cp examples/hello.iimg tests/fixtures/v0.2/*.iimg tests/fixtures/v1.0/*.iimg fuzz/corpus/decode/
+cargo +nightly fuzz run decode -- -max_len=65537 -max_total_time=60
+```
+
+Record the command, host, seed corpus and run duration. Minimize any failure and add a regression test. Handle sensitive crashes through the private reporting process.
+
 ## CI gating
-CI must block merge on formatting, lint, unit/integration tests. Add fuzzing, code coverage and independent conformance once implemented; do not present planned checks as existing.
+
+The configured Rust and web workflows run on Windows, Linux and macOS. The Android workflow builds and verifies a debug APK. Advisory and sanitizer checks have separate workflows. Configure required checks on the default branch after verifying these jobs on GitHub.

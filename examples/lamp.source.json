@@ -1,0 +1,15 @@
+{
+  "width": 32,
+  "height": 32,
+  "scene": {
+    "background": [26, 32, 44],
+    "objects": [
+      {"type": "circle", "id": "lamp", "cx": 16, "cy": 16, "radius": 8, "fill": [250, 204, 21]}
+    ]
+  },
+  "interaction": {
+    "controls": [
+      {"target": "lamp", "label": "Lamp", "active_fill": [248, 113, 113]}
+    ]
+  }
+}

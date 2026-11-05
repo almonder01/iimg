@@ -1,3 +1,14 @@
 /target/
+/viewers/web/iimg_web.wasm
+/viewers/web/node_modules/
+/viewers/android/.gradle/
+/viewers/android/local.properties
+/viewers/android/app/build/
+/viewers/android/handoffFixture/build/
+/viewers/android/build/
+/fuzz/target/
+/fuzz/artifacts/
+/fuzz/corpus/
+/fuzz/coverage/
 .DS_Store
 *.swp

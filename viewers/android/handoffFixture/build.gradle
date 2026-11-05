@@ -1,0 +1,33 @@
+plugins {
+    id "com.android.application"
+}
+
+android {
+    namespace "org.iimg.handoff"
+    compileSdk 35
+    buildToolsVersion "36.0.0"
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    defaultConfig {
+        applicationId "org.iimg.handoff"
+        minSdk 23
+        targetSdk 34
+        versionCode 1
+        versionName "0.1.0"
+    }
+
+    androidResources {
+        noCompress += "iimg"
+    }
+    sourceSets.main.assets.srcDir(layout.buildDirectory.dir("generated/fixtures").get().asFile)
+}
+
+def stageFixture = tasks.register("stageFixture", Sync) {
+    from(rootProject.file("../../tests/fixtures/v0.2/two-controls.iimg"))
+    into(layout.buildDirectory.dir("generated/fixtures"))
+}
+tasks.named("preBuild").configure { dependsOn(stageFixture) }

@@ -1,0 +1,42 @@
+plugins {
+    id "com.android.application"
+}
+
+android {
+    namespace "org.iimg.viewer"
+    compileSdk 35
+    buildToolsVersion "36.0.0"
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    defaultConfig {
+        applicationId "org.iimg.viewer"
+        minSdk 23
+        targetSdk 34
+        versionCode 1
+        versionName "0.1.0"
+    }
+
+    sourceSets.main.assets.srcDir(layout.buildDirectory.dir("generated/iimgAssets").get().asFile)
+}
+
+def wasm = rootProject.file("../../target/wasm32-unknown-unknown/release/iimg_web.wasm")
+def stageViewer = tasks.register("stageViewer", Sync) {
+    from(rootProject.file("../web")) {
+        include("index.html", "viewer.mjs")
+    }
+    from(wasm)
+    from(rootProject.file("../..")) {
+        include("LICENSE", "NOTICE", "LICENSES.md", "LICENSE-CC-BY-4.0")
+    }
+    into(layout.buildDirectory.dir("generated/iimgAssets"))
+    doFirst {
+        if (!wasm.isFile()) {
+            throw new GradleException("Build iimg-web for wasm32-unknown-unknown in release mode first.")
+        }
+    }
+}
+tasks.named("preBuild").configure { dependsOn(stageViewer) }
