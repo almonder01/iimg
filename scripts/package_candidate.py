@@ -11,7 +11,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 WEB_FILES = ("index.html", "offline.js", "viewer.mjs", "README.md")
-LICENSE_FILES = ("LICENSES.md", "LICENSE-MIT", "LICENSE-APACHE", "LICENSE-CC-BY-4.0")
+LICENSE_FILES = ("LICENSES.md", "LICENSE", "NOTICE", "LICENSE-CC-BY-4.0")
 SPEC_FILES = (
     "CHANGELOG.md",
     "spec/IIMG-0.1.md", "spec/IIMG-0.2-visual.md", "spec/IIMG-0.2-interaction.md",

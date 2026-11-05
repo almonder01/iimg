@@ -18,7 +18,7 @@ The active goal is an interoperable IIMG 1.0 release. See the [implementation pl
 - [x] Add a Linux, Windows and macOS CI matrix and validate the original sample with a byte-for-byte regeneration check.
 - [x] Bound CLI file reads and validate encoder structure and total size before serialization.
 - [x] Verify the updated workflow on GitHub and configure required checks.
-- [x] Confirm MIT OR Apache-2.0 for code and fixtures, and CC BY 4.0 for documentation and specifications.
+- [x] Confirm Apache-2.0 for code and fixtures, and CC BY 4.0 for documentation and specifications.
 - [x] Enable and verify GitHub private vulnerability reporting.
 - [x] Add the legal texts corresponding to the declared README policy and include project and Cargo dependency notices in review archives.
 - [x] Add structural JSON Schema models with a locked validator and explicit semantic validation tests.
@@ -39,6 +39,8 @@ The review branch is published in [PR 1](https://github.com/almonder01/iimg/pull
 The `main` branch requires all six Rust/web checks and all three package checks, an up-to-date branch, one approving review and approval after the last push. Stale approvals are dismissed and conversations must be resolved. These rules apply to administrators; force pushes and deletion are disabled. Android's path-filtered build remains a separate check. The [governance policy](GOVERNANCE.md) additionally requires two independent reviews for wire-format/security-sensitive changes. PR 1 remains open for review; no stable release or merge is implied by passing CI.
 
 On 2026-11-05, the repository owner approved the license scopes for code, fixtures, documentation and specifications and authorized publication of the review branch. Fixture manifests and generated Android manifests now carry the approved SPDX license expression.
+
+The owner subsequently selected Apache-2.0 as the sole license for the current code and project-authored fixtures. Crate metadata, manifests and packaging now use that scope, with the canonical Apache text in `LICENSE` and project attribution in `NOTICE`. Review archives and the Android viewer include these files. Earlier published dual-license grants remain recorded in Git history; documentation and specifications remain CC BY 4.0.
 
 ## Next
 

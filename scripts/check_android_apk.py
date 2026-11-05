@@ -15,6 +15,8 @@ def check(apk, wasm):
         "assets/index.html": ROOT / "viewers/web/index.html",
         "assets/viewer.mjs": ROOT / "viewers/web/viewer.mjs",
         "assets/iimg_web.wasm": wasm,
+        **{f"assets/{name}": ROOT / name for name in
+           ("LICENSE", "NOTICE", "LICENSES.md", "LICENSE-CC-BY-4.0")},
     }
     with ZipFile(apk) as archive:
         names = archive.namelist()

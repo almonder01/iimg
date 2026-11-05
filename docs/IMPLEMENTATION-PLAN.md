@@ -59,7 +59,7 @@ These are proposed issue IDs for planning and do not represent GitHub issue numb
 | ID | Priority | Work and acceptance | Depends on |
 | --- | --- | --- | --- |
 | FND-01 | P0 | Apply rustfmt as a dedicated change. Run existing workflow checks without changing their semantics. | — |
-| FND-02 | P0 | Confirm and add MIT/Apache-2.0 and CC BY 4.0 texts for their respective scopes, document fixture licenses and verify private security reporting. | Owner license/settings decision |
+| FND-02 | P0 | Confirm and add Apache-2.0 and CC BY 4.0 texts for their respective scopes, document fixture licenses and verify private security reporting. | Owner license/settings decision |
 | FND-03 | P0 | Establish Rust toolchain/lockfile policy and matrix CI. Validate tracked fixture, generate to a temporary path and compare bytes. Configure required checks after a verified run. | FND-01 |
 | FND-04 | P0 | Bound CLI input before allocation, handle paths with Unicode, make diagnostics testable and validate aggregate size and structure before encoding. Add CLI and boundary regressions. | FND-01 |
 | FND-05 | P1 | Add fixture manifest, independent CRC vectors and decoder fuzz target. Define run budget and crash triage. | FND-04 |

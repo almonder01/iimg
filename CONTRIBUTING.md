@@ -16,3 +16,5 @@ The [SDK guide](docs/SDK.md) covers embedding, input normalization and host buff
 PRs that change the wire format without a versioning and migration plan are not mergeable. AI-assisted contributions are welcome, but the author must review code, disclose meaningful AI assistance, and take responsibility for tests and licensing.
 
 No external assets, sample documents or copied code without a compatible license and attribution. Never submit real secrets or private files as fixtures.
+
+Code and project-authored fixture contributions use Apache-2.0. Documentation and specification contributions use CC BY 4.0. See the [license policy](LICENSES.md) for scopes and the treatment of earlier published revisions.

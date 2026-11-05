@@ -8,7 +8,7 @@
       "sha256": "1b0a3e62cc31cc792c459f03f8ffd3fdfa38ceb49858b6eaddef7988c86f3834",
       "source": "../v0.2/generate.py --candidate",
       "expected": "Valid candidate with both capabilities; initial rendering matches the PNG preview.",
-      "license": "MIT OR Apache-2.0"
+      "license": "Apache-2.0"
     }
   ]
 }

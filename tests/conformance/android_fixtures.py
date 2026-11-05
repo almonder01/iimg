@@ -41,7 +41,7 @@ def generate(cli, output):
         manifest = {
             "source": "tests/fixtures/v0.2/two-controls.iimg",
             "source_sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
-            "license": "MIT OR Apache-2.0",
+            "license": "Apache-2.0",
             "expected_modes": {"candidate.iimg": "initial", "unsupported.iimg": "preview", "corrupt.iimg": "invalid"},
             "sha256": {name: hashlib.sha256(data).hexdigest() for name, data in files.items()},
         }

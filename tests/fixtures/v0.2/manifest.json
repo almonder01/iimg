@@ -8,7 +8,7 @@
       "sha256": "3d516c44bba8aab0bcdaf1a9a2ef3e11290ccc53c942d2b6259c8673a61d5e65",
       "source": "generate.py",
       "expected": "Valid vector scene; rendered RGB matches preview.",
-      "license": "MIT OR Apache-2.0"
+      "license": "Apache-2.0"
     },
     {
       "id": "visual.raster-lamp",
@@ -17,7 +17,7 @@
       "sha256": "6a8c34f502ebb876b20b2718cba1f8c5aa5a6042022c16c2b5464fe3c9e0785a",
       "source": "generate.py",
       "expected": "Valid raster-png scene; rendered RGB matches preview and the circle overlays the tile.",
-      "license": "MIT OR Apache-2.0"
+      "license": "Apache-2.0"
     },
     {
       "id": "interaction.lamp",
@@ -26,7 +26,7 @@
       "sha256": "c542deabde7dfc4a4458bff9ac09a5298a927dc4e4c6529d8b0f69d8c95876fb",
       "source": "generate.py",
       "expected": "Lamp toggles fill on pointer or focused activation; reset restores the embedded preview.",
-      "license": "MIT OR Apache-2.0"
+      "license": "Apache-2.0"
     },
     {
       "id": "interaction.two-controls",
@@ -35,7 +35,7 @@
       "sha256": "1bc5d8a89b712fa4096553f59073be66d30519bb41eea33bd873510faefeda1d",
       "source": "generate.py",
       "expected": "Pointer and keyboard traces activate both controls and produce identical frames.",
-      "license": "MIT OR Apache-2.0"
+      "license": "Apache-2.0"
     }
   ]
 }

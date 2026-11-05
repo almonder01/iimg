@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-The SDK remains at 0.1.0. Wire 1.0 is a candidate under review. This entry describes the local implementation awaiting review and publication.
+The SDK remains at 0.1.0. Wire 1.0 is a published candidate under review.
 
 ### Added
 
@@ -19,6 +19,7 @@ The SDK remains at 0.1.0. Wire 1.0 is a candidate under review. This entry descr
 
 ### Changed
 
+- Select Apache-2.0 as the sole license for current project code and fixtures, with canonical `LICENSE` and `NOTICE` files included in review archives and the Android viewer. Earlier published grants remain effective; documentation and specifications remain CC BY 4.0.
 - Bound file reads before allocation and validate encoder structure and total size before serialization.
 - Enforce named-field JSON objects, unsigned numeric tokens, unique fields and IDs, and valid Unicode strings.
 - Decode PNG scanlines in place while checking exact output length, zlib checksum and all filters.

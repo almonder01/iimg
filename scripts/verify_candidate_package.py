@@ -12,7 +12,7 @@ from zipfile import ZipFile
 
 
 ROOT = Path(__file__).resolve().parents[1]
-LICENSE_FILES = ("LICENSES.md", "LICENSE-MIT", "LICENSE-APACHE", "LICENSE-CC-BY-4.0")
+LICENSE_FILES = ("LICENSES.md", "LICENSE", "NOTICE", "LICENSE-CC-BY-4.0")
 
 
 def sha256(path):
