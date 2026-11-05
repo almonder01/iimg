@@ -3,12 +3,14 @@
 | Item | Status | Evidence needed |
 | --- | --- | --- |
 | Native attachment transfer | Local SMTP/MIME transfer verified for generic and experimental attachment types | Third-party app and platform versions, send mode, received SHA-256 and result |
-| Android open-with and sharing | Picker, system-injected touch and VIEW/SEND passed on the dedicated Android API 34 emulator | Physical-device checks with normal system services and third-party app-specific results |
+| Android open-with and sharing | Emulator picker, touch and VIEW/SEND passed; Galaxy S23+ / Android 17 tester reported picker opening, touch, reset and offline reopening passed | Physical-device VIEW/SEND, fallback/recovery, versions and third-party app-specific results |
 | In-app interactive support | Awaiting third-party integration | Public implementation or repeatable tested behavior |
 | PNG carriage experiment | Research | Preservation and decode results through editing and transfer pipelines |
 | Media-type registration | Preparation pending Core stability | Published specification, selected registration tree and submitted request |
 
 Keep attachment delivery, intact bytes, operating-system handoff and in-app rendering as distinct results. Update this table with evidence as integrations are tested. Experimental MIME labels used by the Android viewer are local routing hints.
+
+The [Galaxy S23+ device record](device-tests/2026-11-05-galaxy-s23-plus.md) captures the manual report, published build and fixture digests, and remaining checks. The phone's received-file digests and WebView version have not been measured.
 
 ## Transfer evidence
 
