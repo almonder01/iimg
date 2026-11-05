@@ -94,6 +94,9 @@ def verify(package, require_clean):
         extract(package / cli_archive, scratch / "cli")
         extract(package / "iimg-web.zip", scratch / "web")
         extract(package / "iimg-spec-and-conformance.zip", scratch / "suite")
+        for name in ("index.html", "viewer.mjs", "editor.mjs", "offline.js", "iimg_web.wasm"):
+            if not (scratch / "web" / name).is_file():
+                raise ValueError(f"missing web shell asset {name}")
         for bundle in ("cli", "web", "suite"):
             if any(not (scratch / bundle / name).is_file()
                    or not (scratch / bundle / name).stat().st_size for name in LICENSE_FILES):

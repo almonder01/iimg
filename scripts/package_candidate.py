@@ -12,7 +12,7 @@ import zipfile
 
 
 ROOT = Path(__file__).resolve().parents[1]
-WEB_FILES = ("index.html", "offline.js", "viewer.mjs", "README.md")
+WEB_FILES = ("index.html", "offline.js", "viewer.mjs", "editor.mjs", "README.md")
 LICENSE_FILES = ("LICENSES.md", "LICENSE", "NOTICE", "LICENSE-CC-BY-4.0")
 SPEC_FILES = (
     "CHANGELOG.md",
@@ -21,7 +21,7 @@ SPEC_FILES = (
     "rfcs/0002-raster-assets.md", "docs/AUTHORING.md", "docs/SDK.md", "docs/ARCHITECTURE.md",
     "docs/SECURITY-MODEL.md",
     "docs/TESTING.md", "docs/reviews/2026-11-05-core-candidate.md",
-    "docs/ACCESSIBILITY.md",
+    "docs/ACCESSIBILITY.md", "docs/NEXT-DEVELOPMENT.md",
     "docs/BENCHMARKS.md", "docs/benchmarks/2026-11-05-gallery-windows.json",
     "docs/adr/0001-container-first.md", "viewers/web/README.md", "viewers/android/README.md",
 )

@@ -2,6 +2,8 @@
 
 Checked items indicate local implementation. Use the [implementation plan](IMPLEMENTATION-PLAN.md) for delivery gates and [progress](PROGRESS.md) for verification evidence.
 
+The [next-development plan](NEXT-DEVELOPMENT.md) defines acceptance and dependencies for the visual editor, advanced interactions, performance/accessibility and host distribution. New capabilities remain separate from the current toggle profile.
+
 ## v0.1 — foundation
 - [x] Experimental container encoder/decoder and CRC checks
 - [x] Sample generator and CLI validator
@@ -26,6 +28,8 @@ Checked items indicate local implementation. Use the [implementation plan](IMPLE
 - [x] Web WASM viewer
 - [x] Android reference viewer
 - [x] Authoring SDK and sample editor
+- [x] Initial visual Core editor with geometry/layers, toggle bindings and source import/save
+- [ ] PNG upload, templates, source recovery and fresh-contributor authoring acceptance
 - [ ] Public conformance suite and independent implementation
 
 ## v1.0 candidate

@@ -1,0 +1,37 @@
+# Next development plan
+
+This plan follows the selected Android 0.1.1 preview acceptance. It extends the [delivery milestones](IMPLEMENTATION-PLAN.md); the [progress record](PROGRESS.md) remains the evidence ledger. Completion means the acceptance checks below pass, not simply that a feature exists. External adoption and independent review have separate gates.
+
+## Sequence and dependencies
+
+| Stage | Deliverable | Acceptance | Status |
+| --- | --- | --- | --- |
+| E1 | Visual Core editor | Create rectangles/circles without JSON; select, move by pointer/keyboard, edit geometry/colors, reorder/delete, bind named toggle controls, undo/redo, save/import source, export/reopen IIMG offline. Validate with the existing compiler and preserve imported raster assets. | Implemented; local Chromium/schema acceptance passed; cross-host CI and manual acceptance pending |
+| E2 | Authoring usability | PNG import with explicit supported-subset diagnostics; reusable templates; responsive property panels; unsaved-work recovery with explicit local-storage policy and bounded history. Fresh contributor authors and submits a tested example using public instructions. | Planned after E1 |
+| I1 | State-driven visibility and grouped actions | RFC defines typed state, initial state, atomic actions, cycle rejection, work budgets, hidden-object hit/focus behavior and reset. Positive/negative/reference fixtures; old readers show a static preview for unsupported capabilities. Extend compiler, native engine, WASM, viewer, editor and schemas together. | Design after E1; implement after RFC fixtures |
+| I2 | Bounded motion | RFC defines a normalized integer clock, interpolation, duration/repeat/work limits, pause/background behavior and reduced-motion equivalent. Replaying time-stamped events yields reference frames; stalled/fast hosts agree at the same logical time. No uncontrolled callbacks. | Depends on I1 and timing/resource review |
+| I3 | Drag and constrained values | RFC defines pointer capture/cancel, coordinate normalization, constraints, keyboard/accessibility equivalents and bounded hit testing. Native/WASM traces agree; interrupted gestures and reset recover safely. | Depends on state model; motion is optional |
+| I4 | Text/input profile | Decide editable scene text, font distribution/licensing, shaping, bidirectional text, language tags, composition and length limits. Arabic/Latin fixtures must agree across implementations. Network, arbitrary scripts and unrestricted forms remain outside Core. | Research; no implicit promise in 1.0 Core |
+| P1 | Performance and accessibility | Controlled repeated open/reset/idle runs, host + renderer memory, low-memory device testing, latency distributions, TalkBack names/states/focus and large-font/zoom tests. Record fixture/build/device hashes and distinguish sampled memory from peaks. | Can run alongside E1/E2 |
+| P2 | Distribution and host coverage | Stable update-signing procedure, reproducible release provenance, import/share matrix; prioritize iOS/desktop by available testers. Test upgrades and rejection/fallback, not installation alone. | After preview stabilization |
+| S1 | Stable Core and ecosystem | Independent implementation/conformance and security review; resolve blockers, freeze normative Core/registry, publish migration/support policies and stable artifacts. Evaluate MIME registration separately. | External review deferred; technical preparation continues |
+
+## Scope of the first editor increment
+
+E1 uses the existing Core vocabulary and does not change wire bytes or capability identifiers. The visual workspace and JSON panel share one source document. A separate WASM instance validates and renders editor frames so editing cannot mutate the currently opened viewer image. Every export still goes through the Rust compiler; generated previews come from the reference renderer.
+
+The scene list and numeric properties provide alternatives to pointer dragging. Pointer cancellation does not commit a move. History is bounded by entry count and approximate stored text size. Imported assets are retained and can be repositioned; direct PNG upload belongs to E2. Importing compiled IIMG back into editable source requires a separately specified decompiler; E1 imports source JSON and exports both source JSON and IIMG.
+
+An invalid source must clear stale editor presentation and disable visual editing. Failed property edits leave the last accepted document intact with a diagnostic. File import must reject oversized input and must not overwrite edits made while reading. Labels/IDs are text, never markup. The offline cache and distributable web archive must include the editor module, while the Android reference viewer continues to hide authoring.
+
+## Compatibility and test policy
+
+- Do not silently add advanced semantics to `toggle-fill` or overload existing trace events. New required capabilities get explicit negotiation and compatibility fixtures. A capability upgrade must specify which readers can extract the preview and which must reject the envelope.
+- For each interaction stage, deliver specification/RFC, independent fixtures, validation budgets, native runtime, compiler, schemas, WASM host, accessibility behavior and editor support. Keep draft capabilities opt-in until accepted; do not force all experimental features into stable Core.
+- E1 browser checks cover author/export/reopen, exact initial/active pixels, source round-trip including assets, pointer and keyboard movement, cancelled drag, undo/redo, layer selection, invalid/out-of-budget inputs, inert labels, offline reload and narrow screens. Existing viewer/Android cancellation tests remain required.
+- Bug fixes require a reproducer that fails on the parent and passes after the change. Feature checks must assert user-visible results and file validity rather than implementation details. Package checks execute the extracted binaries and include all required shell assets.
+- Changes are reviewed in small PRs with acceptance evidence and remaining limitations. The existing preview PR is a dependency, not an authorization to bypass review for later work.
+
+## Tracking
+
+Use E1/E2/I1/I2/I3/I4/P1/P2/S1 in issues and PR descriptions. For each completed slice, update PROGRESS with the tested revision, commands/workflow links, physical-device evidence if available and the next unchecked acceptance gate. Do not use a completion percentage for external adoption or unmeasured work.
