@@ -24,6 +24,8 @@ jobs:
           gradle-version: "9.6.0"
       - run: cargo fetch --locked
       - run: cargo fetch --locked --manifest-path fuzz/Cargo.toml
-      - run: sdkmanager "platforms;android-35" "build-tools;36.0.0"
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: "platform-tools platforms;android-35 build-tools;36.0.0"
       - run: gradle -p viewers/android --init-script "$GITHUB_WORKSPACE/scripts/android_dependency_report.gradle" iimgAndroidDependencyReport --no-daemon
       - run: python -B scripts/audit_dependencies.py --android-report viewers/android/build/reports/iimg-dependencies.json

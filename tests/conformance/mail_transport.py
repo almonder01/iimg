@@ -66,7 +66,7 @@ def round_trip(payload, subtype, name):
         thread = Thread(target=sink.serve_forever)
         thread.start()
         try:
-            with smtplib.SMTP(*sink.server_address, timeout=10) as sender:
+            with smtplib.SMTP(*sink.server_address, local_hostname="localhost", timeout=10) as sender:
                 sender.send_message(message)
             received = sink.received.get(timeout=10)
         finally:
