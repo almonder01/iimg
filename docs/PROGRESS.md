@@ -18,7 +18,8 @@ The active goal is an interoperable IIMG 1.0 release. See the [implementation pl
 - [x] Add a Linux, Windows and macOS CI matrix and validate the original sample with a byte-for-byte regeneration check.
 - [x] Bound CLI file reads and validate encoder structure and total size before serialization.
 - [ ] Verify the updated workflow on GitHub and configure required checks.
-- [ ] Confirm publication license scopes and fixture distribution terms and verify a private security reporting channel.
+- [x] Confirm MIT OR Apache-2.0 for code and fixtures, and CC BY 4.0 for documentation and specifications.
+- [x] Enable and verify GitHub private vulnerability reporting.
 - [x] Add the legal texts corresponding to the declared README policy and include project and Cargo dependency notices in review archives.
 - [x] Add structural JSON Schema models with a locked validator and explicit semantic validation tests.
 - [x] Record the historical fixture in a versioned manifest.
@@ -32,6 +33,8 @@ The fixture manifest's byte count and SHA-256 were checked against the sample. T
 The updated [contributor checks](TESTING.md#local-developer-checks) use the lockfile and preserve the historical sample. The listed Rust, independent conformance and loopback SMTP commands all passed locally on Windows.
 
 The implementation is recorded in local commit `ce524c201a5f125384c2f65bd1ff70bb8d7422aa` on review branch `work/iimg-core-candidate`. The [changelog](../CHANGELOG.md) records the current candidate features, compatibility changes and migration path. Remote GitHub verification and publication remain open.
+
+On 2026-11-05, the repository owner approved the license scopes for code, fixtures, documentation and specifications and authorized publication of the review branch. Fixture manifests and generated Android manifests now carry the approved SPDX license expression.
 
 ## Next
 

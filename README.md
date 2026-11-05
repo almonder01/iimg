@@ -40,7 +40,7 @@ See [authoring](docs/AUTHORING.md) to create and preview your own interactive fi
 Use the [SDK integration guide](docs/SDK.md) to embed the core or WebAssembly adapter in another application.
 
 ## Licenses
-The declared policy is MIT OR Apache-2.0 for code and CC BY 4.0 for documentation and specifications. See the [license texts and scopes](LICENSES.md). Owner sign-off and fixture distribution terms remain publication gates. Contributions use the applicable project license, with DCO sign-off recommended.
+Code and project-authored fixtures use MIT OR Apache-2.0. Documentation and specifications use CC BY 4.0. See the [license texts and scopes](LICENSES.md). Contributions use the applicable project license, with DCO sign-off recommended.
 
 ## Security
 Untrusted input must be treated as hostile. Please use private reporting as described in [SECURITY.md](SECURITY.md).

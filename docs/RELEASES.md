@@ -33,7 +33,7 @@ python -B scripts/package_candidate.py --cli target/release/iimg-cli.exe --wasm 
 
 The output directory must be new. It contains CLI, web, specification and conformance archives, the build record, a CycloneDX dependency list for each Rust artifact, and SHA-256 checksums. Archives use fixed entry order, timestamps and permissions. Repackaging the same binaries and source files tests archive reproducibility. Build reproducibility requires comparing binaries built independently from a clean revision.
 
-Each archive includes the project [license policy and legal texts](../LICENSES.md). The CLI and web archives also include license and notice files from the resolved Cargo dependency sources under `licenses/cargo/`. Their manifest records each package, its declared license and its notice-file digests. The verifier checks dependency coverage against the SBOM and rejects missing or changed notices. Maintainer confirmation of fixture distribution terms remains a publication gate.
+Each archive includes the project [license policy and legal texts](../LICENSES.md). The CLI and web archives also include license and notice files from the resolved Cargo dependency sources under `licenses/cargo/`. Their manifest records each package, its declared license and its notice-file digests. The verifier checks dependency coverage against the SBOM and rejects missing or changed notices.
 
 Verify a package you built before passing it to a reviewer.
 

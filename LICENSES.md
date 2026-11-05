@@ -4,7 +4,7 @@ The repository declares MIT OR Apache-2.0 for project code and CC BY 4.0 for doc
 
 Project code includes the Rust crates, viewer applications, scripts, fixture generators and test implementations. Documentation includes specifications, machine-readable schemas, RFCs and contributor guides. Attribute project material to IIMG contributors and preserve more specific copyright notices where supplied. The project source is available at [almonder01/iimg](https://github.com/almonder01/iimg).
 
-Fixture documents, embedded artwork, portable trace data and authoring examples retain the distribution status recorded in their manifests. The current fixture manifests require maintainer confirmation before publication. Owner sign-off on the publication scopes and fixture terms remains a release gate.
+Project-authored fixture documents, embedded artwork, portable trace data and authoring examples are available under MIT OR Apache-2.0. Their manifests record the license and provenance. The repository owner approved these publication scopes on 2026-11-05.
 
 Third-party components retain their own licenses and copyright notices. Review packages include the Cargo dependency license files under `licenses/cargo/`, with an inventory and SHA-256 values. The inventory covers the resolved dependency closure, including build dependencies. Review additional platform tooling and bundled components when preparing Android or other distributions.
 
