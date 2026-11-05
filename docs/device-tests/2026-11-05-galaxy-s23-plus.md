@@ -1,6 +1,8 @@
 # Samsung Galaxy S23+ manual device test
 
-Date: 2026-11-05. Phone observations come from the repository owner's reports while following the physical-device test instructions, without ADB logs, captured reference frames or on-device checksum measurements. A separate computer-side byte comparison and validation are recorded below.
+Date: 2026-11-05. Phone observations come from the repository owner's reports while following the physical-device test instructions, with screenshots for preview fallback and corrupt-file rejection. ADB logs, automated frame comparisons and on-device checksum measurements were not captured. A separate computer-side byte comparison and validation are recorded below.
+
+Outcome: the selected physical-device smoke procedure passed on this Galaxy S23+ / Android 17 configuration: local opening, touch, reset, offline reopening, WhatsApp handoff/interaction, computer download integrity, unsupported-feature preview, corrupt-file rejection and recovery. Broader platform, accessibility and independent-review gates remain separate.
 
 ## Configuration
 
@@ -30,6 +32,9 @@ The published downloads were retrieved without authentication and matched these 
 | Select **Reset image** to restore the yellow initial state | Passed as part of the reported offline procedure |
 | Tap the IIMG attachment in WhatsApp, select IIMG Viewer and open the image | Passed, tester explicitly reported the app appeared and the image opened in it |
 | Activate the image after opening it from WhatsApp | Passed, tester subsequently confirmed interaction worked |
+| Open `unsupported.iimg` | Passed, screenshot shows the static-preview status and image; tester confirmed the requested behavior |
+| Open `corrupt.iimg` | Passed, screenshot shows the invalid/unsupported diagnostic with the previous image and controls absent |
+| Reopen the valid fixture after rejection | Passed, tester explicitly confirmed the valid image opened and worked again |
 
 The WhatsApp check used self-chat on the same phone. It establishes attachment handoff, image opening and interaction in IIMG Viewer on this phone. Reset was reported successful in the earlier offline procedure and was not separately reported for this handoff. This phone observation does not establish interactive rendering inside WhatsApp itself. Download integrity on a separate client was checked next.
 
@@ -56,11 +61,13 @@ The same [device-test release](https://github.com/almonder01/iimg/releases/tag/a
 | `unsupported.iimg` | 659 | `62024a4ad5807e232aa9e755094e8e6dce50d7a7657812090985e3ae47c5fed0` | Static PNG preview; interaction unavailable |
 | `corrupt.iimg` | 637 | `b5c5a636edcdac743a9000ff85ccf91475cb68e19840ca23ad664b3fd1f5d67d` | Diagnostic and clearing the previous image/controls |
 
-The Rust CLI rejected full validation with `UnsupportedProfile` and `BadCrc` respectively. Static preview extraction succeeded only for the unsupported case, and the independent Python preview reader agreed. Physical results remain pending. After the corrupt case, reopen `raster-toggle.iimg` and verify that normal interaction recovers.
+The Rust CLI rejected full validation with `UnsupportedProfile` and `BadCrc` respectively. Static preview extraction succeeded only for the unsupported case, and the independent Python preview reader agreed. The tester subsequently confirmed both expected phone results and successful reopening of the valid fixture with interaction restored.
+
+Two supplied screenshots were reviewed in the test session. The first shows the unsupported-feature static-preview message and the expected scene without interactive controls. The second shows the invalid/unsupported diagnostic and cleared image area. Recovery was reported by the tester rather than captured in those screenshots. The screenshots were not added to the public repository.
 
 ## Remaining evidence
 
 - Record the WebView version, computer WhatsApp variant/version and versions of any additional source apps tested.
 - Broaden messenger/email and recipient coverage as needed; the reported WhatsApp phone-to-computer route preserved all bytes, and phone attachment handoff/opening/interaction passed.
-- Test physical-device file-manager VIEW/SEND routing, unsupported-capability fallback, corrupt-file rejection and recovery.
+- Broaden physical-device file-manager VIEW/SEND routing; the picker and WhatsApp open route have passed, as have unsupported-capability fallback, corrupt-file rejection and recovery.
 - Run accessibility checks and broader device/OS coverage. These initial observations do not establish complete Android acceptance or stable-release readiness.

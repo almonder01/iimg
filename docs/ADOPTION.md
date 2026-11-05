@@ -3,7 +3,7 @@
 | Item | Status | Evidence needed |
 | --- | --- | --- |
 | Native attachment transfer | Local SMTP/MIME verified; reported WhatsApp phone-to-computer download matched the 657-byte fixture and SHA-256 | Computer client variant/version and additional app/recipient coverage |
-| Android open-with and sharing | Emulator checks passed; Galaxy S23+ / Android 17 tester reported picker, touch, reset, offline reopening and WhatsApp self-chat attachment handoff/opening/interaction passed | File-manager VIEW/SEND, fallback/recovery and WebView version |
+| Android open-with and sharing | Emulator checks passed; Galaxy S23+ / Android 17 passed the reported picker, touch, reset, offline, WhatsApp, fallback, corrupt-file rejection and recovery procedure, with two diagnostic screenshots | Broader file-manager VIEW/SEND coverage, WebView version and other devices |
 | In-app interactive support | Awaiting third-party integration | Public implementation or repeatable tested behavior |
 | PNG carriage experiment | Research | Preservation and decode results through editing and transfer pipelines |
 | Media-type registration | Preparation pending Core stability | Published specification, selected registration tree and submitted request |
