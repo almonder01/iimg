@@ -8,6 +8,7 @@ The SDK remains at 0.1.0. Wire 1.0 is a published candidate under review.
 
 - Visual web authoring workspace with Core-rendered design preview, pointer/keyboard movement, layers, toggle bindings, bounded history and editable source import/save.
 - Acceptance-driven development plan for authoring, advanced interactions and remaining host/release work.
+- Packaged loopback web host with explicit JavaScript/WASM MIME types, including a broken-Windows-mapping regression check.
 
 - Original large rect/circle showcase scenes and 256/1024/2048 pixel workloads with native/WASM frame and control verification.
 - Gallery benchmark with equivalent SVG/HTML sources, input/engine hashes and explicitly scoped memory samples.

@@ -3,11 +3,15 @@
 import argparse
 import hashlib
 import json
+import mimetypes
 from pathlib import Path, PurePosixPath
 import re
+import runpy
 import subprocess
 import sys
 import tempfile
+import threading
+from urllib.request import urlopen
 from zipfile import ZipFile
 
 
@@ -94,9 +98,26 @@ def verify(package, require_clean):
         extract(package / cli_archive, scratch / "cli")
         extract(package / "iimg-web.zip", scratch / "web")
         extract(package / "iimg-spec-and-conformance.zip", scratch / "suite")
-        for name in ("index.html", "viewer.mjs", "editor.mjs", "offline.js", "iimg_web.wasm"):
+        for name in ("index.html", "viewer.mjs", "editor.mjs", "offline.js", "iimg_web.wasm", "serve.py"):
             if not (scratch / "web" / name).is_file():
                 raise ValueError(f"missing web shell asset {name}")
+        # Reproduce the broken Windows module mapping and verify the packaged
+        # host still serves runnable modules, without an installed browser.
+        mimetypes.add_type("text/plain", ".mjs")
+        host = runpy.run_path(str(scratch / "web/serve.py"))
+        with host["make_server"](scratch / "web", 0) as server:
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                for name, mime in (("index.html", "text/html"), ("viewer.mjs", "text/javascript"),
+                                   ("editor.mjs", "text/javascript"), ("offline.js", "text/javascript"),
+                                   ("iimg_web.wasm", "application/wasm")):
+                    with urlopen(f"http://127.0.0.1:{server.server_port}/{name}", timeout=5) as response:
+                        if response.headers.get_content_type() != mime or response.read() != (scratch / "web" / name).read_bytes():
+                            raise ValueError(f"incorrect packaged web response for {name}")
+            finally:
+                server.shutdown()
+                thread.join(timeout=5)
         for bundle in ("cli", "web", "suite"):
             if any(not (scratch / bundle / name).is_file()
                    or not (scratch / bundle / name).stat().st_size for name in LICENSE_FILES):

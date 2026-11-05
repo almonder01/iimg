@@ -133,6 +133,7 @@ def package(output, cli, wasm, target):
     project_licenses = source_entries(LICENSE_FILES)
     web = {name: ((ROOT / "viewers/web" / name).read_bytes(), 0o644) for name in WEB_FILES}
     web["iimg_web.wasm"] = (wasm_data, 0o644)
+    web["serve.py"] = ((ROOT / "scripts/serve_web.py").read_bytes(), 0o644)
     web.update(project_licenses)
     web.update(web_notices)
     spec = source_entries(SPEC_FILES)

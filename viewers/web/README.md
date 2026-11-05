@@ -1,6 +1,6 @@
 # Experimental IIMG web viewer
 
-The packaged web viewer includes `iimg_web.wasm`. Serve the extracted directory with `python -m http.server --bind 127.0.0.1 8000` from that directory. For a source checkout, build the engine using the commands below.
+The packaged web viewer includes `iimg_web.wasm` and `serve.py`. From the extracted directory run `python serve.py` and open `http://127.0.0.1:8000`. The host binds only to the local computer and sets module/WASM MIME types explicitly; some Windows configurations otherwise serve `.mjs` as `text/plain` and browsers refuse it. Stop with Ctrl+C. For a source checkout, build the engine using the commands below.
 
 The viewer reads selected files locally. After its first successful load on localhost or HTTPS, the service worker caches the page, script and engine so the viewer can reload offline. Selected files stay in memory and are not cached.
 
@@ -10,7 +10,7 @@ Open **Author an IIMG image** for the visual workspace: add rectangles/circles, 
 rustup target add wasm32-unknown-unknown
 cargo build --locked --release --target wasm32-unknown-unknown -p iimg-web
 Copy-Item target/wasm32-unknown-unknown/release/iimg_web.wasm viewers/web/iimg_web.wasm
-python -m http.server --bind 127.0.0.1 --directory viewers/web 8000
+python scripts/serve_web.py --directory viewers/web --port 8000
 ```
 
 Open `http://127.0.0.1:8000` and select `tests/fixtures/v0.2/two-controls.iimg`. Click or tap each colored shape, or use Tab and Enter or Space on the corresponding buttons. The buttons expose their pressed state to assistive technology. Reset restores the original colors.
