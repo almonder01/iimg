@@ -8,13 +8,15 @@ Treat every input file, URI stream, PNG, source document and event trace as untr
 | PNG decoding | Compressed size, dimensions and aggregate asset area limits before decode. Exact scanline output and zlib checksum, followed by RGB reconstruction in the same buffer | All five filters, split IDAT, malformed streams, maximum canvas and embedded asset tests |
 | Scene and interaction | Named-field JSON objects, unsigned integer tokens, strict fields, bounded lists, validated references, fixed geometry and one state change per event | Independent array-substitution and Unicode cases, atomic invalid replay, semantic comparison and mutation tests |
 | Rendering | Bounded canvas and shape bounding-box visits; reference renders use validated geometry | Overlap, render-budget and pixel-parity tests |
-| Browser and Android | Local selected bytes, isolated native WebView origin, fixed shell assets, inert text labels and a static fallback | Chromium offline checks, Android picker and system-injected touch with full canvas parity, fallback, rejection and VIEW/SEND on a dedicated API 34 emulator. Physical devices with normal system services remain open |
+| Browser and Android | Local selected bytes, isolated native WebView origin, fixed shell assets, inert text labels and a static fallback | Chromium offline/inert-label checks and emulator parity; [Galaxy S23+ physical smoke evidence](https://github.com/almonder01/iimg/pull/2). Provider faults and broader devices remain separate review areas |
 
 CRC is an accidental corruption check. When origin matters, use an authenticated transport or verify a trusted digest. The preview is authored content and should receive the same trust as any other pixels supplied by the document author.
 
 For a single PNG, the scanline allocation is `(3 × width + 1) × height` bytes. Reconstructing RGB in place eliminates a second `3 × width × height` byte allocation, or 12 MiB at 2048 × 2048. The returned vector retains the scanline allocation, including at most 2048 bytes of capacity beyond its RGB length.
 
 Before release, review the combined worst-case allocation across document bytes, decoded assets, preview buffers, rendering buffers and host copies. Test CPU and allocation behavior on low-memory Android devices. Review dependencies and the Android URI and WebView boundaries independently. Sustained sanitizer runs, advisory readiness and external security review remain separate evidence.
+
+The [technical review and independent-review handoff](reviews/2026-11-05-core-candidate.md) records reviewed boundaries, reproducible evidence and open provider-liveness, memory and interoperability questions. The 2026-11-05 [Linux advisory workflow](https://github.com/almonder01/iimg/actions/runs/42032499751) checked 154 distinct locked package versions across Rust, npm and Maven and found no OSV matches. This result is an advisory query for those versions at that time, not a certification of the runtime or build chain.
 
 ## Locked dependency advisories
 

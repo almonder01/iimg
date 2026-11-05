@@ -27,6 +27,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: python -B tests/conformance/check.py
+      - run: python -B tests/conformance/generated.py
       - run: python -B tests/conformance/android_fixtures.py --output target/android-device-fixtures
       - run: python -B tests/conformance/mail_transport.py
   web:
