@@ -18,6 +18,7 @@ SPEC_FILES = (
     "spec/IIMG-1.0-candidate.md", "rfcs/0001-wire-compatibility.md",
     "rfcs/0002-raster-assets.md", "docs/AUTHORING.md", "docs/SDK.md", "docs/ARCHITECTURE.md",
     "docs/SECURITY-MODEL.md",
+    "docs/TESTING.md", "docs/reviews/2026-11-05-core-candidate.md",
     "docs/adr/0001-container-first.md", "viewers/web/README.md", "viewers/android/README.md",
 )
 
@@ -141,6 +142,7 @@ def package(output, cli, wasm, target):
     spec.update(source_entries((
         "examples/hello.iimg", "examples/lamp.source.json", "examples/raster-lamp.source.json",
         "tests/conformance/check.py",
+        "tests/conformance/generated.py",
         "tests/conformance/reference.py", "tests/conformance/mail_transport.py", "tests/README.md",
         "tests/conformance/android_fixtures.py",
         "scripts/test_android_webview.mjs", "scripts/test_android_handoff.py",

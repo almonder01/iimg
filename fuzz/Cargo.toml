@@ -20,3 +20,10 @@ path = "fuzz_targets/decode.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "author"
+path = "fuzz_targets/author.rs"
+test = false
+doc = false
+bench = false

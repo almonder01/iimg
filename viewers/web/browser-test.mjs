@@ -109,8 +109,23 @@ try {
   assert.deepEqual(await pixel(6, 15), [80, 175, 240, 255]);
   await lamp.click();
   assert.deepEqual(await pixel(16, 16), [248, 113, 113, 255]);
+
+  // Labels are untrusted document text: markup must remain literal, and must
+  // never create an element or execute a handler inside the viewer origin.
+  const hostileLabel = '<svg onload="globalThis.iimgLabelExecuted=1"></svg>';
+  const hostileSource = JSON.parse(validSource);
+  hostileSource.interaction.controls[0].label = hostileLabel;
+  await source.fill(JSON.stringify(hostileSource));
+  await downloadLink.waitFor({ state: "visible" });
+  await page.getByRole("button", { name: "Validate and preview" }).click();
+  const literalControl = page.getByRole("button", { name: hostileLabel, exact: true });
+  await literalControl.waitFor({ state: "visible" });
+  assert.equal(await page.locator("#controls svg, #controls img, #controls script").count(), 0);
+  assert.equal(await page.evaluate(() => globalThis.iimgLabelExecuted), undefined);
+  await literalControl.click();
+  assert.deepEqual(await pixel(16, 16), [248, 113, 113, 255]);
   assert.deepEqual(errors, []);
-  console.log(`Chromium ${browser.version()} passed offline reload, input, live authoring, export and reopen.`);
+  console.log(`Chromium ${browser.version()} passed offline reload, input, live authoring, export, reopen and inert document labels.`);
 
   const android = await browser.newContext();
   const androidPage = await android.newPage();

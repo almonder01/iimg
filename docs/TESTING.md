@@ -10,6 +10,7 @@ cargo clippy --locked --workspace --all-targets -- -D warnings
 cargo test --locked --workspace
 cargo run --locked -p iimg-cli -- validate examples/hello.iimg
 python -B tests/conformance/check.py
+python -B tests/conformance/generated.py
 python -B tests/conformance/mail_transport.py
 ```
 
@@ -56,6 +57,10 @@ cargo +nightly fuzz run decode -- -max_len=65537 -max_total_time=60
 ```
 
 Record the command, host, seed corpus and run duration. Minimize any failure and add a regression test. Handle sensitive crashes through the private reporting process.
+
+The separate `author` target consumes source JSON and checks draft/candidate acceptance, migration and preview/render parity. Seed `fuzz/corpus/author` with `examples/*.source.json`, then run `cargo +nightly fuzz run author -- -max_len=65536 -max_total_time=60`. Both smoke targets bound inputs below the production maxima; keep maximum-budget tests separate. The workflow defaults to 600 seconds per target and validates its optional `seconds` input within 1–600.
+
+The generated conformance runner uses seed `0x49494d47` for 40 small scenes, comparing draft/candidate initial pixels, 80 replay frames and migrations with the separate Python evaluator. It runs in Rust CI and extracted candidate-package verification. See the [technical review and independent-review handoff](reviews/2026-11-05-core-candidate.md) for evidence and unresolved review questions.
 
 ## CI gating
 

@@ -108,6 +108,8 @@ def verify(package, require_clean):
             raise ValueError("extracted binary digest differs from build record")
         subprocess.run([sys.executable, "-B", scratch / "suite/tests/conformance/check.py",
                         "--cli", cli], check=True)
+        subprocess.run([sys.executable, "-B", scratch / "suite/tests/conformance/generated.py",
+                        "--cli", cli], check=True)
         subprocess.run([sys.executable, "-B", scratch / "suite/tests/conformance/mail_transport.py",
                         "--cli", cli], check=True)
         subprocess.run(["node", ROOT / "viewers/web/smoke.mjs", wasm], check=True)
