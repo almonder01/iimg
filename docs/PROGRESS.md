@@ -30,7 +30,7 @@ The fixture manifest's byte count and SHA-256 were checked against the sample. T
 
 The updated [contributor checks](TESTING.md#local-developer-checks) use the lockfile and preserve the historical sample. The listed Rust, independent conformance and loopback SMTP commands all passed locally on Windows.
 
-The implementation is being collected on the local review branch `work/iimg-core-candidate`. The [changelog](../CHANGELOG.md) records the current candidate features, compatibility changes and migration path. Remote GitHub verification and publication remain open.
+The implementation is recorded in local commit `ce524c201a5f125384c2f65bd1ff70bb8d7422aa` on review branch `work/iimg-core-candidate`. The [changelog](../CHANGELOG.md) records the current candidate features, compatibility changes and migration path. Remote GitHub verification and publication remain open.
 
 ## Next
 
@@ -83,6 +83,8 @@ A refreshed Windows review package includes the live editor and the optimized PN
 The [license policy](../LICENSES.md) now links the declared MIT, Apache-2.0 and CC BY 4.0 texts. The web crate declares the existing project code license in its Cargo metadata. Each CLI and web review archive contains 30 license/notice files for 13 resolved Cargo dependencies, including the Unicode notice. The verifier checks inventory coverage against the SBOM and notice SHA-256 values. Negative checks removed a project license, removed a dependency and changed a notice, then recalculated outer checksums. Each modified package was rejected. Owner approval of publication scopes and fixture terms remains open.
 
 Two packages generated from the same updated source and binaries, including the license inventories, matched byte for byte.
+
+A review package built from clean local commit `ce524c2` passed `verify_candidate_package.py --require-clean`. Its record reports `dirty_worktree: false`, and both supplied binary digests match the source-only reproducibility check. The extracted conformance, loopback SMTP and WASM checks passed. The commit and package remain local and unsigned.
 
 The [dependency advisory check](SECURITY-MODEL.md#android-dependency-inventory) resolved the seven remaining Android build-tool advisories through scoped fixed-version overrides. The post-fix OSV run covered 149 distinct versions across Rust, npm and Maven and returned no matches. Both APKs rebuilt and the viewer APK passed asset and debug signature checks. Independent security review remains open.
 
