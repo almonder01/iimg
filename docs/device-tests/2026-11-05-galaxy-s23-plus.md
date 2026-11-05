@@ -8,6 +8,8 @@ Date: 2026-11-05. Evidence source: the repository owner's reports while followin
 | --- | --- |
 | Device | Samsung Galaxy S23+ |
 | Android | 17, reported by the tester |
+| WhatsApp | 2.26.42.74, reported by the tester |
+| Chat route | Self-chat on the same phone, explicitly confirmed by the tester |
 | WebView / One UI / firmware build | Not yet recorded |
 | Application | [Experimental Android device-test APK](https://github.com/almonder01/iimg/releases/tag/android-device-test-2026-11-05) |
 | APK source | GitHub Android workflow at `047d3e60817efb115d8a24beb6c7c17f2d71be91`; identical source tree to merged `82d903460a50434d3c3927600ef5c86eca4d4e9a` |
@@ -27,12 +29,13 @@ The published downloads were retrieved without authentication and matched these 
 | Activate the circle while offline | Passed as part of the reported offline procedure |
 | Select **Reset image** to restore the yellow initial state | Passed as part of the reported offline procedure |
 | Tap the IIMG attachment in WhatsApp, select IIMG Viewer and open the image | Passed, tester explicitly reported the app appeared and the image opened in it |
+| Activate the image after opening it from WhatsApp | Passed, tester subsequently confirmed interaction worked |
 
-The WhatsApp check followed the suggested document-attachment procedure. It establishes attachment handoff and image opening on this phone. Post-handoff activation/reset, the exact chat route, source-app version, delivery to a separate recipient and received-file digests have not yet been recorded. It does not establish interactive rendering inside WhatsApp itself.
+The WhatsApp check used self-chat on the same phone. It establishes attachment handoff, image opening and interaction in IIMG Viewer on this phone. Reset was reported successful in the earlier offline procedure and was not separately reported for this handoff. Delivery to a separate recipient and received-file digests have not yet been recorded. Self-chat opening can use a local copy, so it does not independently verify a network transfer or interactive rendering inside WhatsApp itself.
 
 ## Remaining evidence
 
-- Record the WebView and relevant source-app versions.
-- Confirm activation and reset after opening from WhatsApp. Record actual messenger/email delivery to a separate recipient and received-file byte integrity; attachment handoff and image opening from WhatsApp have been reported successful.
+- Record the WebView version and versions of any additional source apps tested.
+- Record actual messenger/email delivery to a separate client or recipient and received-file byte integrity; self-chat attachment handoff, image opening and interaction from WhatsApp 2.26.42.74 have been reported successful.
 - Test physical-device file-manager VIEW/SEND routing, unsupported-capability fallback, corrupt-file rejection and recovery.
 - Run accessibility checks and broader device/OS coverage. These initial observations do not establish complete Android acceptance or stable-release readiness.

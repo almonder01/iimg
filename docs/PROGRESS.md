@@ -7,7 +7,7 @@ The active goal is an interoperable IIMG 1.0 release. See the [implementation pl
 | M0 · Verified foundation | Gate verified | Linux, Windows and macOS CI and review packages passed on published revision `252ebc9`; main protection and private reporting verified |
 | M1 · Visual document | Local gate verified | Typed scene, bounded PNG preview, independent reference pixels and malformed fixture parity |
 | M2 · Interaction | Local gate verified | Chromium offline reload, local file open, mouse, emulated touch and keyboard; native replay matches |
-| M3 · Viewers and sharing | In progress | Emulator and loopback checks passed; Galaxy S23+ / Android 17 tester reported opening, touch, reset, offline reopening and WhatsApp attachment handoff/opening passed. Post-handoff interaction, fallback and transfer integrity pending |
+| M3 · Viewers and sharing | In progress | Emulator and loopback checks passed; Galaxy S23+ / Android 17 tester reported opening, touch, reset, offline reopening and WhatsApp self-chat handoff/opening/interaction passed. Fallback, remaining handoff paths and transfer integrity pending |
 | M4 · Authoring | In progress | Shared source compiler, CLI export and offline editor with live validation. Public contributor workflow pending |
 | M5 · Stable 1.0 | In progress | Candidate wire, migration and initial independent parity evidence |
 
@@ -42,7 +42,7 @@ On 2026-11-05, the repository owner approved the license scopes for code, fixtur
 
 The owner subsequently selected Apache-2.0 as the sole license for the current code and project-authored fixtures. Crate metadata, manifests and packaging now use that scope, with the canonical Apache text in `LICENSE` and project attribution in `NOTICE`. Review archives and the Android viewer include these files. Earlier published dual-license grants remain recorded in Git history; documentation and specifications remain CC BY 4.0.
 
-The [Android device-test prerelease](https://github.com/almonder01/iimg/releases/tag/android-device-test-2026-11-05) provides direct, anonymously verified APK and fixture downloads. The [Galaxy S23+ / Android 17 record](device-tests/2026-11-05-galaxy-s23-plus.md) documents the owner's reported success with installation, opening, touch, offline reopening and reset, followed by WhatsApp attachment handoff and image opening. Post-WhatsApp activation/reset, physical-device fallback and remaining handoff paths, separate-recipient delivery and received-file digests remain open.
+The [Android device-test prerelease](https://github.com/almonder01/iimg/releases/tag/android-device-test-2026-11-05) provides direct, anonymously verified APK and fixture downloads. The [Galaxy S23+ / Android 17 record](device-tests/2026-11-05-galaxy-s23-plus.md) documents the owner's reported success with installation, opening, touch, offline reopening and reset, followed by WhatsApp 2.26.42.74 self-chat attachment handoff, image opening and interaction. Physical-device fallback and remaining handoff paths, separate-client/recipient delivery and received-file digests remain open.
 
 ## Next
 
