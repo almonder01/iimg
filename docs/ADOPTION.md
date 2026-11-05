@@ -3,7 +3,7 @@
 | Item | Status | Evidence needed |
 | --- | --- | --- |
 | Native attachment transfer | Local SMTP/MIME transfer verified for generic and experimental attachment types | Third-party app and platform versions, send mode, received SHA-256 and result |
-| Android open-with and sharing | VIEW and SEND passed using a private fixture provider on Android API 34 | Picker and physical input checks plus third-party app-specific results |
+| Android open-with and sharing | Picker, system-injected touch and VIEW/SEND passed on the dedicated Android API 34 emulator | Physical-device checks with normal system services and third-party app-specific results |
 | In-app interactive support | Awaiting third-party integration | Public implementation or repeatable tested behavior |
 | PNG carriage experiment | Research | Preservation and decode results through editing and transfer pipelines |
 | Media-type registration | Preparation pending Core stability | Published specification, selected registration tree and submitted request |

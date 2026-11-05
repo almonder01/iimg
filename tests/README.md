@@ -11,6 +11,8 @@ their valid static previews remain available.
 
 The suite includes arrays substituted for required objects, unsigned numeric token rules and Unicode string validity. Invalid metadata prevents preview extraction. Invalid scene or interaction payloads can retain a valid static preview. Arabic and emoji labels are positive cases.
 
+Run `python -B tests/conformance/android_fixtures.py --output target/android-device-fixtures` after building the CLI to generate the three Android picker cases, independent initial and active frames and a SHA-256 manifest. The output directory must be new. Use the [Android checks](../viewers/android/README.md) to compare the device canvas with those frames.
+
 Run `python -B tests/conformance/mail_transport.py` after building the CLI to
 verify generic and experimental IIMG attachment transfer through a loopback
 SMTP server. The script checks the decoded bytes and the recovered replay

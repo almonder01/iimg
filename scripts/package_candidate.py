@@ -142,6 +142,8 @@ def package(output, cli, wasm, target):
         "examples/hello.iimg", "examples/lamp.source.json", "examples/raster-lamp.source.json",
         "tests/conformance/check.py",
         "tests/conformance/reference.py", "tests/conformance/mail_transport.py", "tests/README.md",
+        "tests/conformance/android_fixtures.py",
+        "scripts/test_android_webview.mjs", "scripts/test_android_handoff.py",
         "viewers/web/schema-test.mjs", "viewers/web/package.json", "viewers/web/package-lock.json",
     )))
 

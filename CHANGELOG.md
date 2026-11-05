@@ -11,6 +11,7 @@ The SDK remains at 0.1.0. Wire 1.0 is a candidate under review. This entry descr
 - CLI authoring, rendering, static preview extraction and 0.2-to-1.0 migration.
 - Offline web viewer and source editor with live validation, generated previews and file export.
 - Android reference host for content-URI opening and sharing, plus a separate handoff test fixture app.
+- Android picker fixtures and independent frame checks for native input, reset, preview fallback and corrupt-file recovery.
 - Independent Python envelope, PNG, scene and event evaluation with versioned fixtures and differential checks.
 - JSON Schema models for editor integration with strict structural tests and Core semantic checks.
 - Source-only reproducibility checks, review packaging, checksums, SBOMs and project/dependency license inventories.

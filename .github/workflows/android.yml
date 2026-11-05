@@ -9,6 +9,8 @@ on:
       - "scripts/check_android_apk.py"
       - "scripts/test_android_handoff.py"
       - "scripts/test_android_webview.mjs"
+      - "tests/conformance/android_fixtures.py"
+      - "tests/fixtures/**"
       - ".github/workflows/android.yml"
 permissions:
   contents: read

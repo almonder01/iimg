@@ -8,7 +8,7 @@ Treat every input file, URI stream, PNG, source document and event trace as untr
 | PNG decoding | Compressed size, dimensions and aggregate asset area limits before decode. Exact scanline output and zlib checksum, followed by RGB reconstruction in the same buffer | All five filters, split IDAT, malformed streams, maximum canvas and embedded asset tests |
 | Scene and interaction | Named-field JSON objects, unsigned integer tokens, strict fields, bounded lists, validated references, fixed geometry and one state change per event | Independent array-substitution and Unicode cases, atomic invalid replay, semantic comparison and mutation tests |
 | Rendering | Bounded canvas and shape bounding-box visits; reference renders use validated geometry | Overlap, render-budget and pixel-parity tests |
-| Browser and Android | Local selected bytes, isolated native WebView origin, fixed shell assets, inert text labels and a static fallback | Chromium offline checks and actual Android WebView rendering after VIEW and SEND on API 34; picker and physical input remain open |
+| Browser and Android | Local selected bytes, isolated native WebView origin, fixed shell assets, inert text labels and a static fallback | Chromium offline checks, Android picker and system-injected touch with full canvas parity, fallback, rejection and VIEW/SEND on a dedicated API 34 emulator. Physical devices with normal system services remain open |
 
 CRC is an accidental corruption check. When origin matters, use an authenticated transport or verify a trusted digest. The preview is authored content and should receive the same trust as any other pixels supplied by the document author.
 

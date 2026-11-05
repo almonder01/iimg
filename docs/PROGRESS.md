@@ -7,7 +7,7 @@ The active goal is an interoperable IIMG 1.0 release. See the [implementation pl
 | M0 · Verified foundation | In progress | Local Rust checks, matching historical fixture, cross-platform CI run and publication setup |
 | M1 · Visual document | Local gate verified | Typed scene, bounded PNG preview, independent reference pixels and malformed fixture parity |
 | M2 · Interaction | Local gate verified | Chromium offline reload, local file open, mouse, emulated touch and keyboard; native replay matches |
-| M3 · Viewers and sharing | In progress | Offline web, Android VIEW and SEND on API 34 and loopback email verified locally. Android picker, physical input and third-party transfer pending |
+| M3 · Viewers and sharing | In progress | Offline web, Android picker, system-injected touch, reset, fallback, VIEW/SEND and loopback email verified locally. Physical devices and third-party transfer pending |
 | M4 · Authoring | In progress | Shared source compiler, CLI export and offline editor with live validation. Public contributor workflow pending |
 | M5 · Stable 1.0 | In progress | Candidate wire, migration and initial independent parity evidence |
 
@@ -95,6 +95,14 @@ The post-fix viewer APK has SHA-256 `627f457ce9f2df48c6b2d82691fc4452fbe26f0d805
 
 The APK rebuilt with the in-place PNG decoder, passed the asset and v2 signature checks, and installed on the API 34 emulator. Its SHA-256 is `9495fb63d2da52f133bbdcaa1338d475669f83ae7b4ffeae543302c790ea0352`. The fixture copied into Downloads matched the repository SHA-256, and Android resolved the open-document intent to DocumentsUI. A System UI ANR covered the viewer and prevented verification of selection and touch. The handoff rerun also timed out before a WebView page became available. The [device instructions](../viewers/android/README.md#device-and-sharing-checks) now include read-only pixel and control-state checks for manual touch and reset.
 
+A new isolated API 34 emulator with host GPU rendering allowed the remaining picker checks. Android's exit records identified GMS FontsProvider death as the cause of viewer termination during startup. After disabling Google Play Services in that test emulator, the candidate file opened through DocumentsUI, two Android input taps matched the pointer trace, and a native reset tap restored the initial frame. Every canvas RGB pixel matched independently evaluated Python reference PPMs. Unsupported-capability and corrupt files selected through the picker produced a static preview and a diagnostic respectively. A valid file reopened and interacted correctly after the failure. Current VIEW/SEND handoff checks also passed.
+
+The current APK passed asset and v2 signature checks with SHA-256 `fc265e2af22272240ca1d3f511b37e619dffbb7dc2954cf068c8e8f5a1555395`. The tested 1.0 candidate was 637 bytes with SHA-256 `6a7804433626ae2163f447c3e66646a72642063d1d0e952547245754515992bd`. The [fixture generator](../tests/conformance/android_fixtures.py) reproduced all tested file and frame bytes. Physical-device checks with normal system services and third-party attachment transport remain open.
+
+The full-frame checker also rejected an intentionally incorrect reference frame. The current CI matrix generates the Android cases alongside conformance, and Android build triggers include the fixture sources. The isolated emulator was stopped, its two temporary data directories were removed, and the workspace keeps the test screenshots and generated cases under ignored `target/`.
+
+The extracted specification suite and CLI reproduced all three Android case files and both independent frame files inside the workspace. The fixture generator rejected an existing output directory without changing its manifest.
+
 The loopback SMTP test recovered the candidate file as generic binary and experimental IIMG MIME attachments, including an Arabic filename. Both downloads preserved the original SHA-256 and replay frame. The test is configured in the cross-platform CI matrix. Third-party mail and messaging delivery remain separate evidence.
 
 Two source-only Windows snapshots built from the worktree without Git metadata or prior build products. Formatting, Clippy, 32 Rust tests, independent conformance and the WASM smoke test passed. WASM binaries matched directly after path remapping. Default MSVC links differed in 20 executable bytes, including the PE timestamp. Relinking with `/Brepro` made the CLI binaries identical and the relinked CLI passed independent conformance. GitHub still points to the original foundation commit, so remote CI and published-revision provenance remain open.
@@ -105,4 +113,4 @@ Local Linux verification was attempted through the installed Docker Desktop. Sta
 
 The [Chromium performance baseline](BENCHMARKS.md) records 50 repetitions each for the vector and raster-backed lamp fixtures, including IIMG open, activation and observed WASM linear memory. SVG and HTML fixture sizes, parse/mount timings and painted screenshot pixels are verified. The three formats share an activation-to-next-animation-frame measurement. Rive equivalents, resident memory and physical event-to-display measurements remain open.
 
-Next, verify picker and physical input on a responsive Android device, record third-party attachment transport results, and continue clean cross-platform build verification, security review and release preparation. Track external [adoption and registration](ADOPTION.md) separately.
+Next, verify a physical Android device with normal system services, record third-party attachment transport results, and continue clean cross-platform build verification, security review and release preparation. Track external [adoption and registration](ADOPTION.md) separately.
