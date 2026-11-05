@@ -1,0 +1,21 @@
+[package]
+name = "iimg-fuzz"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+iimg-core = { path = "../crates/iimg-core" }
+libfuzzer-sys = "0.4"
+
+[workspace]
+
+[[bin]]
+name = "decode"
+path = "fuzz_targets/decode.rs"
+test = false
+doc = false
+bench = false

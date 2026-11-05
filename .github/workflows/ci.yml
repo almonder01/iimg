@@ -6,14 +6,52 @@ permissions:
   contents: read
 jobs:
   rust:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
       - run: cargo fmt --all -- --check
-      - run: cargo clippy --workspace --all-targets -- -D warnings
-      - run: cargo test --workspace
-      - run: cargo run -p iimg-cli -- sample examples/hello.iimg
-      - run: cargo run -p iimg-cli -- validate examples/hello.iimg
+      - run: cargo clippy --locked --workspace --all-targets -- -D warnings
+      - run: cargo test --locked --workspace
+      - run: cargo doc --locked --workspace --no-deps
+        env:
+          RUSTDOCFLAGS: "-D warnings"
+      - run: cargo run --locked -p iimg-cli -- validate examples/hello.iimg
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -B tests/conformance/check.py
+      - run: python -B tests/conformance/mail_transport.py
+  web:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: viewers/web/package-lock.json
+      - run: cargo build --locked --release --target wasm32-unknown-unknown -p iimg-web
+      - run: node viewers/web/smoke.mjs
+      - run: npm ci --ignore-scripts
+        working-directory: viewers/web
+      - if: runner.os == 'Linux'
+        run: node viewers/web/node_modules/playwright-core/cli.js install --with-deps --only-shell chromium
+      - if: runner.os != 'Linux'
+        run: node viewers/web/node_modules/playwright-core/cli.js install --only-shell chromium
+      - run: npm --prefix viewers/web test
+        env:
+          IIMG_PLAYWRIGHT_CHROMIUM: "1"

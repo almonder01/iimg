@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "events": [
+    {"type": "activate_pixel", "x": 16, "y": 16},
+    {"type": "activate_pixel", "x": 2, "y": 2}
+  ]
+}

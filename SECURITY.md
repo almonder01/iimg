@@ -1,5 +1,7 @@
 # Security Policy
 
+See the [candidate security model](docs/SECURITY-MODEL.md) for input boundaries, evidence and open review items.
+
 The project is an experimental parser for untrusted files. **Do not use it as a security boundary in production.**
 
 Please report vulnerabilities privately using GitHub's **Report a vulnerability** / private security advisory feature once enabled by the repository owner. If unavailable, do not publish exploit files publicly; request a private reporting channel from maintainers in a non-sensitive issue.

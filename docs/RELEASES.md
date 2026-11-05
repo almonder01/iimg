@@ -13,4 +13,36 @@ Release candidate procedure:
 
 Hotfix: branch from latest stable tag; regression test first; minimal patch; security disclosure coordination if needed; patch release and backport.
 
-No auto-publishing workflow exists in this starter; configure repository secrets and approval environments before enabling releases.
+## Local candidate package
+
+Run the source-only build check after fetching the locked dependencies and installing the WASM target. It copies tracked and non-ignored source files into two new directories, excludes generated artifacts and Git metadata, and verifies one build with the Rust, independent conformance and WASM suites. Both release builds use path remapping before the binary comparison.
+
+```powershell
+python -u -B scripts/verify_clean_candidate.py --scratch target/clean-candidate-check
+```
+
+A worktree snapshot checks source completeness without relying on existing build products. On Windows MSVC the verifier passes `/Brepro` to the final CLI link to avoid time-dependent executable metadata. For release provenance, rerun from a clean, published revision and record the exact toolchain and platform.
+
+Build the CLI and WASM from the same checkout. The packager records the supplied binary digests, Cargo lock digest, source HEAD and worktree status. These records describe a local package and carry no signature.
+
+```powershell
+cargo build --locked --release -p iimg-cli
+cargo build --locked --release --target wasm32-unknown-unknown -p iimg-web
+python -B scripts/package_candidate.py --cli target/release/iimg-cli.exe --wasm target/wasm32-unknown-unknown/release/iimg_web.wasm --target x86_64-pc-windows-msvc --output target/candidate-review
+```
+
+The output directory must be new. It contains CLI, web, specification and conformance archives, the build record, a CycloneDX dependency list for each Rust artifact, and SHA-256 checksums. Archives use fixed entry order, timestamps and permissions. Repackaging the same binaries and source files tests archive reproducibility. Build reproducibility requires comparing binaries built independently from a clean revision.
+
+Each archive includes the project [license policy and legal texts](../LICENSES.md). The CLI and web archives also include license and notice files from the resolved Cargo dependency sources under `licenses/cargo/`. Their manifest records each package, its declared license and its notice-file digests. The verifier checks dependency coverage against the SBOM and rejects missing or changed notices. Maintainer confirmation of fixture distribution terms remains a publication gate.
+
+Verify a package you built before passing it to a reviewer.
+
+```sh
+python -B scripts/verify_candidate_package.py target/candidate-review
+```
+
+The manually triggered **Candidate review package** workflow builds the package on Windows, Linux and macOS and requires a clean checkout. It uploads review artifacts after checksums, extracted conformance, loopback transfer and WebAssembly tests pass. It creates no public release or tag.
+
+Verify the checksums, then extract the archives into a scratch directory and run the conformance comparison against the extracted CLI. Use the [web smoke tests](../viewers/web/README.md) and [Android device checks](../viewers/android/README.md) before release. The local debug APK has separate asset and signature checks. Device acceptance and a release-signed APK are separate gates. Publication also requires the confirmed license texts and signed provenance where supported.
+
+See the [adoption and registration tracker](ADOPTION.md) for work separate from the Core release.

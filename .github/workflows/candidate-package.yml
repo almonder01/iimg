@@ -1,0 +1,48 @@
+name: Candidate review package
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: cargo fetch --locked
+      - run: cargo test --locked --workspace
+      - name: Build candidate binaries and assemble review package
+        shell: bash
+        run: |
+          host=$(rustc -vV | sed -n 's/^host: //p' | tr -d '\r')
+          cli=target/release/iimg-cli
+          case "$host" in
+            *-windows-msvc)
+              MSYS2_ARG_CONV_EXCL='*' cargo rustc --locked --release -p iimg-cli -- -C link-arg=/Brepro
+              cli="$cli.exe"
+              ;;
+            *) cargo build --locked --release -p iimg-cli ;;
+          esac
+          cargo build --locked --release --target wasm32-unknown-unknown -p iimg-web
+          python -B scripts/package_candidate.py --cli "$cli" \
+            --wasm target/wasm32-unknown-unknown/release/iimg_web.wasm \
+            --target "$host" --output target/review-package
+      - run: python -B scripts/verify_candidate_package.py target/review-package --require-clean
+      - uses: actions/upload-artifact@v4
+        with:
+          name: iimg-candidate-${{ matrix.os }}
+          path: target/review-package/
+          if-no-files-found: error

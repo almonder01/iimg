@@ -1,28 +1,30 @@
 # Roadmap (targets, not promises)
 
+Checked items indicate local implementation. Use the [implementation plan](IMPLEMENTATION-PLAN.md) for delivery gates and [progress](PROGRESS.md) for verification evidence.
+
 ## v0.1 — foundation
 - [x] Experimental container encoder/decoder and CRC checks
 - [x] Sample generator and CLI validator
 - [x] Contributor, governance and CI starter files
 - [ ] Formal JSON schemas and schema validator
-- [ ] Golden fixtures and adversarial corpus
-- [ ] Independent decoder
+- [x] Golden fixtures and adversarial corpus
+- [x] Independent decoder
 
 ## v0.2 — safe visual document
-- [ ] Static scene model with vector primitives and raster resources
-- [ ] Embedded PNG preview specification and extraction
-- [ ] Deterministic rendering and snapshots
+- [x] Static scene model with vector primitives and raster resources
+- [x] Embedded PNG preview specification and extraction
+- [x] Deterministic rendering and snapshots
 - [ ] Accessibility and color management draft
 
 ## v0.3 — interaction
-- [ ] Finite-state machine and declarative events
-- [ ] Touch, mouse and keyboard event replay
+- [x] Finite-state machine and declarative events
+- [x] Touch, mouse and keyboard event replay
 - [ ] Resource budget and threat-model review
 
 ## v0.4 — adoption
-- [ ] Web WASM viewer
-- [ ] Android reference viewer
-- [ ] Authoring SDK and sample editor
+- [x] Web WASM viewer
+- [x] Android reference viewer
+- [x] Authoring SDK and sample editor
 - [ ] Public conformance suite and independent implementation
 
 ## v1.0 candidate

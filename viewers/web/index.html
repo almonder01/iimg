@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IIMG viewer</title>
+<style>
+  body { font: 1rem system-ui, sans-serif; margin: 2rem auto; padding: 0 1rem; max-width: 44rem; }
+  canvas, img { display: block; width: min(100%, 24rem); height: auto; image-rendering: pixelated; }
+  [hidden] { display: none; }
+  #controls { display: flex; gap: .5rem; flex-wrap: wrap; margin: 1rem 0; }
+  button { font: inherit; padding: .5rem; }
+  button[aria-pressed="true"] { font-weight: bold; }
+  textarea { box-sizing: border-box; display: block; width: 100%; min-height: 12rem; margin: .5rem 0; }
+</style>
+<main>
+  <h1>IIMG viewer</h1>
+  <label>Open an IIMG file <input id="file" type="file" accept=".iimg" disabled></label>
+  <p id="status" role="status">Loading viewer…</p>
+  <canvas id="scene" aria-label="Interactive image" hidden></canvas>
+  <img id="preview" alt="Static preview of the IIMG file" hidden>
+  <div id="controls" role="group" aria-label="Image controls" hidden></div>
+  <button id="reset" type="button" hidden>Reset image</button>
+  <details id="author" hidden>
+    <summary>Author an IIMG image</summary>
+    <label for="source">IIMG source JSON</label>
+    <textarea id="source" spellcheck="false">{
+  "width": 32,
+  "height": 32,
+  "scene": {
+    "background": [26, 32, 44],
+    "objects": [
+      {"type": "circle", "id": "lamp", "cx": 16, "cy": 16, "radius": 8, "fill": [250, 204, 21]}
+    ]
+  },
+  "interaction": {
+    "controls": [
+      {"target": "lamp", "label": "Lamp", "active_fill": [248, 113, 113]}
+    ]
+  }
+}</textarea>
+    <p id="author-status" role="status"></p>
+    <label><input id="author-v1" type="checkbox"> Export as Core 1.0 candidate</label>
+    <button id="compile" type="button">Validate and preview</button>
+    <a id="download" download="authored.iimg" hidden>Download IIMG</a>
+  </details>
+</main>
+<script type="module" src="./viewer.mjs"></script>
+</html>

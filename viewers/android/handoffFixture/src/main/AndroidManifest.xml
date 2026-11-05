@@ -1,0 +1,7 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application android:label="IIMG handoff test fixture" android:allowBackup="false">
+        <activity android:name=".SendFixture" android:exported="true" />
+        <provider android:name=".FixtureProvider" android:authorities="org.iimg.handoff.fixture"
+            android:exported="false" android:grantUriPermissions="true" />
+    </application>
+</manifest>
