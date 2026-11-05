@@ -88,3 +88,13 @@ for (const source of [
   assert.match(output().toString(), /InvalidJson/);
 }
 console.log("WebAssembly file load, interaction parity, reset, preview fallback and corrupt-input checks passed.");
+assert.equal(load(fixture), 0);
+assert.notEqual(wasm.prepare_input(123), 0);
+wasm.unload();
+assert.equal(wasm.output_len(), 0);
+assert.equal(wasm.load(), 2);
+wasm.describe();
+assert.equal(wasm.output_len(), 0);
+assert.notEqual(wasm.render(), 0);
+assert.equal(load(fixture), 0);
+console.log("WebAssembly unload clears pending input/runtime/output and allows recovery.");

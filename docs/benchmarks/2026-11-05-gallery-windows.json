@@ -1,0 +1,744 @@
+{
+  "methodology": "gallery-v1",
+  "browser": "156.0.8078.74",
+  "node": "v24.16.0",
+  "platform": "win32 10.0.26200",
+  "cpu": "12th Gen Intel(R) Core(TM) i5-12450H",
+  "viewport": [
+    2200,
+    2200
+  ],
+  "deviceScaleFactor": 1,
+  "repetitions": 20,
+  "wasmBytes": 363260,
+  "wasmSha256": "49f06ab11787bc939e575233e4be69f54331e28bcec67b9987809eb13c640e04",
+  "notes": [
+    "Inputs already in memory; no network transfer measured.",
+    "IIMG work includes load/render/canvas submission; native work includes parse/mount/handlers and is not a paint-time ranking.",
+    "Next-frame timings measure scheduling opportunity, not physical presentation.",
+    "WASM capacity and JS heap are separate. Browser RSS/private-byte samples include shared engine/renderer overhead and are not peak resident measurements.",
+    "Summed process working sets can count shared pages more than once. GC and correctness checks are outside timed samples."
+  ],
+  "results": [
+    {
+      "scene": "orbital-night",
+      "width": 1024,
+      "height": 640,
+      "objects": 170,
+      "iimgSha256": "2d031359fd89c039c37bab048e2dcf091141c96b0e768dadfff63ff78926ba7e",
+      "format": "IIMG",
+      "fileBytes": 49518,
+      "initialWorkMs": {
+        "median": 12.400000005960464,
+        "p95": 21.099999994039536
+      },
+      "reopenWorkMs": {
+        "median": 12.649999991059303,
+        "p95": 19.099999994039536
+      },
+      "activationWorkMs": {
+        "median": 9.599999979138374,
+        "p95": 14.699999988079071
+      },
+      "reopenToNextFrameMs": {
+        "median": 16.5,
+        "p95": 25.700000017881393
+      },
+      "activationToNextFrameMs": {
+        "median": 16.5,
+        "p95": 16.900000005960464
+      },
+      "maxWasmLinearBytes": 7340032,
+      "javascriptHeapAfterGc": {
+        "JSHeapUsedSize": 784336,
+        "JSHeapTotalSize": 1572864
+      },
+      "browserProcessesAfterGc": {
+        "method": "sum of current browser-process working sets/private bytes after explicit GC",
+        "processCount": 7,
+        "residentBytes": 655331328,
+        "privateBytes": 314544128
+      }
+    },
+    {
+      "scene": "orbital-night",
+      "width": 1024,
+      "height": 640,
+      "objects": 170,
+      "iimgSha256": "2d031359fd89c039c37bab048e2dcf091141c96b0e768dadfff63ff78926ba7e",
+      "format": "SVG",
+      "fileBytes": 13058,
+      "initialWorkMs": {
+        "median": 0.9000000059604645,
+        "p95": 1.699999988079071
+      },
+      "reopenWorkMs": {
+        "median": 2.250000014901161,
+        "p95": 2.800000011920929
+      },
+      "activationWorkMs": {
+        "median": 0.09999999403953552,
+        "p95": 0.20000001788139343
+      },
+      "reopenToNextFrameMs": {
+        "median": 16.599999994039536,
+        "p95": 16.799999982118607
+      },
+      "activationToNextFrameMs": {
+        "median": 16.549999997019768,
+        "p95": 16.900000005960464
+      },
+      "maxWasmLinearBytes": 0,
+      "javascriptHeapAfterGc": {
+        "JSHeapUsedSize": 1899444,
+        "JSHeapTotalSize": 2973696
+      },
+      "browserProcessesAfterGc": {
+        "method": "sum of current browser-process working sets/private bytes after explicit GC",
+        "processCount": 7,
+        "residentBytes": 598261760,
+        "privateBytes": 314646528
+      }
+    },
+    {
+      "scene": "orbital-night",
+      "width": 1024,
+      "height": 640,
+      "objects": 170,
+      "iimgSha256": "2d031359fd89c039c37bab048e2dcf091141c96b0e768dadfff63ff78926ba7e",
+      "format": "HTML",
+      "fileBytes": 13112,
+      "initialWorkMs": {
+        "median": 0.5499999970197678,
+        "p95": 1.2999999821186066
+      },
+      "reopenWorkMs": {
+        "median": 1.6000000089406967,
+        "p95": 2
+      },
+      "activationWorkMs": {
+        "median": 0.09999999403953552,
+        "p95": 0.4000000059604645
+      },
+      "reopenToNextFrameMs": {
+        "median": 16.69999998807907,
+        "p95": 17
+      },
+      "activationToNextFrameMs": {
+        "median": 16.599999994039536,
+        "p95": 16.900000005960464
+      },
+      "maxWasmLinearBytes": 0,
+      "javascriptHeapAfterGc": {
+        "JSHeapUsedSize": 1897608,
+        "JSHeapTotalSize": 2973696
+      },
+      "browserProcessesAfterGc": {
+        "method": "sum of current browser-process working sets/private bytes after explicit GC",
+        "processCount": 7,
+        "residentBytes": 601341952,
+        "privateBytes": 317231104
+      }
+    },
+    {
+      "scene": "solar-house",
+      "width": 1024,
+      "height": 768,
+      "objects": 114,
+      "iimgSha256": "084209fdd685fca485c98118fe645156117246432e7256652bffa91913c48b0e",
+      "format": "IIMG",
+      "fileBytes": 37815,
+      "initialWorkMs": {
+        "median": 10.799999997019768,
+        "p95": 22
+      },
+      "reopenWorkMs": {
+        "median": 11.450000002980232,
+        "p95": 13.5
+      },
+      "activationWorkMs": {
+        "median": 7.849999979138374,
+        "p95": 9.800000011920929
+      },
+      "reopenToNextFrameMs": {
+        "median": 16.5,
+        "p95": 16.700000017881393
+      },
+      "activationToNextFrameMs": {
+        "median": 16.599999994039536,
+        "p95": 16.900000005960464
+      },
+      "maxWasmLinearBytes": 8519680,
+      "javascriptHeapAfterGc": {
+        "JSHeapUsedSize": 785168,
+        "JSHeapTotalSize": 1572864
+      },
+      "browserProcessesAfterGc": {
+        "method": "sum of current browser-process working sets/private bytes after explicit GC",
+        "processCount": 7,
+        "residentBytes": 611794944,
+        "privateBytes": 321040384
+      }
+    },
+    {
+      "scene": "solar-house",
+      "width": 1024,
+      "height": 768,
+      "objects": 114,
+      "iimgSha256": "084209fdd685fca485c98118fe645156117246432e7256652bffa91913c48b0e",
+      "format": "SVG",
+      "fileBytes": 9421,
+      "initialWorkMs": {
+        "median": 1,
+        "p95": 1.2000000178813934
+      },
+      "reopenWorkMs": {
+        "median": 1.7999999970197678,
+        "p95": 2.199999988079071
+      },
+      "activationWorkMs": {
+        "median": 0.04999999701976776,
+        "p95": 0.10000002384185791
+      },
+      "reopenToNextFrameMs": {
+        "median": 16.600000023841858,
+        "p95": 18
+      },
+      "activationToNextFrameMs": {
+        "median": 16.649999991059303,
+        "p95": 16.900000005960464
+      },
+      "maxWasmLinearBytes": 0,
+      "javascriptHeapAfterGc": {
+        "JSHeapUsedSize": 1899692,
+        "JSHeapTotalSize": 2973696
+      },
+      "browserProcessesAfterGc": {
+        "method": "sum of current browser-process working sets/private bytes after explicit GC",
+        "processCount": 7,
+        "residentBytes": 600121344,
+        "privateBytes": 312737792
+      }
+    },
+    {
+      "scene": "solar-house",
+      "width": 1024,
+      "height": 768,
+      "objects": 114,
+      "iimgSha256": "084209fdd685fca485c98118fe645156117246432e7256652bffa91913c48b0e",
+      "format": "HTML",
+      "fileBytes": 9475,
+      "initialWorkMs": {
+        "median": 0.4000000059604645,
+        "p95": 0.9000000059604645
+      },
+      "reopenWorkMs": {
+        "median": 1.0999999940395355,
+        "p95": 1.300000011920929
+      },
+      "activationWorkMs": {
+        "median": 0.09999999403953552,
+        "p95": 0.19999998807907104
+      },
+      "reopenToNextFrameMs": {
+        "median": 16.599999994039536,
+        "p95": 16.900000005960464
+      },
+      "activationToNextFrameMs": {
+        "median": 16.599999994039536,
+        "p95": 17
+      },
+      "maxWasmLinearBytes": 0,
+      "javascriptHeapAfterGc": {
+        "JSHeapUsedSize": 1897856,
+        "JSHeapTotalSize": 3235840
+      },
+      "browserProcessesAfterGc": {
+        "method": "sum of current browser-process working sets/private bytes after explicit GC",
+        "processCount": 7,
+        "residentBytes": 610938880,
+        "privateBytes": 325554176
+      }
+    },
+    {
+      "scene": "signal-garden",
+      "width": 768,
+      "height": 1024,
+      "objects": 114,
+      "iimgSha256": "90a63133bcd84829b5e42e69dd2896595a9ca6efb4d828e381c362384a7ace89",
+      "format": "IIMG",
+      "fileBytes": 41444,
+      "initialWorkMs": {
+        "median": 12.150000005960464,
+        "p95": 24.200000017881393
+      },
+      "reopenWorkMs": {
+        "median": 12.750000014901161,
+        "p95": 15.900000005960464
+      },
+      "activationWorkMs": {
+        "median": 9.799999997019768,
+        "p95": 12.699999988079071
+      },
+      "reopenToNextFrameMs": {
+        "median": 16.5,
+        "p95": 16.69999998807907
+      },
+      "activationToNextFrameMs": {
+        "median": 16.549999997019768,
+        "p95": 16.69999998807907
+      },
+      "maxWasmLinearBytes": 8519680,
+      "javascriptHeapAfterGc": {
+        "JSHeapUsedSize": 784548,
+        "JSHeapTotalSize": 1572864
+      },
+      "browserProcessesAfterGc": {
+        "method": "sum of current browser-process working sets/private bytes after explicit GC",
+        "processCount": 7,
+        "residentBytes": 613236736,
+        "privateBytes": 326234112
+      }
+    },
+    {
+      "scene": "signal-garden",
+      "width": 768,
+      "height": 1024,
+      "objects": 114,
+      "iimgSha256": "90a63133bcd84829b5e42e69dd2896595a9ca6efb4d828e381c362384a7ace89",
+      "format": "SVG",
+      "fileBytes": 8941,
+      "initialWorkMs": {
+        "median": 0.699999988079071,
+        "p95": 1
+      },
+      "reopenWorkMs": {
+        "median": 1.7000000178813934,
+        "p95": 2.199999988079071
+      },
+      "activationWorkMs": {
+        "median": 0.09999999403953552,
+        "p95": 0.19999998807907104
+      },
+      "reopenToNextFrameMs": {
+        "median": 16.450000002980232,
+        "p95": 17.30000001192093
+      },
+      "activationToNextFrameMs": {
+        "median": 16.5,
+        "p95": 17.700000017881393
+      },
+      "maxWasmLinearBytes": 0,
+      "javascriptHeapAfterGc": {
+        "JSHeapUsedSize": 1898300,
+        "JSHeapTotalSize": 2973696
+      },
+      "browserProcessesAfterGc": {
+        "method": "sum of current browser-process working sets/private bytes after explicit GC",
+        "processCount": 7,
+        "residentBytes": 604758016,
+        "privateBytes": 318763008
+      }
+    },
+    {
+      "scene": "signal-garden",
+      "width": 768,
+      "height": 1024,
+      "objects": 114,
+      "iimgSha256": "90a63133bcd84829b5e42e69dd2896595a9ca6efb4d828e381c362384a7ace89",
+      "format": "HTML",
+      "fileBytes": 8995,
+      "initialWorkMs": {
+        "median": 0.5,
+        "p95": 0.9000000059604645
+      },
+      "reopenWorkMs": {
+        "median": 0.9000000059604645,
+        "p95": 1.399999976158142
+      },
+      "activationWorkMs": {
+        "median": 0.09999999403953552,
+        "p95": 0.20000001788139343
+      },
+      "reopenToNextFrameMs": {
+        "median": 16.599999994039536,
+        "p95": 17.400000005960464
+      },
+      "activationToNextFrameMs": {
+        "median": 16.650000005960464,
+        "p95": 17
+      },
+      "maxWasmLinearBytes": 0,
+      "javascriptHeapAfterGc": {
+        "JSHeapUsedSize": 1896480,
+        "JSHeapTotalSize": 2711552
+      },
+      "browserProcessesAfterGc": {
+        "method": "sum of current browser-process working sets/private bytes after explicit GC",
+        "processCount": 7,
+        "residentBytes": 628555776,
+        "privateBytes": 337240064
+      }
+    },
+    {
+      "scene": "workload-256",
+      "width": 256,
+      "height": 256,
+      "objects": 256,
+      "iimgSha256": "c27b27b150154e498410b38ac21e61fc8f1bc3b3396bac377119ee56715ec87f",
+      "format": "IIMG",
+      "fileBytes": 57137,
+      "initialWorkMs": {
+        "median": 3.2000000178813934,
+        "p95": 12.400000005960464
+      },
+      "reopenWorkMs": {
+        "median": 2.6000000089406967,
+        "p95": 3.600000023841858
+      },
+      "activationWorkMs": {
+        "median": 0.9000000059604645,
+        "p95": 1.199999988079071
+      },
+      "reopenToNextFrameMs": {
+        "median": 16.649999991059303,
+        "p95": 16.900000005960464
+      },
+      "activationToNextFrameMs": {
+        "median": 16.700000017881393,
+        "p95": 23.599999994039536
+      },
+      "maxWasmLinearBytes": 2097152,
+      "javascriptHeapAfterGc": {
+        "JSHeapUsedSize": 783940,
+        "JSHeapTotalSize": 1572864
+      },
+      "browserProcessesAfterGc": {
+        "method": "sum of current browser-process working sets/private bytes after explicit GC",
+        "processCount": 7,
+        "residentBytes": 614780928,
+        "privateBytes": 331657216
+      }
+    },
+    {
+      "scene": "workload-256",
+      "width": 256,
+      "height": 256,
+      "objects": 256,
+      "iimgSha256": "c27b27b150154e498410b38ac21e61fc8f1bc3b3396bac377119ee56715ec87f",
+      "format": "SVG",
+      "fileBytes": 19784,
+      "initialWorkMs": {
+        "median": 1.9000000059604645,
+        "p95": 2.9000000059604645
+      },
+      "reopenWorkMs": {
+        "median": 3.300000011920929,
+        "p95": 3.9000000059604645
+      },
+      "activationWorkMs": {
+        "median": 0.09999999403953552,
+        "p95": 0.09999999403953552
+      },
+      "reopenToNextFrameMs": {
+        "median": 16.700000017881393,
+        "p95": 16.900000005960464
+      },
+      "activationToNextFrameMs": {
+        "median": 16.700000002980232,
+        "p95": 18.30000001192093
+      },
+      "maxWasmLinearBytes": 0,
+      "javascriptHeapAfterGc": {
+        "JSHeapUsedSize": 1899564,
+        "JSHeapTotalSize": 2973696
+      },
+      "browserProcessesAfterGc": {
+        "method": "sum of current browser-process working sets/private bytes after explicit GC",
+        "processCount": 7,
+        "residentBytes": 610689024,
+        "privateBytes": 330248192
+      }
+    },
+    {
+      "scene": "workload-256",
+      "width": 256,
+      "height": 256,
+      "objects": 256,
+      "iimgSha256": "c27b27b150154e498410b38ac21e61fc8f1bc3b3396bac377119ee56715ec87f",
+      "format": "HTML",
+      "fileBytes": 19838,
+      "initialWorkMs": {
+        "median": 0.8499999940395355,
+        "p95": 1.2000000178813934
+      },
+      "reopenWorkMs": {
+        "median": 1.5999999940395355,
+        "p95": 2.300000011920929
+      },
+      "activationWorkMs": {
+        "median": 0.09999999403953552,
+        "p95": 0.20000001788139343
+      },
+      "reopenToNextFrameMs": {
+        "median": 16.69999998807907,
+        "p95": 17
+      },
+      "activationToNextFrameMs": {
+        "median": 16.599999994039536,
+        "p95": 16.899999976158142
+      },
+      "maxWasmLinearBytes": 0,
+      "javascriptHeapAfterGc": {
+        "JSHeapUsedSize": 1897728,
+        "JSHeapTotalSize": 2973696
+      },
+      "browserProcessesAfterGc": {
+        "method": "sum of current browser-process working sets/private bytes after explicit GC",
+        "processCount": 7,
+        "residentBytes": 610336768,
+        "privateBytes": 330035200
+      }
+    },
+    {
+      "scene": "workload-1024",
+      "width": 1024,
+      "height": 1024,
+      "objects": 256,
+      "iimgSha256": "91bce6268a5bfff454f8ce0b7838645a6fdb1bc01713a1793ab2f9cb54cbc4b2",
+      "format": "IIMG",
+      "fileBytes": 76866,
+      "initialWorkMs": {
+        "median": 12.200000002980232,
+        "p95": 19.80000001192093
+      },
+      "reopenWorkMs": {
+        "median": 11.549999997019768,
+        "p95": 14.599999994039536
+      },
+      "activationWorkMs": {
+        "median": 7.800000011920929,
+        "p95": 10.5
+      },
+      "reopenToNextFrameMs": {
+        "median": 16.5,
+        "p95": 16.80000001192093
+      },
+      "activationToNextFrameMs": {
+        "median": 16.599999994039536,
+        "p95": 16.900000005960464
+      },
+      "maxWasmLinearBytes": 10944512,
+      "javascriptHeapAfterGc": {
+        "JSHeapUsedSize": 783960,
+        "JSHeapTotalSize": 1572864
+      },
+      "browserProcessesAfterGc": {
+        "method": "sum of current browser-process working sets/private bytes after explicit GC",
+        "processCount": 7,
+        "residentBytes": 624971776,
+        "privateBytes": 329797632
+      }
+    },
+    {
+      "scene": "workload-1024",
+      "width": 1024,
+      "height": 1024,
+      "objects": 256,
+      "iimgSha256": "91bce6268a5bfff454f8ce0b7838645a6fdb1bc01713a1793ab2f9cb54cbc4b2",
+      "format": "SVG",
+      "fileBytes": 19948,
+      "initialWorkMs": {
+        "median": 2.1000000089406967,
+        "p95": 3
+      },
+      "reopenWorkMs": {
+        "median": 3.0499999970197678,
+        "p95": 3.9000000059604645
+      },
+      "activationWorkMs": {
+        "median": 0.09999999403953552,
+        "p95": 0.20000001788139343
+      },
+      "reopenToNextFrameMs": {
+        "median": 16.650000005960464,
+        "p95": 16.900000005960464
+      },
+      "activationToNextFrameMs": {
+        "median": 16.650000005960464,
+        "p95": 16.900000005960464
+      },
+      "maxWasmLinearBytes": 0,
+      "javascriptHeapAfterGc": {
+        "JSHeapUsedSize": 1899564,
+        "JSHeapTotalSize": 2711552
+      },
+      "browserProcessesAfterGc": {
+        "method": "sum of current browser-process working sets/private bytes after explicit GC",
+        "processCount": 7,
+        "residentBytes": 630435840,
+        "privateBytes": 333197312
+      }
+    },
+    {
+      "scene": "workload-1024",
+      "width": 1024,
+      "height": 1024,
+      "objects": 256,
+      "iimgSha256": "91bce6268a5bfff454f8ce0b7838645a6fdb1bc01713a1793ab2f9cb54cbc4b2",
+      "format": "HTML",
+      "fileBytes": 20002,
+      "initialWorkMs": {
+        "median": 0.7999999970197678,
+        "p95": 1.800000011920929
+      },
+      "reopenWorkMs": {
+        "median": 2,
+        "p95": 2.2999999821186066
+      },
+      "activationWorkMs": {
+        "median": 0.09999999403953552,
+        "p95": 0.10000002384185791
+      },
+      "reopenToNextFrameMs": {
+        "median": 16.700000017881393,
+        "p95": 16.900000005960464
+      },
+      "activationToNextFrameMs": {
+        "median": 16.649999991059303,
+        "p95": 16.80000001192093
+      },
+      "maxWasmLinearBytes": 0,
+      "javascriptHeapAfterGc": {
+        "JSHeapUsedSize": 1897728,
+        "JSHeapTotalSize": 2973696
+      },
+      "browserProcessesAfterGc": {
+        "method": "sum of current browser-process working sets/private bytes after explicit GC",
+        "processCount": 7,
+        "residentBytes": 626708480,
+        "privateBytes": 330567680
+      }
+    },
+    {
+      "scene": "workload-2048",
+      "width": 2048,
+      "height": 2048,
+      "objects": 256,
+      "iimgSha256": "1674f517f120e50c0be50bf6480cff7538dd2db7635f3e748bb9a56cb29a4d11",
+      "format": "IIMG",
+      "fileBytes": 129604,
+      "initialWorkMs": {
+        "median": 47.5,
+        "p95": 64.60000002384186
+      },
+      "reopenWorkMs": {
+        "median": 41.400000005960464,
+        "p95": 53.099999994039536
+      },
+      "activationWorkMs": {
+        "median": 26.75,
+        "p95": 37.099999994039536
+      },
+      "reopenToNextFrameMs": {
+        "median": 42,
+        "p95": 54.19999998807907
+      },
+      "activationToNextFrameMs": {
+        "median": 26.900000005960464,
+        "p95": 37.400000005960464
+      },
+      "maxWasmLinearBytes": 39518208,
+      "javascriptHeapAfterGc": {
+        "JSHeapUsedSize": 784316,
+        "JSHeapTotalSize": 1572864
+      },
+      "browserProcessesAfterGc": {
+        "method": "sum of current browser-process working sets/private bytes after explicit GC",
+        "processCount": 7,
+        "residentBytes": 813678592,
+        "privateBytes": 466354176
+      }
+    },
+    {
+      "scene": "workload-2048",
+      "width": 2048,
+      "height": 2048,
+      "objects": 256,
+      "iimgSha256": "1674f517f120e50c0be50bf6480cff7538dd2db7635f3e748bb9a56cb29a4d11",
+      "format": "SVG",
+      "fileBytes": 20748,
+      "initialWorkMs": {
+        "median": 1.6499999910593033,
+        "p95": 2.2999999821186066
+      },
+      "reopenWorkMs": {
+        "median": 2.6500000059604645,
+        "p95": 4.0999999940395355
+      },
+      "activationWorkMs": {
+        "median": 0.04999999701976776,
+        "p95": 0.20000001788139343
+      },
+      "reopenToNextFrameMs": {
+        "median": 16.599999994039536,
+        "p95": 16.900000005960464
+      },
+      "activationToNextFrameMs": {
+        "median": 16.649999991059303,
+        "p95": 16.80000001192093
+      },
+      "maxWasmLinearBytes": 0,
+      "javascriptHeapAfterGc": {
+        "JSHeapUsedSize": 1899564,
+        "JSHeapTotalSize": 2973696
+      },
+      "browserProcessesAfterGc": {
+        "method": "sum of current browser-process working sets/private bytes after explicit GC",
+        "processCount": 7,
+        "residentBytes": 810991616,
+        "privateBytes": 462872576
+      }
+    },
+    {
+      "scene": "workload-2048",
+      "width": 2048,
+      "height": 2048,
+      "objects": 256,
+      "iimgSha256": "1674f517f120e50c0be50bf6480cff7538dd2db7635f3e748bb9a56cb29a4d11",
+      "format": "HTML",
+      "fileBytes": 20802,
+      "initialWorkMs": {
+        "median": 1.0499999970197678,
+        "p95": 1.7000000178813934
+      },
+      "reopenWorkMs": {
+        "median": 1.9000000059604645,
+        "p95": 2.199999988079071
+      },
+      "activationWorkMs": {
+        "median": 0.09999999403953552,
+        "p95": 0.20000001788139343
+      },
+      "reopenToNextFrameMs": {
+        "median": 16.69999998807907,
+        "p95": 16.900000005960464
+      },
+      "activationToNextFrameMs": {
+        "median": 16.600000008940697,
+        "p95": 16.899999976158142
+      },
+      "maxWasmLinearBytes": 0,
+      "javascriptHeapAfterGc": {
+        "JSHeapUsedSize": 1897728,
+        "JSHeapTotalSize": 2973696
+      },
+      "browserProcessesAfterGc": {
+        "method": "sum of current browser-process working sets/private bytes after explicit GC",
+        "processCount": 7,
+        "residentBytes": 792293376,
+        "privateBytes": 445456384
+      }
+    }
+  ]
+}

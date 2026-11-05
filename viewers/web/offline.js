@@ -1,6 +1,6 @@
 const scope = self.registration.scope;
 const prefix = `iimg-shell:${scope}:`;
-const cacheName = `${prefix}6`;
+const cacheName = `${prefix}7`;
 const shell = new Set(["index.html", "viewer.mjs", "iimg_web.wasm"]
   .map((file) => new URL(file, scope).href));
 

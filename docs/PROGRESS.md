@@ -11,6 +11,16 @@ The active goal is an interoperable IIMG 1.0 release. See the [implementation pl
 | M4 · Authoring | In progress | Shared source compiler, CLI export and offline editor with live validation. Public contributor workflow pending |
 | M5 · Stable 1.0 | In progress | Candidate wire, migration and initial independent parity evidence |
 
+## Large scenes and Android follow-up
+
+The selected Galaxy S23+ smoke procedure is recorded above. Subsequent technical work adds the [original showcase](../examples/showcase/README.md), scale workloads up to 2048², a [dimension-aware benchmark](BENCHMARKS.md#large-scene-and-gallery-run--2026-11-05), and [accessibility acceptance](ACCESSIBILITY.md). Full native/WASM RGB comparisons and 14 pointer/keyboard/reset controls passed locally. Two complete showcase generations matched byte for byte. The 20-repetition Windows benchmark records input/engine hashes and separates WASM capacity, JS heap and sampled browser-process memory.
+
+The Android 0.1.1 preview adds bounded read workers/queue, selection cancellation, a 15-second delivery deadline and stale-presentation clearing. Ten standalone JVM cases and the Chromium shared-host cancellation/recovery tests passed. The viewer and companion provider APKs built locally; the viewer passed asset and signature checks. All ten PR checks passed for source head `893ca51`: six Rust/web jobs, three verified package jobs and the Android build/JVM/APK job. The [published preview](https://github.com/almonder01/iimg/releases/tag/v0.1.1-preview.1) was checked with anonymous downloads and byte comparisons.
+
+The owner subsequently [reported the complete preview phone procedure passed](device-tests/2026-11-05-galaxy-s23-plus-preview-0.1.1.md) on `samsung SM-S916B`, Android 17 / API 37, WebView `156.0.8078.47`: showcase/offline controls, the 2048² workload, provider faults, replacement and recovery. Copied phone size/digest reports match the 641-byte two-control fixture and 129604-byte large workload. The replacement case's approximately one-second display time is consistent with sending the valid source after 500 ms; the requested 3–5 seconds was an observation window. Explicit accessibility and controlled latency/peak-memory evidence remain open. The six host PSS samples are recorded with their limits, without claiming a leak or a total-app memory budget. The source provider's fixed cases and the debug-only **Test info** report are described in the [Android guide](../viewers/android/README.md). Non-cooperative providers can still exhaust the bounded reader pool; cancellation is best-effort.
+
+External review is deferred by the owner's decision while technical development continues. This work does not mark independent review, universal interoperability, peak Android memory or stable-release readiness complete.
+
 ## M0 work
 
 - [x] Establish the Git and test baseline from commit `9b14d09`.

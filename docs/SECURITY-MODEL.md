@@ -16,6 +16,10 @@ For a single PNG, the scanline allocation is `(3 × width + 1) × height` bytes.
 
 Before release, review the combined worst-case allocation across document bytes, decoded assets, preview buffers, rendering buffers and host copies. Test CPU and allocation behavior on low-memory Android devices. Review dependencies and the Android URI and WebView boundaries independently. Sustained sanitizer runs, advisory readiness and external security review remain separate evidence.
 
+The later Android preview clears prior presentation at selection start and bounds provider work to two process-wide reader threads with one queued read. A 15-second deadline completes the UI request independently of the provider. Cancellation signals and descriptor close are best-effort on a separate bounded executor; permanently non-cooperative providers can retain reader slots. Ten JVM contract cases cover timeout, stale callbacks, lifecycle and backpressure, and the companion APK supplies real provider-fault cases. Physical acceptance of that new host behavior is recorded separately from the earlier phone smoke test.
+
+The [large-scene benchmark](BENCHMARKS.md#large-scene-and-gallery-run--2026-11-05) measures WASM capacity and post-GC browser-process samples. It does not establish a whole-app peak-memory ceiling or low-memory Android acceptance. The new host/adapter code needs review at its own revision; the initial review report's runtime revision remains a historical scope.
+
 The [technical review and independent-review handoff](reviews/2026-11-05-core-candidate.md) records reviewed boundaries, reproducible evidence and open provider-liveness, memory and interoperability questions. The 2026-11-05 [Linux advisory workflow](https://github.com/almonder01/iimg/actions/runs/42032499751) checked 154 distinct locked package versions across Rust, npm and Maven and found no OSV matches. This result is an advisory query for those versions at that time, not a certification of the runtime or build chain.
 
 ## Locked dependency advisories

@@ -14,7 +14,8 @@ Checked items indicate local implementation. Use the [implementation plan](IMPLE
 - [x] Static scene model with vector primitives and raster resources
 - [x] Embedded PNG preview specification and extraction
 - [x] Deterministic rendering and snapshots
-- [ ] Accessibility and color management draft
+- [x] Host accessibility implementation and manual acceptance draft
+- [ ] Full language/alternative-description and color management review
 
 ## v0.3 — interaction
 - [x] Finite-state machine and declarative events
@@ -30,7 +31,8 @@ Checked items indicate local implementation. Use the [implementation plan](IMPLE
 ## v1.0 candidate
 - [ ] Frozen interoperable wire format, RFC review, compatibility policy
 - [ ] Third-party implementations and security audit
-- [ ] Performance benchmarks against SVG/HTML/Rive
+- [x] Small and large-scene SVG/HTML comparison with scoped memory measurements
+- [ ] Equivalent Rive workloads and peak/low-memory Android measurements
 - [ ] MIME registration proposal (subject to review)
 - [ ] Documentation translations and governance election/process
 

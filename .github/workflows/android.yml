@@ -9,6 +9,7 @@ on:
       - "scripts/check_android_apk.py"
       - "scripts/test_android_handoff.py"
       - "scripts/test_android_webview.mjs"
+      - "scripts/test_android_reader.py"
       - "tests/conformance/android_fixtures.py"
       - "tests/fixtures/**"
       - ".github/workflows/android.yml"
@@ -33,6 +34,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - run: python -B scripts/test_android_reader.py
       - uses: android-actions/setup-android@v4
         with:
           packages: "platform-tools platforms;android-35 build-tools;36.0.0"
@@ -43,8 +45,16 @@ jobs:
           python -B scripts/check_android_apk.py "$apk"
           "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose "$apk"
           sha256sum "$apk" > "$apk.sha256"
+          source_apk=viewers/android/handoffFixture/build/outputs/apk/debug/handoffFixture-debug.apk
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose "$source_apk"
+          sha256sum "$source_apk" > "$source_apk.sha256"
       - uses: actions/upload-artifact@v4
         with:
           name: iimg-android-debug
           path: viewers/android/app/build/outputs/apk/debug/app-debug.apk*
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: iimg-test-sources-debug
+          path: viewers/android/handoffFixture/build/outputs/apk/debug/handoffFixture-debug.apk*
           if-no-files-found: error

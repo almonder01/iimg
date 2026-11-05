@@ -8,7 +8,9 @@
   canvas, img { display: block; width: min(100%, 24rem); height: auto; image-rendering: pixelated; }
   [hidden] { display: none; }
   #controls { display: flex; gap: .5rem; flex-wrap: wrap; margin: 1rem 0; }
-  button { font: inherit; padding: .5rem; }
+  button { font: inherit; padding: .65rem .85rem; min-height: 48px; min-width: 48px; max-width: 100%; overflow-wrap: anywhere; white-space: normal; border: 2px solid #64748b; border-radius: .5rem; background: #fff; color: #172033; }
+  button:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible, a:focus-visible { outline: 3px solid #1d4ed8; outline-offset: 3px; }
+  button[aria-pressed="true"] { border-color: #0f766e; background: #ccfbf1; border-width: 3px; }
   button[aria-pressed="true"] { font-weight: bold; }
   textarea { box-sizing: border-box; display: block; width: 100%; min-height: 12rem; margin: .5rem 0; }
 </style>
@@ -16,9 +18,10 @@
   <h1>IIMG viewer</h1>
   <label>Open an IIMG file <input id="file" type="file" accept=".iimg" disabled></label>
   <p id="status" role="status">Loading viewer…</p>
-  <canvas id="scene" aria-label="Interactive image" hidden></canvas>
+  <canvas id="scene" role="img" aria-label="Interactive image" aria-describedby="interaction-help" hidden></canvas>
   <img id="preview" alt="Static preview of the IIMG file" hidden>
   <div id="controls" role="group" aria-label="Image controls" hidden></div>
+  <p id="interaction-help" hidden>Tap an interactive area or use the controls above. Use Tab to move between buttons and Enter or Space to activate them. Each button reports its pressed state.</p>
   <button id="reset" type="button" hidden>Reset image</button>
   <details id="author" hidden>
     <summary>Author an IIMG image</summary>

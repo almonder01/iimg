@@ -28,6 +28,10 @@ android {
 
 def stageFixture = tasks.register("stageFixture", Sync) {
     from(rootProject.file("../../tests/fixtures/v0.2/two-controls.iimg"))
+    from(rootProject.file("../../tests/fixtures/v0.2/lamp.iimg"))
+    from(rootProject.file("../..")) {
+        include("LICENSE", "NOTICE", "LICENSES.md", "LICENSE-CC-BY-4.0")
+    }
     into(layout.buildDirectory.dir("generated/fixtures"))
 }
 tasks.named("preBuild").configure { dependsOn(stageFixture) }

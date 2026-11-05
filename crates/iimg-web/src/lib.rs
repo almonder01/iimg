@@ -34,6 +34,16 @@ fn load_runtime(bytes: &[u8]) -> Result<Runtime, SceneError> {
     Ok(runtime)
 }
 
+/// Drop the selected document and owned buffers when a host cancels a load.
+#[no_mangle]
+pub extern "C" fn unload() {
+    VIEWER.with_borrow_mut(|viewer| {
+        viewer.runtime = None;
+        viewer.input = Vec::new();
+        viewer.output = Vec::new();
+    });
+}
+
 /// 0 = interactive scene, 1 = PNG fallback, 2 = invalid or unsupported file.
 #[no_mangle]
 pub extern "C" fn load() -> u32 {

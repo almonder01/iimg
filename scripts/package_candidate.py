@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 import re
 import subprocess
+import sys
+import tempfile
 import zipfile
 
 
@@ -19,6 +21,8 @@ SPEC_FILES = (
     "rfcs/0002-raster-assets.md", "docs/AUTHORING.md", "docs/SDK.md", "docs/ARCHITECTURE.md",
     "docs/SECURITY-MODEL.md",
     "docs/TESTING.md", "docs/reviews/2026-11-05-core-candidate.md",
+    "docs/ACCESSIBILITY.md",
+    "docs/BENCHMARKS.md", "docs/benchmarks/2026-11-05-gallery-windows.json",
     "docs/adr/0001-container-first.md", "viewers/web/README.md", "viewers/android/README.md",
 )
 
@@ -140,6 +144,11 @@ def package(output, cli, wasm, target):
                      and path.suffix in (".iimg", ".json", ".py")]
     spec.update(source_entries(path.relative_to(ROOT).as_posix() for path in fixture_files))
     spec.update(source_entries((
+        "examples/showcase/generate.py", "examples/showcase/README.md",
+        "examples/showcase/previews/orbital-night.png", "examples/showcase/previews/solar-house.png",
+        "examples/showcase/previews/signal-garden.png",
+        "viewers/web/smoke-showcase.mjs",
+        "viewers/web/benchmark-gallery.mjs", "viewers/web/benchmark.mjs", "viewers/web/benchmark-native.mjs",
         "examples/hello.iimg", "examples/lamp.source.json", "examples/raster-lamp.source.json",
         "tests/conformance/check.py",
         "tests/conformance/generated.py",
@@ -148,6 +157,14 @@ def package(output, cli, wasm, target):
         "scripts/test_android_webview.mjs", "scripts/test_android_handoff.py",
         "viewers/web/schema-test.mjs", "viewers/web/package.json", "viewers/web/package-lock.json",
     )))
+
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="iimg-gallery-", dir=output.parent) as temporary:
+        generated = Path(temporary) / "showcase"
+        subprocess.run([sys.executable, "-B", ROOT / "examples/showcase/generate.py",
+                        "--cli", cli.resolve(), "--output", generated], cwd=ROOT, check=True)
+        for path in generated.iterdir():
+            spec[f"examples/showcase/generated/{path.name}"] = (path.read_bytes(), 0o644)
 
     commit = command("git", "rev-parse", "HEAD")
     status = command("git", "status", "--porcelain", "--untracked-files=normal")

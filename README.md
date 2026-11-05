@@ -2,6 +2,8 @@
 
 **Status — Core 1.0 candidate under review.** IIMG is a project for offline interactive images. The [delivery tracker](docs/PROGRESS.md) records local verification and remaining release gates.
 
+Explore the [original large-scene showcase](examples/showcase/README.md): an orbital scene, a solar house and a portrait garden, with interactive Arabic-labeled controls. Their PNGs are static previews; the IIMG files require the viewer. See [performance measurements](docs/BENCHMARKS.md) and [accessibility checks](docs/ACCESSIBILITY.md) for measured scope and remaining acceptance work.
+
 ## What works today
 - Rust parsing, validation, RGB rendering and deterministic toggle interaction with bounded resources.
 - CLI authoring, migration, preview extraction and portable event replay.

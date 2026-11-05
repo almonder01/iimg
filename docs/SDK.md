@@ -52,6 +52,7 @@ Call `prepare_input(length)`, reject a zero pointer, then copy exactly that many
 | Export | Host action and result |
 | --- | --- |
 | `load()` | Consume prepared input. Return 0 for a loaded scene, 1 for PNG fallback in output, or 2 for rejected input |
+| `unload()` | Drop the selected runtime and owned input/output buffers, invalidating previous pointers |
 | `describe()` | Replace output with UTF-8 JSON containing width, height, focus and ordered controls, or empty output when no scene is loaded |
 | `render()` | Replace output with RGB pixels and return 0, or clear output and return 1 |
 | `activate_pixel(x, y)` | Dispatch canvas pixel activation |
@@ -63,6 +64,8 @@ Call `prepare_input(length)`, reject a zero pointer, then copy exactly that many
 | `output_ptr()`, `output_len()` | Borrow the current output region |
 
 Copy output that must survive another call. Refresh JavaScript typed-array views from `wasm.memory.buffer` after a call that can allocate, because memory growth can invalidate earlier views. Treat a zero output length as an empty result. The host owns the lifetime of any Blob URLs or platform images it creates.
+
+Call `unload()` when replacing or cancelling a document before an asynchronous read. Clear the host's previous presentation at that time, not only after new bytes arrive. Dropping vectors makes their allocations reusable; WebAssembly linear-memory capacity need not shrink. The bundled viewer/cache must be deployed together with the matching module because newer viewers use this export.
 
 Pass integer canvas coordinates from 0 through 65535 to `activate_pixel`, and a signed 32-bit index to `focus_control`. Validate external host input before crossing the ABI boundary.
 
