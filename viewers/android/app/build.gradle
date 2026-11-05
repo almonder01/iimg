@@ -16,8 +16,8 @@ android {
         applicationId "org.iimg.viewer"
         minSdk 23
         targetSdk 34
-        versionCode 1
-        versionName "0.1.0"
+        versionCode 2
+        versionName "0.1.1-preview"
     }
 
     sourceSets.main.assets.srcDir(layout.buildDirectory.dir("generated/iimgAssets").get().asFile)

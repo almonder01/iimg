@@ -17,6 +17,26 @@ The Android workflow builds the debug APK, checks that it contains the expected 
 
 The current app recognizes `application/octet-stream`, `application/x-iimg` and `image/iimg` for incoming document intents. These experimental intent filters do not imply media type registration or support in third-party apps.
 
+## Preview 0.1.1 reader hardening
+
+Selections clear previous content immediately and use a 15-second delivery deadline. The reader has two process-wide read workers and one queued read, cancels superseded tasks, rejects oversized/zero-progress streams, and suppresses stale or destroyed-owner callbacks. Descriptor opening uses Android cancellation signals; descriptor cancellation/close is best-effort on a separate bounded executor. Providers that permanently ignore cancellation can occupy the bounded pool; they are not forcibly terminated. This protects UI responsiveness and limits work without promising arbitrary provider behavior.
+
+Run `python -B scripts/test_android_reader.py` with JDK 17+ and `JAVA_HOME`, or pass `--java-bin /path/to/jdk/bin`. Ten standalone JVM cases cover the exact byte bound, empty/oversized/error/zero-progress streams, queued stale delivery, lifecycle close, timeout, recovery with one non-cooperative provider, and backpressure. These tests do not execute Android Binder or WebView; the APK build and manual provider cases cover that boundary separately.
+
+The debug viewer has a **Test info** button with app/device/Android/WebView versions, selected-file size/SHA-256 and one host-process PSS sample. **Copy** puts this report on the clipboard only after a user action. It includes no document content or URI and sends nothing. The PSS value excludes a complete renderer/process-tree accounting and is not peak app memory. This button is absent from non-debug builds.
+
+## Test-source companion
+
+The separately installed **IIMG test sources** app provides explicit provider cases without requiring developer options or a 17 MiB download:
+
+1. **Open valid image**: shows the original two-control fixture.
+2. **Read failure**: reports a read error and removes the earlier image/controls.
+3. **Oversized stream**: generates 16 MiB + 1 in a bounded pipe. The viewer reports its size limit.
+4. **Slow provider**: waits up to 30 seconds but accepts cancellation. The viewer should report its 15-second deadline.
+5. **Delayed static then valid**: sends a delayed static file followed by the interactive file. The final image must retain both controls rather than being replaced by the old result.
+
+Use Back to return to the companion between cases and reopen the valid image after failures. This app is a development fixture, not part of normal image sharing. The provider is private and grants read access to the viewer for these fixed synthetic sources. Both APKs have separate CI artifacts. Debug builds from different machines/runs can have different signing keys; Android may require uninstalling an older test APK before installing the new one.
+
 ## Device and sharing checks
 
 1. Record Android version, device, WebView version and source app version. Push `tests/fixtures/v0.2/two-controls.iimg` to Downloads. Open it with the in-app picker and verify both controls, reset and the offline initial frame.

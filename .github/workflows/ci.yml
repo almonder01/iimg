@@ -46,7 +46,18 @@ jobs:
           node-version: "22"
           cache: npm
           cache-dependency-path: viewers/web/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
       - run: cargo build --locked --release --target wasm32-unknown-unknown -p iimg-web
+      - run: cargo build --locked -p iimg-cli
+      - run: python -B examples/showcase/generate.py --output target/showcase
+      - run: node viewers/web/smoke-showcase.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: iimg-showcase-${{ matrix.os }}
+          path: target/showcase/
+          if-no-files-found: error
       - run: node viewers/web/smoke.mjs
       - run: npm ci --ignore-scripts
         working-directory: viewers/web

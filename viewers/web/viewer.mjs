@@ -4,6 +4,8 @@ const canvas = document.querySelector("#scene");
 const preview = document.querySelector("#preview");
 const controls = document.querySelector("#controls");
 const reset = document.querySelector("#reset");
+const help = document.querySelector("#interaction-help");
+const main = document.querySelector("main");
 const context = canvas.getContext("2d");
 const decoder = new TextDecoder();
 const androidHost = location.origin === "https://viewer.iimg.invalid";
@@ -41,7 +43,7 @@ async function start() {
   }
 
   function clear() {
-    canvas.hidden = preview.hidden = controls.hidden = reset.hidden = true;
+    canvas.hidden = preview.hidden = controls.hidden = reset.hidden = help.hidden = true;
     controls.replaceChildren();
     if (previewUrl) {
       preview.removeAttribute("src");
@@ -52,7 +54,9 @@ async function start() {
 
   async function open(read) {
     const current = ++selection;
+    wasm.unload();
     clear();
+    main.setAttribute("aria-busy", String(!!read));
     if (!read) {
       status.textContent = "Choose an IIMG file.";
       return;
@@ -77,6 +81,7 @@ async function start() {
         const button = document.createElement("button");
         button.type = "button";
         button.textContent = control.label;
+        button.dir = "auto";
         button.addEventListener("focus", () => wasm.focus_control(index));
         button.addEventListener("click", () => {
           wasm.focus_control(index);
@@ -88,11 +93,16 @@ async function start() {
       draw();
       canvas.hidden = false;
       controls.hidden = reset.hidden = state.length === 0;
+      help.hidden = state.length === 0;
+      if (state.length) canvas.setAttribute("aria-describedby", "interaction-help");
+      else canvas.removeAttribute("aria-describedby");
       status.textContent = state.length ? "Image ready. Tap the image or use its controls." : "Image ready.";
     } catch (error) {
       if (current !== selection) return;
       clear();
       status.textContent = error.message;
+    } finally {
+      if (current === selection) main.setAttribute("aria-busy", "false");
     }
   }
 
@@ -191,14 +201,28 @@ const ready = start();
 ready.catch((error) => { status.textContent = error.message; });
 
 if (androidHost) {
+  let sharedGeneration = 0;
   file.closest("label").hidden = true;
   window.iimgOpenShared = async (id) => {
+    if (!Number.isSafeInteger(id) || id < sharedGeneration) return;
+    sharedGeneration = id;
     const open = await ready;
+    if (id !== sharedGeneration) return;
     await open(async () => {
       const response = await fetch(new URL(`./incoming/${id}`, import.meta.url));
       if (!response.ok) throw new Error("The selected document could not be opened.");
       return response.arrayBuffer();
     });
+  };
+  window.iimgClearShared = async (id, reading = false) => {
+    if (!Number.isSafeInteger(id) || id < sharedGeneration) return;
+    sharedGeneration = id;
+    const open = await ready;
+    if (id !== sharedGeneration) return;
+    await open();
+    if (id !== sharedGeneration) return;
+    status.textContent = "";
+    main.setAttribute("aria-busy", String(reading));
   };
 }
 

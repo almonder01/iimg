@@ -6,6 +6,11 @@ The SDK remains at 0.1.0. Wire 1.0 is a published candidate under review.
 
 ### Added
 
+- Original large rect/circle showcase scenes and 256/1024/2048 pixel workloads with native/WASM frame and control verification.
+- Gallery benchmark with equivalent SVG/HTML sources, input/engine hashes and explicitly scoped memory samples.
+- Bounded Android reader with selection cancellation, a 15-second deadline and standalone fault/lifecycle/backpressure tests.
+- A separately installed provider test-source app for failure, oversized streams, slow opening and superseded loads.
+- Debug-only phone test reports with WebView/device versions, selected-byte digest and a scoped host PSS sample.
 - Typed visual payloads, rectangles, circles and embedded RGB8 PNG assets with bounded rendering.
 - Deterministic toggle controls, pointer and focus events, reset and atomic portable trace replay.
 - CLI authoring, rendering, static preview extraction and 0.2-to-1.0 migration.
@@ -19,6 +24,8 @@ The SDK remains at 0.1.0. Wire 1.0 is a published candidate under review.
 
 ### Changed
 
+- Clear old image/runtime/controls when replacing or cancelling a document; reject stale Android results and expose WASM `unload()`.
+- Add 48-pixel web control targets, wrapping labels, visible keyboard focus, automatic text direction and loading-state semantics.
 - Select Apache-2.0 as the sole license for current project code and fixtures, with canonical `LICENSE` and `NOTICE` files included in review archives and the Android viewer. Earlier published grants remain effective; documentation and specifications remain CC BY 4.0.
 - Bound file reads before allocation and validate encoder structure and total size before serialization.
 - Enforce named-field JSON objects, unsigned numeric tokens, unique fields and IDs, and valid Unicode strings.

@@ -5,24 +5,78 @@ import android.content.ContentValues;
 import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.CancellationSignal;
+import android.os.ParcelFileDescriptor;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public final class FixtureProvider extends ContentProvider {
     static final Uri DOCUMENT = Uri.parse("content://org.iimg.handoff.fixture/two-controls.iimg");
     static final String MIME = "application/octet-stream";
+    private static final ThreadPoolExecutor WRITERS = new ThreadPoolExecutor(
+            2, 2, 0, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(2), runnable -> {
+                Thread thread = new Thread(runnable, "iimg-fixture-writer");
+                thread.setDaemon(true); return thread;
+            });
 
     @Override public boolean onCreate() { return true; }
 
     @Override public String getType(Uri uri) {
-        return DOCUMENT.equals(uri) ? MIME : null;
+        return known(uri) ? MIME : null;
     }
 
     @Override public AssetFileDescriptor openAssetFile(Uri uri, String mode) throws FileNotFoundException {
-        if (!DOCUMENT.equals(uri) || !"r".equals(mode)) throw new FileNotFoundException();
+        return openAssetFile(uri, mode, null);
+    }
+
+    private static boolean known(Uri uri) {
+        if (!"org.iimg.handoff.fixture".equals(uri.getAuthority()) || uri.getQuery() != null) return false;
+        String path = uri.getPath();
+        return "/two-controls.iimg".equals(path) || "/denied.iimg".equals(path)
+                || "/oversized.iimg".equals(path) || "/delayed.iimg".equals(path)
+                || "/timeout.iimg".equals(path);
+    }
+
+    @Override public AssetFileDescriptor openAssetFile(Uri uri, String mode, CancellationSignal signal)
+            throws FileNotFoundException {
+        if (!known(uri) || !"r".equals(mode)) throw new FileNotFoundException();
+        String path = uri.getPath();
+        if ("/denied.iimg".equals(path)) throw new FileNotFoundException("Intentional fixture failure");
         try {
+            if ("/delayed.iimg".equals(path) || "/timeout.iimg".equals(path)) {
+                CountDownLatch wait = new CountDownLatch(1);
+                if (signal != null) signal.setOnCancelListener(wait::countDown);
+                try { wait.await("/timeout.iimg".equals(path) ? 30_000 : 2500, TimeUnit.MILLISECONDS); }
+                finally { if (signal != null) signal.setOnCancelListener(null); }
+                if (signal != null) signal.throwIfCanceled();
+                return getContext().getAssets().openFd("lamp.iimg");
+            }
+            if ("/oversized.iimg".equals(path)) {
+                ParcelFileDescriptor[] pipe = ParcelFileDescriptor.createPipe();
+                try {
+                    WRITERS.execute(() -> {
+                        try (OutputStream output = new ParcelFileDescriptor.AutoCloseOutputStream(pipe[1])) {
+                            byte[] zeros = new byte[8192];
+                            int remaining = 16 * 1024 * 1024 + 1;
+                            while (remaining > 0) {
+                                int count = Math.min(remaining, zeros.length);
+                                output.write(zeros, 0, count); remaining -= count;
+                            }
+                        } catch (IOException ignored) { }
+                    });
+                } catch (java.util.concurrent.RejectedExecutionException busy) {
+                    pipe[0].close(); pipe[1].close(); throw new IOException("Fixture writers busy", busy);
+                }
+                return new AssetFileDescriptor(pipe[0], 0, AssetFileDescriptor.UNKNOWN_LENGTH);
+            }
             return getContext().getAssets().openFd("two-controls.iimg");
-        } catch (IOException error) {
+        } catch (IOException | InterruptedException error) {
+            if (error instanceof InterruptedException) Thread.currentThread().interrupt();
             FileNotFoundException missing = new FileNotFoundException("Missing bundled IIMG fixture");
             missing.initCause(error);
             throw missing;
