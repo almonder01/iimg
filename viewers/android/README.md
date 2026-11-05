@@ -72,6 +72,8 @@ The dedicated emulator used a 720×1280 display, two cores and host GPU renderin
 
 The APK SHA-256 was `fc265e2af22272240ca1d3f511b37e619dffbb7dc2954cf068c8e8f5a1555395`. The candidate fixture was 637 bytes with SHA-256 `6a7804433626ae2163f447c3e66646a72642063d1d0e952547245754515992bd`.
 
-Email and messenger transport still require separate app-level measurements.
+On 2026-11-05, the repository owner reported successful installation, picker opening, touch activation, offline reopening and reset on a physical Samsung Galaxy S23+ running Android 17. See the [device record](../../docs/device-tests/2026-11-05-galaxy-s23-plus.md) for the exact published build, fixture and evidence limits. This test used the later device-test APK; it has a different digest from the emulator APK above. Physical-device fallback/recovery, VIEW/SEND, WebView version and received-file checksums remain open. Email and messenger transport still require separate app-level measurements.
+
+The subsequent Galaxy S23+ checks passed WhatsApp 2.26.42.74 attachment handoff and interaction, plus a computer-download byte comparison against the original fixture. Screenshots confirmed static fallback for the unsupported case and rejection/clearing for the corrupt case; the tester confirmed recovery and interaction after reopening the valid file. This completes the selected device smoke procedure. Broader VIEW/SEND and device coverage, WebView version and additional transport measurements remain open.
 
 [Android document picker](https://developer.android.com/training/data-storage/shared/documents-files?hl=en) · [Android incoming shares](https://developer.android.com/develop/ui/compose/sharing/receive)
