@@ -20,6 +20,7 @@ The active goal is an interoperable IIMG 1.0 release. See the [implementation pl
 - [ ] Verify the updated workflow on GitHub and configure required checks.
 - [ ] Confirm publication license scopes and fixture distribution terms and verify a private security reporting channel.
 - [x] Add the legal texts corresponding to the declared README policy and include project and Cargo dependency notices in review archives.
+- [x] Add structural JSON Schema models with a locked validator and explicit semantic validation tests.
 - [x] Record the historical fixture in a versioned manifest.
 - [x] Draft the visual container and compatibility proposal in [RFC 0001](../rfcs/0001-wire-compatibility.md).
 - [x] Add the decoder fuzz target and seed instructions.
@@ -67,6 +68,8 @@ Authoring now includes embedded PNG assets declared in source JSON. The Rust tes
 The [web source editor](AUTHORING.md) validates automatically after a short pause, removes the previous download link as soon as source or version changes, and keeps the current image visible until preview is requested. The new browser regression failed against the previous editor and passed in Chromium 156.0.8078.74 with networking disabled. It checked live syntax errors, link invalidation and replacement, mixed raster preview, the 1.0 export header and interaction after reopening the file.
 
 The [SDK guide](SDK.md) documents the Rust validation sequence, structured failures, normalized input, accessibility state and WebAssembly buffer ownership and status codes. The core API reference includes an executable author/load/preview/activate/replay example. Rustdoc built on Windows with warnings denied, and the example passed. The CI matrix now includes documentation generation and its existing workspace test command runs the example. The review specification archive includes the guide and its local document links.
+
+Six [JSON schemas](../spec/schemas/README.md) now cover shared types, candidate metadata, scenes, controls, source authoring and portable traces. Pinned Ajv 8.20.0 compiled them in strict mode and passed 25 positive and 17 negative structural cases. Ten structurally valid sources were rejected by the WASM compiler for semantic or lexical violations, including geometry, duplicate IDs and fields, UTF-8 label size, whitespace-only labels, Unicode scalars, Base64, render budget and negative zero. The extracted specification archive's runner passed using the matching extracted WASM and npm dependencies installed offline from cache. The CI web matrix includes this suite.
 
 The [Core 1.0 candidate](../spec/IIMG-1.0-candidate.md) has separate version/profile values and an explicit migration from 0.2. The independent Python conformance runner matched the Rust CLI on 47 envelope and preview cases, 29 semantic rejections, four invalid traces and three final interaction frames on Windows. The suite exercises both 0.2 and 1.0 semantic failures and verifies migration preserves known payloads while dropping unknown ancillary data. The WebAssembly smoke test verifies that malformed declarations report a diagnostic distinct from unsupported capabilities. Candidate review and cross-platform run evidence remain open.
 

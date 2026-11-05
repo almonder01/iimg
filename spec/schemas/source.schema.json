@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/almonder01/iimg/main/spec/schemas/source.schema.json",
+  "title": "IIMG visual authoring source",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["width", "height", "scene"],
+  "properties": {
+    "width": { "$ref": "common.schema.json#/$defs/side" },
+    "height": { "$ref": "common.schema.json#/$defs/side" },
+    "scene": { "$ref": "scene.schema.json" },
+    "interaction": { "anyOf": [
+      { "$ref": "interaction.schema.json" },
+      { "type": "null" }
+    ] },
+    "assets": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "png_base64"],
+        "properties": {
+          "id": { "$ref": "common.schema.json#/$defs/identifier" },
+          "png_base64": {
+            "type": "string",
+            "minLength": 4,
+            "maxLength": 1398104,
+            "contentEncoding": "base64",
+            "description": "The Core compiler validates the Base64 and bounded RGB8 PNG data."
+          }
+        }
+      }
+    }
+  }
+}

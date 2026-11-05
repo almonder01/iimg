@@ -132,6 +132,9 @@ def package(output, cli, wasm, target):
     web.update(web_notices)
     spec = source_entries(SPEC_FILES)
     spec.update(project_licenses)
+    schema_files = [path for path in (ROOT / "spec/schemas").iterdir()
+                    if path.is_file() and path.suffix in (".json", ".md")]
+    spec.update(source_entries(path.relative_to(ROOT).as_posix() for path in schema_files))
     fixture_files = [path for path in (ROOT / "tests/fixtures").rglob("*") if path.is_file()
                      and path.suffix in (".iimg", ".json", ".py")]
     spec.update(source_entries(path.relative_to(ROOT).as_posix() for path in fixture_files))
@@ -139,6 +142,7 @@ def package(output, cli, wasm, target):
         "examples/hello.iimg", "examples/lamp.source.json", "examples/raster-lamp.source.json",
         "tests/conformance/check.py",
         "tests/conformance/reference.py", "tests/conformance/mail_transport.py", "tests/README.md",
+        "viewers/web/schema-test.mjs", "viewers/web/package.json", "viewers/web/package-lock.json",
     )))
 
     commit = command("git", "rev-parse", "HEAD")

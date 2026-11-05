@@ -2,6 +2,8 @@
 
 The reference SDK consists of the Rust core and a WebAssembly host adapter. The SDK version is currently 0.1.0. Wire version 1.0 is a candidate under review, alongside the separately identified 0.2 draft and historical 0.1 container. The [candidate specification](../spec/IIMG-1.0-candidate.md) defines portable file behavior. Use the [conformance suite](../tests/README.md) when implementing another reader.
 
+The [JSON schemas](../spec/schemas/README.md) support editor integration and structural checks. Complete readers enforce the lexical, resource and semantic rules documented there.
+
 ## Rust host
 
 Add a path dependency on `crates/iimg-core` when developing in this checkout. Generate the API reference and run its executable example from the repository root.

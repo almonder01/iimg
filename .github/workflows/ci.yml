@@ -48,6 +48,7 @@ jobs:
       - run: node viewers/web/smoke.mjs
       - run: npm ci --ignore-scripts
         working-directory: viewers/web
+      - run: npm --prefix viewers/web run test:schemas
       - if: runner.os == 'Linux'
         run: node viewers/web/node_modules/playwright-core/cli.js install --with-deps --only-shell chromium
       - if: runner.os != 'Linux'

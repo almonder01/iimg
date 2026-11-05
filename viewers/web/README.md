@@ -26,6 +26,8 @@ npm --prefix viewers/web ci --ignore-scripts
 npm --prefix viewers/web test
 ```
 
+Run `npm --prefix viewers/web run test:schemas` after the WASM build and npm install to check the [machine-readable schemas](../../spec/schemas/README.md). This suite also verifies semantic and lexical failures through the Core compiler.
+
 The CI matrix uses the headless Chromium revision selected by the locked Playwright dependency. To use the same browser locally, run `node viewers/web/node_modules/playwright-core/cli.js install --only-shell chromium` after `npm ci` and set `IIMG_PLAYWRIGHT_CHROMIUM=1` before the test. Linux CI installs Chromium's system dependencies with the Playwright installer.
 
 Bump the shell cache version in `offline.js` when deploying a change to the page, script or WASM. Deploy the matching files together.

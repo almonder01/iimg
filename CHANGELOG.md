@@ -12,6 +12,7 @@ The SDK remains at 0.1.0. Wire 1.0 is a candidate under review. This entry descr
 - Offline web viewer and source editor with live validation, generated previews and file export.
 - Android reference host for content-URI opening and sharing, plus a separate handoff test fixture app.
 - Independent Python envelope, PNG, scene and event evaluation with versioned fixtures and differential checks.
+- JSON Schema models for editor integration with strict structural tests and Core semantic checks.
 - Source-only reproducibility checks, review packaging, checksums, SBOMs and project/dependency license inventories.
 - Candidate security model, contribution and release procedures and an SDK guide with an executable Rust example.
 

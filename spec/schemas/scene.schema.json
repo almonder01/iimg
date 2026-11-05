@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/almonder01/iimg/main/spec/schemas/scene.schema.json",
+  "title": "IIMG Core candidate SCNE",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["background", "objects"],
+  "properties": {
+    "background": { "$ref": "common.schema.json#/$defs/color" },
+    "objects": {
+      "type": "array",
+      "maxItems": 256,
+      "items": { "oneOf": [
+        { "$ref": "#/$defs/rectangle" },
+        { "$ref": "#/$defs/circle" },
+        { "$ref": "#/$defs/image" }
+      ] }
+    }
+  },
+  "$defs": {
+    "rectangle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "id", "x", "y", "width", "height", "fill"],
+      "properties": {
+        "type": { "const": "rect" },
+        "id": { "$ref": "common.schema.json#/$defs/identifier" },
+        "x": { "$ref": "common.schema.json#/$defs/coordinate" },
+        "y": { "$ref": "common.schema.json#/$defs/coordinate" },
+        "width": { "$ref": "common.schema.json#/$defs/extent" },
+        "height": { "$ref": "common.schema.json#/$defs/extent" },
+        "fill": { "$ref": "common.schema.json#/$defs/color" }
+      }
+    },
+    "circle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "id", "cx", "cy", "radius", "fill"],
+      "properties": {
+        "type": { "const": "circle" },
+        "id": { "$ref": "common.schema.json#/$defs/identifier" },
+        "cx": { "$ref": "common.schema.json#/$defs/coordinate" },
+        "cy": { "$ref": "common.schema.json#/$defs/coordinate" },
+        "radius": { "$ref": "common.schema.json#/$defs/extent" },
+        "fill": { "$ref": "common.schema.json#/$defs/color" }
+      }
+    },
+    "image": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "id", "asset", "x", "y"],
+      "properties": {
+        "type": { "const": "image" },
+        "id": { "$ref": "common.schema.json#/$defs/identifier" },
+        "asset": { "$ref": "common.schema.json#/$defs/identifier" },
+        "x": { "$ref": "common.schema.json#/$defs/coordinate" },
+        "y": { "$ref": "common.schema.json#/$defs/coordinate" }
+      }
+    }
+  }
+}

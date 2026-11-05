@@ -6,7 +6,7 @@ Checked items indicate local implementation. Use the [implementation plan](IMPLE
 - [x] Experimental container encoder/decoder and CRC checks
 - [x] Sample generator and CLI validator
 - [x] Contributor, governance and CI starter files
-- [ ] Formal JSON schemas and schema validator
+- [x] Formal JSON schemas and schema validator
 - [x] Golden fixtures and adversarial corpus
 - [x] Independent decoder
 

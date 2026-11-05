@@ -44,4 +44,6 @@ The migration validates the source profile and its preview, updates the version 
 
 ## Release evidence
 
+The [machine-readable schemas](schemas/README.md) describe metadata, scene, interaction, authoring and trace structure. The complete validation rules above also apply to file readers and compilers.
+
 The versioned candidate fixture exercises both capabilities and is generated independently of the Rust writer. The conformance runner verifies candidate acceptance, preview and initial frame parity, and migration parity for both portable interaction traces. Review the limits and diagnostics, expand the candidate fixture suite, and obtain cross-platform, Android, security and release evidence before marking this specification stable.

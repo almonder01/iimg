@@ -3,9 +3,11 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test:schemas": "node schema-test.mjs",
     "test": "node browser-test.mjs"
   },
   "devDependencies": {
+    "ajv": "8.20.0",
     "playwright-core": "1.58.2"
   }
 }

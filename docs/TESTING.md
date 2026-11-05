@@ -15,6 +15,8 @@ python -B tests/conformance/mail_transport.py
 
 Use the [web viewer checks](../viewers/web/README.md) for the WASM and Chromium suites and the [Android device checks](../viewers/android/README.md) for the native adapter.
 
+After building WASM and installing the locked npm development dependencies, run `npm --prefix viewers/web run test:schemas`. This checks the [JSON schemas](../spec/schemas/README.md) against valid and invalid structural cases and verifies that Core enforces the remaining semantic and lexical rules.
+
 The [SDK guide](SDK.md) includes the commands for generating and testing the Rust API documentation. The CI matrix generates documentation with `RUSTDOCFLAGS=-D warnings`, and the workspace tests execute the core integration example.
 
 ## Test pyramid

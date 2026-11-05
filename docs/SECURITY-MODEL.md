@@ -22,6 +22,8 @@ Run `python -B scripts/audit_dependencies.py` after fetching the locked runtime 
 
 The local run on 2026-11-04 returned no advisory IDs for 35 distinct Rust and npm versions. It covered 13 runtime/build packages, 24 fuzz-harness packages and one browser-test package, with overlap between the Cargo scopes.
 
+After adding the schema validator on 2026-11-05, the Rust/fuzz/npm check covered 40 distinct versions and returned no advisory matches. The new packages are development tooling. Viewer runtime dependencies are recorded separately by the artifact SBOMs.
+
 ## Android dependency inventory
 
 The Android build can report the resolved Maven coordinates for both APK modules. Run the Gradle command from the repository root and use an absolute init-script path.

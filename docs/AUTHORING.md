@@ -18,3 +18,5 @@ cargo run --locked -p iimg-cli -- compile-v1 examples/lamp.source.json lamp-v1.i
 The source is a UTF-8 JSON object of at most 12 MiB. It contains integer `width` and `height`, a `scene` object, an optional `interaction` object and an optional `assets` array. Use the fields from the [visual draft](../spec/IIMG-0.2-visual.md) and the [interaction draft](../spec/IIMG-0.2-interaction.md). The compiler generates metadata and capability flags and validates references before writing a file.
 
 The source supports rectangles, circles, embedded RGB8 PNG images and toggle controls. Each asset contains an `id` and a `png_base64` field using standard Base64. An image object references the asset ID in its `asset` field. The compiler preserves the PNG bytes and applies the Core limits for image dimensions, total pixels and encoded asset sizes. See [the mixed raster example](../examples/raster-lamp.source.json). Retain the source JSON to edit a compiled image.
+
+The [source JSON schema](../spec/schemas/source.schema.json) supports editor hints and structural validation. The [schema guide](../spec/schemas/README.md) describes the semantic and lexical checks performed by Core.
