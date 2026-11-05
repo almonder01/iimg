@@ -26,10 +26,13 @@ The published downloads were retrieved without authentication and matched these 
 | Enable airplane mode, disable Wi-Fi, close and reopen the application, then reopen the same file | Passed, tester confirmed the offline procedure worked |
 | Activate the circle while offline | Passed as part of the reported offline procedure |
 | Select **Reset image** to restore the yellow initial state | Passed as part of the reported offline procedure |
+| Tap the IIMG attachment in WhatsApp, select IIMG Viewer and open the image | Passed, tester explicitly reported the app appeared and the image opened in it |
+
+The WhatsApp check followed the suggested document-attachment procedure. It establishes attachment handoff and image opening on this phone. Post-handoff activation/reset, the exact chat route, source-app version, delivery to a separate recipient and received-file digests have not yet been recorded. It does not establish interactive rendering inside WhatsApp itself.
 
 ## Remaining evidence
 
 - Record the WebView and relevant source-app versions.
-- Test actual messenger/email attachment delivery, system handoff and received-file byte integrity. WhatsApp was selected as the next transport; no result is recorded yet.
+- Confirm activation and reset after opening from WhatsApp. Record actual messenger/email delivery to a separate recipient and received-file byte integrity; attachment handoff and image opening from WhatsApp have been reported successful.
 - Test physical-device file-manager VIEW/SEND routing, unsupported-capability fallback, corrupt-file rejection and recovery.
 - Run accessibility checks and broader device/OS coverage. These initial observations do not establish complete Android acceptance or stable-release readiness.
