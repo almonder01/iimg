@@ -41,7 +41,7 @@ Verify a package you built before passing it to a reviewer.
 python -B scripts/verify_candidate_package.py target/candidate-review
 ```
 
-The manually triggered **Candidate review package** workflow builds the package on Windows, Linux and macOS and requires a clean checkout. It uploads review artifacts after checksums, extracted conformance, loopback transfer and WebAssembly tests pass. It creates no public release or tag.
+The **Candidate review package** workflow runs for pull requests and manual dispatch on Windows, Linux and macOS and requires a clean checkout. It uploads review artifacts after checksums, extracted conformance, loopback transfer and WebAssembly tests pass. These artifacts support candidate review.
 
 Verify the checksums, then extract the archives into a scratch directory and run the conformance comparison against the extracted CLI. Use the [web smoke tests](../viewers/web/README.md) and [Android device checks](../viewers/android/README.md) before release. The local debug APK has separate asset and signature checks. Device acceptance and a release-signed APK are separate gates. Publication also requires the confirmed license texts and signed provenance where supported.
 

@@ -1,6 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
+use std::sync::atomic::{AtomicU64, Ordering};
 
 fn cli(command: &str, file: &Path) -> Output {
     Command::new(env!("CARGO_BIN_EXE_iimg-cli"))
@@ -14,11 +15,16 @@ struct TestDirectory(PathBuf);
 
 impl TestDirectory {
     fn new() -> Self {
+        static NEXT_DIRECTORY: AtomicU64 = AtomicU64::new(0);
+        let sequence = NEXT_DIRECTORY.fetch_add(1, Ordering::Relaxed);
         let unique = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
             .as_nanos();
-        let path = std::env::temp_dir().join(format!("iimg-cli-{}-{unique}", std::process::id()));
+        let path = std::env::temp_dir().join(format!(
+            "iimg-cli-{}-{unique}-{sequence}",
+            std::process::id()
+        ));
         fs::create_dir(&path).unwrap();
         Self(path)
     }

@@ -34,6 +34,8 @@ The updated [contributor checks](TESTING.md#local-developer-checks) use the lock
 
 The implementation is recorded in local commit `ce524c201a5f125384c2f65bd1ff70bb8d7422aa` on review branch `work/iimg-core-candidate`. The [changelog](../CHANGELOG.md) records the current candidate features, compatibility changes and migration path. Remote GitHub verification and publication remain open.
 
+The review branch is now published in [PR 1](https://github.com/almonder01/iimg/pull/1). Initial GitHub checks passed Rust and web suites on Linux, Windows and macOS after correcting SMTP hostname discovery. The Android workflow passed after explicit SDK setup. A separate macOS run exposed a timestamp collision in parallel CLI test directories, which now include an atomic sequence. The PR also generates review packages for all three desktop platforms. Verification of the latest revision remains in progress.
+
 On 2026-11-05, the repository owner approved the license scopes for code, fixtures, documentation and specifications and authorized publication of the review branch. Fixture manifests and generated Android manifests now carry the approved SPDX license expression.
 
 ## Next

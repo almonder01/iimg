@@ -1,5 +1,6 @@
 name: Candidate review package
 on:
+  pull_request:
   workflow_dispatch:
 permissions:
   contents: read

@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
   - name: Security reporting
-    url: https://docs.github.com/en/code-security/security-advisories/working-with-repository-security-advisories/about-repository-security-advisories
-    about: Do not disclose vulnerabilities in public issues. Read SECURITY.md.
+    url: https://github.com/almonder01/iimg/security/advisories/new
+    about: Report vulnerabilities privately to the IIMG maintainers.
