@@ -1,10 +1,12 @@
 # Core candidate technical review and independent-review handoff
 
-Status: implementation-team technical review in progress. This is not an independent security audit or approval of the 1.0 release gate. The implementation and this review were prepared with Codex assistance. The Python evaluator uses a separate algorithm, but is maintained in the same project and does not establish an independent external review.
+Status: the automated checks and initial source review below are complete for the stated scope; independent review and the listed follow-ups remain open. This is not an independent security audit or approval of the 1.0 release gate. The implementation and this review were prepared with Codex assistance. The Python evaluator uses a separate algorithm, but is maintained in the same project and does not establish an independent external review.
 
 ## Revision and boundaries
 
 The reviewed runtime is merged commit `82d903460a50434d3c3927600ef5c86eca4d4e9a`. This review branch adds tests and documentation without changing the wire format or viewer runtime. Record full revision IDs when testing later changes.
+
+The expanded checks ran at `fe7c4ee3273c1e22242bc8ada3a1f010c591ad16`: [cross-platform CI](https://github.com/almonder01/iimg/actions/runs/42034808342), [three-platform candidate packages](https://github.com/almonder01/iimg/actions/runs/42034808132), [Android APK](https://github.com/almonder01/iimg/actions/runs/42034808133) and the [two-target sanitizer run](https://github.com/almonder01/iimg/actions/runs/42034806755) all passed. The package verifier exercised the generated runner from the extracted specification archive on each host. Subsequent report-only edits do not change that reviewed code.
 
 | Boundary | Review scope |
 | --- | --- |
@@ -23,9 +25,9 @@ Review the [security model](../SECURITY-MODEL.md), [candidate specification](../
 | --- | --- |
 | Locked dependencies | [Linux audit](https://github.com/almonder01/iimg/actions/runs/42032499751) checked 154 distinct Rust, npm and Maven versions; zero OSV matches. This does not establish absence of undisclosed vulnerabilities |
 | Decoder sanitizer | [Linux run](https://github.com/almonder01/iimg/actions/runs/42032505556) completed 3,450,876 executions in 601 seconds from six binary seeds, with no reported sanitizer crash. Its final log reported 484 MiB RSS for the instrumented fuzzer; this is not normal viewer memory usage |
-| Generated differential cases | Windows passed seed `0x49494d47`: 40 bounded scenes, 80 versioned 64-event replays, initial preview/reference comparisons and 40 migrations |
+| Generated differential cases | Windows, Linux and macOS CI and extracted packages passed seed `0x49494d47`: 40 bounded scenes, 80 versioned 64-event replays, initial preview/reference comparisons and 40 migrations |
 | Untrusted labels | Chromium 156.0.8078.74 treated an SVG-event-handler label as literal accessible button text. No SVG/image/script element appeared, the handler marker stayed unset, and activation worked |
-| Authoring fuzz coverage | Added an `author` target checking bounded source acceptance across versions, exact migration parity and decoded preview/render equality. Execution evidence is pending |
+| Authoring fuzz coverage | The [short Linux sanitizer run](https://github.com/almonder01/iimg/actions/runs/42034806755) completed 1,965,292 author executions in 61 seconds, checking source acceptance across versions, exact migration parity and decoded preview/render equality, without a reported crash. The same run completed 555,751 decoder executions in 61 seconds |
 
 The [generated runner](../../tests/conformance/generated.py) fixes its seed and case count, with 8–64 pixel canvases and at most 16 shapes. It compares independently evaluated pixels. Maximum budgets, malformed inputs, host faults and accessibility remain separate tests.
 
