@@ -6,13 +6,30 @@
 <style>
   body { font: 1rem system-ui, sans-serif; margin: 2rem auto; padding: 0 1rem; max-width: 44rem; }
   canvas, img { display: block; width: min(100%, 24rem); height: auto; image-rendering: pixelated; }
-  [hidden] { display: none; }
+  [hidden] { display: none !important; }
   #controls { display: flex; gap: .5rem; flex-wrap: wrap; margin: 1rem 0; }
   button { font: inherit; padding: .65rem .85rem; min-height: 48px; min-width: 48px; max-width: 100%; overflow-wrap: anywhere; white-space: normal; border: 2px solid #64748b; border-radius: .5rem; background: #fff; color: #172033; }
   button:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible, a:focus-visible { outline: 3px solid #1d4ed8; outline-offset: 3px; }
   button[aria-pressed="true"] { border-color: #0f766e; background: #ccfbf1; border-width: 3px; }
   button[aria-pressed="true"] { font-weight: bold; }
   textarea { box-sizing: border-box; display: block; width: 100%; min-height: 12rem; margin: .5rem 0; }
+  #visual-editor { margin: 1rem 0; padding: 1rem; border: 1px solid #94a3b8; border-radius: .75rem; background: #f8fafc; color: #172033; }
+  #visual-editor h2 { margin-top: 0; }
+  .editor-toolbar, .editor-fields { display: flex; flex-wrap: wrap; gap: .6rem; align-items: end; margin: .75rem 0; }
+  .editor-fields label { display: flex; flex-direction: column; gap: .25rem; max-width: 100%; }
+  #visual-editor input, #visual-editor select { font: inherit; box-sizing: border-box; min-height: 44px; max-width: 100%; }
+  #visual-editor input[type="number"] { width: 6rem; }
+  #visual-editor input[type="checkbox"] { min-height: auto; }
+  #editor-objects { width: 100%; }
+  #editor-stage { position: relative; width: 100%; margin: .75rem 0; }
+  #editor-canvas { width: 100%; touch-action: none; }
+  #editor-selection { position: absolute; box-sizing: border-box; border: 2px dashed #fff; outline: 2px solid #1d4ed8; pointer-events: none; }
+  #editor-properties { border: 0; padding: 0; margin: 0; min-width: 0; }
+  #editor-label { width: 100%; }
+  #visual-editor a { display: inline-block; padding: .5rem 0; }
+  .editor-workspace { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 17rem); gap: 1rem; }
+  .editor-workspace > * { min-width: 0; }
+  @media (max-width: 650px) { .editor-workspace { grid-template-columns: minmax(0, 1fr); } }
 </style>
 <main>
   <h1>IIMG viewer</h1>
@@ -25,6 +42,63 @@
   <button id="reset" type="button" hidden>Reset image</button>
   <details id="author" hidden>
     <summary>Author an IIMG image</summary>
+    <section id="visual-editor" aria-label="Visual editor" hidden>
+      <h2>Visual editor</h2>
+      <p>Create shapes, select them on the canvas or in the list, and edit their properties. Drag to move; arrow keys move the selection by one pixel (Shift: ten). Save source JSON to keep an editable project.</p>
+      <div class="editor-toolbar">
+        <button id="editor-new" type="button">New canvas</button>
+        <button id="editor-add-rect" type="button">Add rectangle</button>
+        <button id="editor-add-circle" type="button">Add circle</button>
+        <button id="editor-undo" type="button" disabled>Undo</button>
+        <button id="editor-redo" type="button" disabled>Redo</button>
+      </div>
+      <form id="editor-canvas-form">
+        <div class="editor-fields">
+          <label>Canvas width <input id="editor-width" type="number" min="1" max="2048" step="1" required></label>
+          <label>Canvas height <input id="editor-height" type="number" min="1" max="2048" step="1" required></label>
+          <label>Background <input id="editor-background" type="color"></label>
+          <button type="submit">Apply canvas</button>
+        </div>
+      </form>
+      <div class="editor-workspace">
+      <div>
+      <div id="editor-stage" role="group" aria-label="Design canvas" tabindex="0">
+        <canvas id="editor-canvas" role="img" aria-label="Design preview" hidden></canvas>
+        <div id="editor-selection" aria-hidden="true" hidden></div>
+      </div>
+      <label for="editor-objects">Objects (back to front)</label>
+      <select id="editor-objects" size="5" aria-label="Objects (back to front)"></select>
+      <div class="editor-toolbar">
+        <button id="editor-backward" type="button">Move backward</button>
+        <button id="editor-forward" type="button">Move forward</button>
+        <button id="editor-delete" type="button">Delete selected</button>
+      </div>
+      </div>
+      <form id="editor-object-form">
+        <fieldset id="editor-properties" disabled>
+          <legend id="editor-object-name">Selected object</legend>
+          <div class="editor-fields">
+            <label>Left <input id="editor-x" type="number" min="0" max="2048" step="1" required></label>
+            <label>Top <input id="editor-y" type="number" min="0" max="2048" step="1" required></label>
+            <label id="editor-shape-width-row">Shape width <input id="editor-shape-width" type="number" min="1" max="2048" step="1"></label>
+            <label id="editor-shape-height-row">Shape height <input id="editor-shape-height" type="number" min="1" max="2048" step="1"></label>
+            <label id="editor-radius-row">Radius <input id="editor-radius" type="number" min="1" max="1024" step="1"></label>
+            <label id="editor-fill-row">Shape color <input id="editor-fill" type="color"></label>
+          </div>
+          <label><input id="editor-interactive" type="checkbox"> Toggle color on activation</label>
+          <div class="editor-fields">
+            <label>Control name <input id="editor-label" type="text" dir="auto" maxlength="256"></label>
+            <label>Active color <input id="editor-active" type="color"></label>
+            <button type="submit">Apply object</button>
+          </div>
+        </fieldset>
+      </form>
+      </div>
+      <p id="editor-status" role="status"></p>
+      <label>Import source JSON <input id="editor-import" type="file" accept=".json,application/json"></label>
+      <a id="editor-save" download="project.iimg.json" hidden>Save source JSON</a>
+      <p>Use <strong>Validate and preview</strong> below to test interactions, then <strong>Download IIMG</strong> to export. Direct PNG upload, animation and drag interactions inside exported images are planned separately.</p>
+    </section>
     <label for="source">IIMG source JSON</label>
     <textarea id="source" spellcheck="false">{
   "width": 32,

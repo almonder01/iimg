@@ -15,7 +15,7 @@ let selection = 0;
 async function start() {
   const response = await fetch(new URL("./iimg_web.wasm", import.meta.url));
   if (!response.ok) throw new Error("The WebAssembly engine could not be loaded.");
-  const { instance } = await WebAssembly.instantiate(await response.arrayBuffer());
+  const { instance, module } = await WebAssembly.instantiate(await response.arrayBuffer());
   const wasm = instance.exports;
   const output = () => new Uint8Array(wasm.memory.buffer, wasm.output_ptr(), wasm.output_len());
   const describe = () => {
@@ -137,6 +137,7 @@ async function start() {
     let documentBytes;
     let downloadUrl;
     let validationTimer;
+    let editorStarted = false;
 
     function scheduleValidation() {
       clearTimeout(validationTimer);
@@ -184,6 +185,18 @@ async function start() {
     candidate.addEventListener("change", scheduleValidation);
     author.addEventListener("toggle", () => {
       if (author.open && !documentBytes) scheduleValidation();
+      if (author.open && !editorStarted) {
+        editorStarted = true;
+        (async () => {
+          try {
+            const { mountEditor } = await import("./editor.mjs");
+            const editor = await WebAssembly.instantiate(module);
+            mountEditor(document.querySelector("#visual-editor"), source, editor.exports);
+          } catch (error) {
+            message.textContent = `Visual editor could not start: ${error.message}. JSON authoring is available.`;
+          }
+        })();
+      }
     });
     document.querySelector("#compile").addEventListener("click", async () => {
       validateSource();

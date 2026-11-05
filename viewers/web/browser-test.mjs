@@ -12,6 +12,7 @@ const shell = new Map([
   ["/", ["index.html", "text/html"]],
   ["/index.html", ["index.html", "text/html"]],
   ["/viewer.mjs", ["viewer.mjs", "text/javascript"]],
+  ["/editor.mjs", ["editor.mjs", "text/javascript"]],
   ["/offline.js", ["offline.js", "text/javascript"]],
   ["/iimg_web.wasm", ["../../target/wasm32-unknown-unknown/release/iimg_web.wasm", "application/wasm"]],
 ]);
@@ -113,6 +114,139 @@ try {
   assert.deepEqual(await pixel(6, 15), [80, 175, 240, 255]);
   await lamp.click();
   assert.deepEqual(await pixel(16, 16), [248, 113, 113, 255]);
+
+  // Author a new document using only the visual workspace, then exercise its
+  // actual exported file. Editing must not alter the already-open viewer.
+  const editor = page.getByRole("region", { name: "Visual editor", exact: true });
+  const design = page.locator("#editor-canvas");
+  await design.waitFor({ state: "visible" });
+  const designPixel = (x, y) => design.evaluate((element, [px, py]) =>
+    [...element.getContext("2d").getImageData(px, py, 1, 1).data], [x, y]);
+  assert.deepEqual(await designPixel(16, 16), [250, 204, 21, 255]);
+  await editor.getByRole("button", { name: "New canvas", exact: true }).click();
+  assert.equal(await page.locator("#editor-objects option").count(), 0);
+  await editor.getByRole("button", { name: "Add rectangle", exact: true }).click();
+  await editor.getByLabel("Left", { exact: true }).fill("64");
+  await editor.getByLabel("Top", { exact: true }).fill("48");
+  await editor.getByLabel("Shape width", { exact: true }).fill("120");
+  await editor.getByLabel("Shape height", { exact: true }).fill("80");
+  await editor.getByLabel("Shape color", { exact: true }).fill("#2288cc");
+  await editor.getByLabel("Toggle color on activation", { exact: true }).check();
+  await editor.getByLabel("Control name", { exact: true }).fill("مصباح الاختبار");
+  await editor.getByLabel("Active color", { exact: true }).fill("#ffcc00");
+  await editor.getByRole("button", { name: "Apply object", exact: true }).click();
+  await editor.getByRole("button", { name: "Add circle", exact: true }).click();
+  await page.locator("#editor-objects").selectOption("shape1");
+  await editor.getByRole("button", { name: "Move forward", exact: true }).click();
+  await design.scrollIntoViewIfNeeded();
+  const designBounds = await design.boundingBox();
+  const designPoint = (x, y) => ({ x: designBounds.x + (x + .5) * designBounds.width / 512,
+    y: designBounds.y + (y + .5) * designBounds.height / 320 });
+  const from = designPoint(100, 90), to = designPoint(140, 110);
+  await page.mouse.move(from.x, from.y);
+  await page.mouse.down();
+  await page.mouse.move(to.x, to.y);
+  await page.mouse.up();
+  assert.equal(await editor.getByLabel("Left", { exact: true }).inputValue(), "104");
+  assert.equal(await editor.getByLabel("Top", { exact: true }).inputValue(), "68");
+  assert.deepEqual(await designPixel(110, 75), [34, 136, 204, 255]);
+  assert.deepEqual(await pixel(16, 16), [248, 113, 113, 255]);
+  const touchCircle = designPoint(40, 40), touchRect = designPoint(130, 90);
+  await page.touchscreen.tap(touchCircle.x, touchCircle.y);
+  assert.equal(await page.locator("#editor-object-name").textContent(), "shape2 (circle)");
+  await page.touchscreen.tap(touchRect.x, touchRect.y);
+  assert.equal(await page.locator("#editor-object-name").textContent(), "shape1 (rect)");
+
+  // A cancelled gesture changes neither the source nor history.
+  const beforeCancel = await source.inputValue();
+  const cancelFrom = designPoint(130, 90), cancelTo = designPoint(200, 120);
+  await page.mouse.move(cancelFrom.x, cancelFrom.y); await page.mouse.down();
+  await page.mouse.move(cancelTo.x, cancelTo.y);
+  await design.dispatchEvent("pointercancel", { pointerId: 1 });
+  await page.mouse.up();
+  assert.equal(await source.inputValue(), beforeCancel);
+  await page.locator("#editor-stage").focus();
+  await page.keyboard.press("Shift+ArrowRight");
+  assert.equal(await editor.getByLabel("Left", { exact: true }).inputValue(), "114");
+  await editor.getByRole("button", { name: "Undo", exact: true }).click();
+  assert.equal(await editor.getByLabel("Left", { exact: true }).inputValue(), "104");
+  await editor.getByRole("button", { name: "Redo", exact: true }).click();
+  assert.equal(await editor.getByLabel("Left", { exact: true }).inputValue(), "114");
+  await editor.getByRole("button", { name: "Delete selected", exact: true }).click();
+  assert.equal(JSON.parse(await source.inputValue()).interaction, undefined);
+  await editor.getByRole("button", { name: "Undo", exact: true }).click();
+  assert.equal(JSON.parse(await source.inputValue()).interaction.controls[0].label, "مصباح الاختبار");
+  if (process.env.IIMG_EDITOR_SCREENSHOTS) {
+    await editor.screenshot({ path: `${process.env.IIMG_EDITOR_SCREENSHOTS}/editor-desktop.png` });
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+  if (process.env.IIMG_EDITOR_SCREENSHOTS) {
+    await editor.screenshot({ path: `${process.env.IIMG_EDITOR_SCREENSHOTS}/editor-phone.png` });
+  }
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await downloadLink.waitFor({ state: "visible" });
+  await page.getByRole("button", { name: "Validate and preview", exact: true }).click();
+  assert.deepEqual(await pixel(120, 75), [34, 136, 204, 255]);
+  await page.getByRole("button", { name: "مصباح الاختبار", exact: true }).click();
+  assert.deepEqual(await pixel(120, 75), [255, 204, 0, 255]);
+  assert.deepEqual(await designPixel(120, 75), [34, 136, 204, 255]);
+  const [visualDownload] = await Promise.all([page.waitForEvent("download"), downloadLink.click()]);
+  await page.locator("#file").setInputFiles(await visualDownload.path());
+  await page.getByRole("button", { name: "مصباح الاختبار", exact: true }).waitFor({ state: "visible" });
+  assert.deepEqual(await pixel(120, 75), [34, 136, 204, 255]);
+
+  // Import/save preserves embedded assets, and a rejected resize must leave
+  // the accepted document and export intact.
+  await page.locator("#editor-import").setInputFiles({ name: "mixed.json", mimeType: "application/json", buffer: Buffer.from(validSource) });
+  await page.waitForFunction(() => document.querySelector("#editor-width").value === "32");
+  const [project] = await Promise.all([page.waitForEvent("download"), page.getByRole("link", { name: "Save source JSON", exact: true }).click()]);
+  assert.equal(project.suggestedFilename(), "project.iimg.json");
+  assert.deepEqual(JSON.parse(await readFile(await project.path(), "utf8")), JSON.parse(validSource));
+  await page.locator("#editor-objects").selectOption("plate");
+  await editor.getByLabel("Left", { exact: true }).fill("2");
+  await editor.getByLabel("Top", { exact: true }).fill("2");
+  await editor.getByRole("button", { name: "Apply object", exact: true }).click();
+  assert.deepEqual(await designPixel(2, 2), [80, 175, 240, 255]);
+  assert.deepEqual(JSON.parse(await source.inputValue()).assets, JSON.parse(validSource).assets);
+  await editor.getByRole("button", { name: "Undo", exact: true }).click();
+  await editor.getByLabel("Canvas width", { exact: true }).fill("16");
+  await editor.getByRole("button", { name: "Apply canvas", exact: true }).click();
+  assert.match(await page.locator("#editor-status").textContent(), /Not applied:/);
+  assert.deepEqual(JSON.parse(await source.inputValue()), JSON.parse(validSource));
+  await page.locator("#editor-import").setInputFiles({ name: "oversized.json", mimeType: "application/json", buffer: Buffer.alloc(12 * 1024 * 1024 + 1, 32) });
+  await page.waitForFunction(() => document.querySelector("#editor-status").textContent.includes("Import rejected"));
+  assert.deepEqual(JSON.parse(await source.inputValue()), JSON.parse(validSource));
+
+  // A slow file read must not overwrite a design edited after import started.
+  await page.evaluate(() => {
+    const original = File.prototype.text;
+    File.prototype.text = function () {
+      if (this.name !== "slow.json") return original.call(this);
+      return new Promise((resolve) => { window.releaseEditorImport = resolve; }).then(() => {
+        File.prototype.text = original;
+        return original.call(this);
+      });
+    };
+  });
+  await page.locator("#editor-import").setInputFiles({ name: "slow.json", mimeType: "application/json", buffer: Buffer.from(validSource) });
+  await page.waitForFunction(() => typeof window.releaseEditorImport === "function");
+  await editor.getByRole("button", { name: "Add rectangle", exact: true }).click();
+  const newerDesign = await source.inputValue();
+  await page.evaluate(() => window.releaseEditorImport());
+  await page.waitForFunction(() => document.querySelector("#editor-status").textContent.includes("Import cancelled"));
+  assert.equal(await source.inputValue(), newerDesign);
+
+  const crowded = { width: 32, height: 32, scene: { background: [0, 0, 0], objects: Array.from({ length: 256 }, (_, index) =>
+    ({ type: "rect", id: `object${index}`, x: 0, y: 0, width: 1, height: 1, fill: [1, 2, 3] })) } };
+  await source.fill(JSON.stringify(crowded));
+  await page.waitForFunction(() => document.querySelectorAll("#editor-objects option").length === 256);
+  assert.equal(await editor.getByRole("button", { name: "Add rectangle", exact: true }).isDisabled(), true);
+  await source.fill("{");
+  assert.equal(await design.isVisible(), false);
+  assert.equal(await editor.getByLabel("Left", { exact: true }).isDisabled(), true);
+  assert.equal(await page.getByRole("link", { name: "Save source JSON", exact: true }).count(), 0);
+  console.log("Visual editor passed isolated exact rendering, layer selection, drag/cancel, keyboard, history, controls, export/reopen, asset source round-trip and invalid/bounded input checks.");
 
   // Labels are untrusted document text: markup must remain literal, and must
   // never create an element or execute a handler inside the viewer origin.

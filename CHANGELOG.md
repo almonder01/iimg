@@ -6,6 +6,9 @@ The SDK remains at 0.1.0. Wire 1.0 is a published candidate under review.
 
 ### Added
 
+- Visual web authoring workspace with Core-rendered design preview, pointer/keyboard movement, layers, toggle bindings, bounded history and editable source import/save.
+- Acceptance-driven development plan for authoring, advanced interactions and remaining host/release work.
+
 - Original large rect/circle showcase scenes and 256/1024/2048 pixel workloads with native/WASM frame and control verification.
 - Gallery benchmark with equivalent SVG/HTML sources, input/engine hashes and explicitly scoped memory samples.
 - Bounded Android reader with selection cancellation, a 15-second deadline and standalone fault/lifecycle/backpressure tests.

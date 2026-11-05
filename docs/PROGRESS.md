@@ -8,10 +8,12 @@ The active goal is an interoperable IIMG 1.0 release. See the [implementation pl
 | M1 · Visual document | Local gate verified | Typed scene, bounded PNG preview, independent reference pixels and malformed fixture parity |
 | M2 · Interaction | Local gate verified | Chromium offline reload, local file open, mouse, emulated touch and keyboard; native replay matches |
 | M3 · Viewers and sharing | Selected device smoke passed; broader coverage in progress | Galaxy S23+ / Android 17 passed the reported opening, touch, reset, offline, WhatsApp, fallback, rejection and recovery procedure. Computer-downloaded attachment matched all 657 bytes and passed Rust/Python validation. Other paths/devices and version details remain open |
-| M4 · Authoring | In progress | Shared source compiler, CLI export and offline editor with live validation. Public contributor workflow pending |
+| M4 · Authoring | In progress | Shared compiler, CLI export, JSON editor and initial visual workspace with source import/save, geometry/layers, named toggles and history. Public contributor workflow and broader manual acceptance pending |
 | M5 · Stable 1.0 | In progress | Candidate wire, migration and initial independent parity evidence |
 
 ## Large scenes and Android follow-up
+
+The [next-development plan](NEXT-DEVELOPMENT.md) sequences the visual editor, authoring usability, visibility/actions, bounded motion, drag/value inputs, text, host performance/distribution and stable-release evidence. The first visual-editor increment adds pointer/keyboard geometry editing, layer selection, named color toggles, bounded undo/redo and source import/save. A private, lazily loaded WASM instance renders design frames without changing the open viewer. Local Chromium acceptance passed offline author/export/reopen with exact pixels, pointer/touch selection, drag cancellation, history, embedded-asset round-trip, invalid/bounded inputs and stale import suppression. Screenshots were inspected at desktop and 390-pixel phone widths. Cross-host CI and physical editor acceptance are pending; no new interaction capability or wire change is claimed.
 
 The selected Galaxy S23+ smoke procedure is recorded above. Subsequent technical work adds the [original showcase](../examples/showcase/README.md), scale workloads up to 2048², a [dimension-aware benchmark](BENCHMARKS.md#large-scene-and-gallery-run--2026-11-05), and [accessibility acceptance](ACCESSIBILITY.md). Full native/WASM RGB comparisons and 14 pointer/keyboard/reset controls passed locally. Two complete showcase generations matched byte for byte. The 20-repetition Windows benchmark records input/engine hashes and separates WASM capacity, JS heap and sampled browser-process memory.
 

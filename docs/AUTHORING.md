@@ -2,6 +2,22 @@
 
 Use the web viewer's **Author an IIMG image** panel or the CLI. Both use the same Rust compiler and generate a standalone document with an embedded static PNG.
 
+## Visual workspace
+
+Open **Author an IIMG image** to load the visual editor. It is available in the web distribution; Android remains a reference viewer. The editor module is cached with the web shell for offline use after the first successful localhost/HTTPS load.
+
+1. Choose **New canvas**, set dimensions/background, and select **Apply canvas**. Add a rectangle or circle.
+2. Select an object on the design canvas or in **Objects (back to front)**. Drag its outline, use arrow keys on the focused canvas (Shift moves ten pixels), or set numeric properties and choose **Apply object**. Pointer cancellation/Escape discards an unfinished drag. **Move forward/backward** changes layer order; **Delete selected** also removes its toggle binding.
+3. Enable **Toggle color on activation**, supply a control name and active color, and apply. Names are literal Unicode text, including Arabic; Core still enforces its UTF-8 byte limit.
+4. Select **Validate and preview** to operate the design in the separate viewer, then **Download IIMG**. The Core 1.0 checkbox selects candidate versus experimental 0.2 export. Design dragging edits initial geometry; it does not add drag interactions to the exported file.
+5. Use **Save source JSON** to keep the editable project. **Import source JSON** restores it, including embedded raster assets. Compiled `.iimg` files open in the viewer but cannot yet be decompiled into editable source. Keep both source and exported file.
+
+The JSON panel and visual workspace edit the same source. The editor compiles and renders using a separate WASM instance, loaded only when authoring opens; it cannot change the viewer's open document. Invalid JSON clears the design and disables visual properties/export until repaired. An invalid property operation is rejected with a diagnostic while retaining the last accepted source. Shrinking a canvas does not silently clip or move its objects.
+
+Undo/redo keeps up to 40 accepted source snapshots, with an approximate 4 MiB UTF-16 text-history budget. One accepted document can exceed that history budget and is kept alone; this is not a total-memory limit. Import is bounded by the 12 MiB source limit and late reads cannot overwrite newer edits. No automatic persistent saving occurs: save the source before closing or reloading the page. Imported PNG assets can be moved; direct PNG upload, resize handles, templates and recovery are tracked in the [next-development plan](NEXT-DEVELOPMENT.md).
+
+## JSON and CLI
+
 The web editor validates the JSON automatically after a short pause in editing and shows compiler diagnostics or a **Download IIMG** link. Editing the source or changing the target version clears the previous link immediately. Select **Validate and preview** to render the current source in the viewer.
 
 ```sh
