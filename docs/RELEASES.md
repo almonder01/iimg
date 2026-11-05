@@ -43,6 +43,8 @@ python -B scripts/verify_candidate_package.py target/candidate-review
 
 The **Candidate review package** workflow runs for pull requests and manual dispatch on Windows, Linux and macOS and requires a clean checkout. It uploads review artifacts after checksums, extracted conformance, loopback transfer and WebAssembly tests pass. These artifacts support candidate review.
 
+Published revision `252ebc9a9c307e5797819dc2ae14011dd72b4dcd` passed the [three-platform package run](https://github.com/almonder01/iimg/actions/runs/42011192784). Download `iimg-candidate-ubuntu-latest`, `iimg-candidate-windows-latest` or `iimg-candidate-macos-latest` from that run, then use the verifier above on the downloaded directory. The separate [Android run](https://github.com/almonder01/iimg/actions/runs/42011192386) provides `iimg-android-debug`. These are review artifacts subject to GitHub retention, with a debug Android signature and unsigned build records. Stable releases require the remaining review and provenance gates.
+
 Verify the checksums, then extract the archives into a scratch directory and run the conformance comparison against the extracted CLI. Use the [web smoke tests](../viewers/web/README.md) and [Android device checks](../viewers/android/README.md) before release. The local debug APK has separate asset and signature checks. Device acceptance and a release-signed APK are separate gates. Publication also requires the confirmed license texts and signed provenance where supported.
 
 See the [adoption and registration tracker](ADOPTION.md) for work separate from the Core release.

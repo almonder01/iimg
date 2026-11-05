@@ -4,7 +4,7 @@ The active goal is an interoperable IIMG 1.0 release. See the [implementation pl
 
 | Milestone | Status | Exit evidence |
 | --- | --- | --- |
-| M0 · Verified foundation | In progress | Local Rust checks, matching historical fixture, cross-platform CI run and publication setup |
+| M0 · Verified foundation | Gate verified | Linux, Windows and macOS CI and review packages passed on published revision `252ebc9`; main protection and private reporting verified |
 | M1 · Visual document | Local gate verified | Typed scene, bounded PNG preview, independent reference pixels and malformed fixture parity |
 | M2 · Interaction | Local gate verified | Chromium offline reload, local file open, mouse, emulated touch and keyboard; native replay matches |
 | M3 · Viewers and sharing | In progress | Offline web, Android picker, system-injected touch, reset, fallback, VIEW/SEND and loopback email verified locally. Physical devices and third-party transfer pending |
@@ -17,7 +17,7 @@ The active goal is an interoperable IIMG 1.0 release. See the [implementation pl
 - [x] Apply Rust formatting and generate the workspace lockfile.
 - [x] Add a Linux, Windows and macOS CI matrix and validate the original sample with a byte-for-byte regeneration check.
 - [x] Bound CLI file reads and validate encoder structure and total size before serialization.
-- [ ] Verify the updated workflow on GitHub and configure required checks.
+- [x] Verify the updated workflow on GitHub and configure required checks.
 - [x] Confirm MIT OR Apache-2.0 for code and fixtures, and CC BY 4.0 for documentation and specifications.
 - [x] Enable and verify GitHub private vulnerability reporting.
 - [x] Add the legal texts corresponding to the declared README policy and include project and Cargo dependency notices in review archives.
@@ -32,9 +32,11 @@ The fixture manifest's byte count and SHA-256 were checked against the sample. T
 
 The updated [contributor checks](TESTING.md#local-developer-checks) use the lockfile and preserve the historical sample. The listed Rust, independent conformance and loopback SMTP commands all passed locally on Windows.
 
-The implementation is recorded in local commit `ce524c201a5f125384c2f65bd1ff70bb8d7422aa` on review branch `work/iimg-core-candidate`. The [changelog](../CHANGELOG.md) records the current candidate features, compatibility changes and migration path. Remote GitHub verification and publication remain open.
+The initial implementation was recorded in commit `ce524c201a5f125384c2f65bd1ff70bb8d7422aa` on review branch `work/iimg-core-candidate`. The [changelog](../CHANGELOG.md) records the current candidate features, compatibility changes and migration path.
 
-The review branch is now published in [PR 1](https://github.com/almonder01/iimg/pull/1). Initial GitHub checks passed Rust and web suites on Linux, Windows and macOS after correcting SMTP hostname discovery. The Android workflow passed after explicit SDK setup. A separate macOS run exposed a timestamp collision in parallel CLI test directories, which now include an atomic sequence. The PR also generates review packages for all three desktop platforms. Verification of the latest revision remains in progress.
+The review branch is published in [PR 1](https://github.com/almonder01/iimg/pull/1). On 2026-11-05, revision `252ebc9a9c307e5797819dc2ae14011dd72b4dcd` passed all six Rust/web jobs in [PR CI](https://github.com/almonder01/iimg/actions/runs/42011192509), the [Android APK workflow](https://github.com/almonder01/iimg/actions/runs/42011192386), and all three [candidate-package jobs](https://github.com/almonder01/iimg/actions/runs/42011192784). The desktop review archives and debug APK are available from those workflow artifacts. The CI fixes specify a local SMTP hostname, initialize the Android SDK explicitly and include an atomic sequence in parallel CLI test directory names.
+
+The `main` branch requires all six Rust/web checks and all three package checks, an up-to-date branch, one approving review and approval after the last push. Stale approvals are dismissed and conversations must be resolved. These rules apply to administrators; force pushes and deletion are disabled. Android's path-filtered build remains a separate check. The [governance policy](GOVERNANCE.md) additionally requires two independent reviews for wire-format/security-sensitive changes. PR 1 remains open for review; no stable release or merge is implied by passing CI.
 
 On 2026-11-05, the repository owner approved the license scopes for code, fixtures, documentation and specifications and authorized publication of the review branch. Fixture manifests and generated Android manifests now carry the approved SPDX license expression.
 
@@ -118,4 +120,4 @@ Local Linux verification was attempted through the installed Docker Desktop. Sta
 
 The [Chromium performance baseline](BENCHMARKS.md) records 50 repetitions each for the vector and raster-backed lamp fixtures, including IIMG open, activation and observed WASM linear memory. SVG and HTML fixture sizes, parse/mount timings and painted screenshot pixels are verified. The three formats share an activation-to-next-animation-frame measurement. Rive equivalents, resident memory and physical event-to-display measurements remain open.
 
-Next, verify a physical Android device with normal system services, record third-party attachment transport results, and continue clean cross-platform build verification, security review and release preparation. Track external [adoption and registration](ADOPTION.md) separately.
+The paragraphs above preserve earlier local checkpoints; the publication and cross-platform results at the top supersede their pending GitHub and licensing notes. Next, verify a physical Android device with normal system services, record third-party attachment transport results, and obtain independent specification/security review before stable release preparation. Track external [adoption and registration](ADOPTION.md) separately.
