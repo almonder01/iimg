@@ -6,6 +6,8 @@ The SDK remains at 0.1.0. Wire 1.0 is a published candidate under review.
 
 ### Added
 
+- Direct bounded RGB8 PNG authoring import, three original templates, pointer/keyboard resize, and opt-in local recovery with explicit restore/delete, text budget and quota diagnostics.
+
 - Visual web authoring workspace with Core-rendered design preview, pointer/keyboard movement, layers, toggle bindings, bounded history and editable source import/save.
 - Acceptance-driven development plan for authoring, advanced interactions and remaining host/release work.
 - Packaged loopback web host with explicit JavaScript/WASM MIME types, including a broken-Windows-mapping regression check.
