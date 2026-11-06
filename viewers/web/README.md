@@ -4,7 +4,7 @@ The packaged web viewer includes `iimg_web.wasm` and `serve.py`. From the extrac
 
 The viewer reads selected files locally. After its first successful load on localhost or HTTPS, the service worker caches the page, script and engine so the viewer can reload offline. Selected files stay in memory and are not cached.
 
-Open **Author an IIMG image** for the visual workspace: add rectangles/circles, select and move them, edit geometry/colors, change layers, bind named color toggles, undo/redo and save/import editable source JSON. **Validate and preview** tests the result in the viewer; **Download IIMG** exports it. See the [authoring guide](../../docs/AUTHORING.md) for limits and keyboard controls. The editor loads its own WASM instance only when opened and is cached offline with the shell. Save source before closing; there is no automatic project persistence yet. Compiled IIMG import is viewer-only, and direct PNG upload is a later increment.
+Open **Author an IIMG image** for the visual workspace: add rectangles/circles, select and move/resize them, edit geometry/colors, change layers, bind named color toggles, undo/redo and save/import editable source JSON. Original templates and direct bounded RGB8 PNG upload are included. **Validate and preview** tests the result in the viewer; **Download IIMG** exports it. See the [authoring guide](../../docs/AUTHORING.md) for limits and keyboard controls. The editor loads its own WASM instance only when opened and is cached offline with the shell. Recovery is opt-in, bounded and local to this browser, with explicit restore/deletion; retain source JSON as your portable backup. Compiled IIMG import is viewer-only.
 
 ```powershell
 rustup target add wasm32-unknown-unknown

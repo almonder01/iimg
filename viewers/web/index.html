@@ -24,6 +24,7 @@
   #editor-stage { position: relative; width: 100%; margin: .75rem 0; }
   #editor-canvas { width: 100%; touch-action: none; }
   #editor-selection { position: absolute; box-sizing: border-box; border: 2px dashed #fff; outline: 2px solid #1d4ed8; pointer-events: none; }
+  #editor-resize { position: absolute; padding: 0; width: 48px; height: 48px; border-color: #1d4ed8; color: #1d4ed8; touch-action: none; cursor: nwse-resize; }
   #editor-properties { border: 0; padding: 0; margin: 0; min-width: 0; }
   #editor-label { width: 100%; }
   #visual-editor a { display: inline-block; padding: .5rem 0; }
@@ -52,6 +53,11 @@
         <button id="editor-undo" type="button" disabled>Undo</button>
         <button id="editor-redo" type="button" disabled>Redo</button>
       </div>
+      <div class="editor-toolbar">
+        <label>Template <select id="editor-template"><option value="card">Interactive card</option><option value="signals">Signal lights</option><option value="rooms">Room lights</option></select></label>
+        <button id="editor-use-template" type="button">Use template</button>
+        <label>Add PNG image <input id="editor-png" type="file" accept=".png,image/png"></label>
+      </div>
       <form id="editor-canvas-form">
         <div class="editor-fields">
           <label>Canvas width <input id="editor-width" type="number" min="1" max="2048" step="1" required></label>
@@ -65,6 +71,7 @@
       <div id="editor-stage" role="group" aria-label="Design canvas" tabindex="0">
         <canvas id="editor-canvas" role="img" aria-label="Design preview" hidden></canvas>
         <div id="editor-selection" aria-hidden="true" hidden></div>
+        <button id="editor-resize" type="button" aria-label="Resize selected shape" title="Drag to resize; use numeric properties for precise size" hidden>↘</button>
       </div>
       <label for="editor-objects">Objects (back to front)</label>
       <select id="editor-objects" size="5" aria-label="Objects (back to front)"></select>
@@ -95,9 +102,15 @@
       </form>
       </div>
       <p id="editor-status" role="status"></p>
+      <label><input id="editor-autosave" type="checkbox"> Keep a local recovery copy in this browser</label>
+      <p id="editor-recovery-status" role="status">Recovery is off. Save source JSON before closing.</p>
+      <div class="editor-toolbar">
+        <button id="editor-restore" type="button" hidden>Restore recovery copy</button>
+        <button id="editor-discard" type="button" hidden>Discard recovery copy</button>
+      </div>
       <label>Import source JSON <input id="editor-import" type="file" accept=".json,application/json"></label>
       <a id="editor-save" download="project.iimg.json" hidden>Save source JSON</a>
-      <p>Use <strong>Validate and preview</strong> below to test interactions, then <strong>Download IIMG</strong> to export. Direct PNG upload, animation and drag interactions inside exported images are planned separately.</p>
+      <p>Use <strong>Validate and preview</strong> below to test interactions, then <strong>Download IIMG</strong> to export. PNG imports must be non-interlaced RGB8 without transparency, at most 1 MiB, and fit the canvas. Animation and drag interactions inside exported images are planned separately.</p>
     </section>
     <label for="source">IIMG source JSON</label>
     <textarea id="source" spellcheck="false">{
