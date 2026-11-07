@@ -19,6 +19,11 @@
   textarea { box-sizing: border-box; display: block; width: 100%; min-height: 12rem; margin: .5rem 0; }
   #visual-editor { margin: 1rem 0; padding: 1rem; border: 1px solid #94a3b8; border-radius: .75rem; background: #f8fafc; color: #172033; }
   #visual-editor h2 { margin-top: 0; }
+  #visual-editor fieldset { min-width: 0; margin: 0; }
+  #visual-editor legend { max-width: 100%; }
+  #visual-editor label { overflow-wrap: anywhere; }
+  .editor-toolbar > label { max-width: 100%; min-width: 0; }
+  input[type="file"] { max-width: 100%; }
   .editor-toolbar, .editor-fields { display: flex; flex-wrap: wrap; gap: .6rem; align-items: end; margin: .75rem 0; }
   .editor-fields label { display: flex; flex-direction: column; gap: .25rem; max-width: 100%; }
   #visual-editor input, #visual-editor select { font: inherit; box-sizing: border-box; min-height: 44px; max-width: 100%; }
@@ -155,6 +160,27 @@
             </form>
           </details>
         </div>
+      </details>
+      <details id="editor-text-tools"><summary>Text and image description</summary>
+        <p>Text uses this device's system fonts and becomes an opaque PNG in the file. Arabic shaping is performed here; exported pixels stay fixed in every reader. Keep source JSON for re-editing. Updating a shared asset updates every linked image.</p>
+        <form id="editor-text-form"><fieldset id="editor-text-fields" disabled><legend>Raster text layer</legend>
+          <label>Text <textarea id="editor-text-text" dir="auto" maxlength="1024" required></textarea></label>
+          <div class="editor-fields">
+            <label>Font family <select id="editor-text-font_family"><option>sans-serif</option><option>serif</option><option>monospace</option></select></label>
+            <label>Text direction <select id="editor-text-direction"><option value="ltr">Left to right</option><option value="rtl">Right to left</option></select></label>
+            <label>Font size <input id="editor-text-font_size" type="number" min="8" max="128" step="1" required></label>
+            <label>Text box width <input id="editor-text-width" type="number" min="1" max="1024" step="1" required></label>
+            <label>Text box height <input id="editor-text-height" type="number" min="1" max="256" step="1" required></label>
+            <label>Text color <input id="editor-text-color" type="color"></label>
+            <label>Text background <input id="editor-text-background" type="color"></label>
+          </div><button type="submit">Add text image</button><button id="editor-text-update" type="button">Update selected text</button>
+        </fieldset></form>
+        <form id="editor-description-form"><fieldset id="editor-description-fields" disabled><legend>Accessible image description</legend>
+          <label>Image description <textarea id="editor-description" dir="auto" maxlength="2048"></textarea></label>
+          <label>Image language <input id="editor-language" type="text" maxlength="35" value="en" required></label>
+          <p>Use a language tag such as ar, en or ar-SA. This applies to the description and control names. Empty description removes the metadata.</p>
+          <button type="submit">Apply image description</button>
+        </fieldset></form>
       </details>
       <details id="editor-drag-tools">
         <summary>Constrained sliders</summary>

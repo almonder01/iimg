@@ -230,6 +230,7 @@ pub extern "C" fn describe() {
                 "width": width, "height": height,
                 "focus": runtime.focused_target(), "controls": controls,
                 "sliders": runtime.sliders().collect::<Vec<_>>(), "drag_index": runtime.drag_index(),
+                "accessibility": runtime.accessibility(),
                 "motion": runtime.has_motion(), "clock_ms": runtime.clock_milliseconds(), "motion_running": runtime.motion_running(),
             })
             .to_string()

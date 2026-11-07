@@ -7,7 +7,7 @@ const binary = process.argv[2] ?? new URL("target/wasm32-unknown-unknown/release
 const schemaRoot = new URL("spec/schemas/", root);
 const ajv = new Ajv2020({ strict: true, allErrors: true });
 const validators = new Map();
-const schemas = ["common", "metadata", "scene", "interaction", "state-actions", "motion", "drag", "source", "trace"];
+const schemas = ["common", "metadata", "scene", "interaction", "state-actions", "motion", "drag", "accessibility", "source", "trace"];
 for (const name of schemas) {
   const schema = JSON.parse(await readFile(new URL(`${name}.schema.json`, schemaRoot)));
   ajv.addSchema(schema);
@@ -49,6 +49,11 @@ for (const mode of ["pointer", "keyboard"]) {
 const rectangle = { type: "rect", id: "lamp", x: 0, y: 0, width: 1, height: 1, fill: [1, 2, 3] };
 const stateSource = JSON.parse(await readFile(new URL("examples/state-panel.source.json", root)));
 const dragSource = JSON.parse(await readFile(new URL("examples/drag.source.json", root)));
+check("accessibility",{description:"صورة تفاعلية",language:"ar-SA"},true);
+check("accessibility",{description:"x",language:"en_US"},false);
+check("accessibility",{description:"x",language:"en\n"},false);
+check("accessibility",["x","en"],false);
+check("source",{...dragSource,accessibility:{description:"Interactive image",language:"en"}},true);
 check("source",dragSource,true);check("drag",dragSource.drag,true);
 check("drag",{sliders:[{...dragSource.drag.sliders[0],from:[8,24]}]},false);
 check("trace",{version:1,events:[{type:"drag_start",x:40,y:32},{type:"drag_move",x:88,y:32},{type:"drag_cancel"},{type:"set_slider",index:0,value:100}]},true);
@@ -114,5 +119,5 @@ for (const text of semanticFailures) {
   new Uint8Array(wasm.memory.buffer, pointer, bytes.length).set(bytes);
   assert.equal(wasm.compile_source_v1(), 1, "Core must reject the invalid semantic or lexical input");
 }
-console.log(`Nine schemas compiled in strict mode. ${positive} positive and ${negative} negative structural cases passed.`);
+console.log(`Ten schemas compiled in strict mode. ${positive} positive and ${negative} negative structural cases passed.`);
 console.log(`${semanticFailures.length} sources accepted structurally were rejected by Core semantic and lexical checks.`);

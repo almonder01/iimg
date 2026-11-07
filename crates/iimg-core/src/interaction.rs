@@ -102,6 +102,7 @@ pub struct Runtime {
     state: Option<crate::state::Machine>,
     motion: Option<crate::motion::Motion>,
     drag: Option<crate::drag::Drag>,
+    accessibility: Option<crate::accessibility::Accessibility>,
 }
 
 /// A named bounded range in published slider order. Hidden ranges are inert.
@@ -254,11 +255,15 @@ impl Runtime {
             state,
             motion,
             drag,
+            accessibility: crate::accessibility::read(document)?,
         })
     }
 
     pub fn dimensions(&self) -> (u16, u16) {
         self.scene.dimensions()
+    }
+    pub fn accessibility(&self) -> Option<&crate::accessibility::Accessibility> {
+        self.accessibility.as_ref()
     }
     /// Advance an absolute monotonic logical clock, rejecting invalid input without mutation.
     pub fn advance_time(&mut self, milliseconds: u32) -> Result<(), SceneError> {

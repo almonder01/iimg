@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/almonder01/iimg/main/spec/schemas/accessibility.schema.json",
+  "title": "Draft optional aTXT alternative description",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "description",
+    "language"
+  ],
+  "properties": {
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048,
+      "not": {
+        "pattern": "[\u0000-\u001f\u007f-\u009f]"
+      }
+    },
+    "language": {
+      "type": "string",
+      "maxLength": 35,
+      "pattern": "^[A-Za-z]{2,8}(-[A-Za-z0-9]{1,8})*$",
+      "not": {
+        "pattern": "[^A-Za-z0-9-]"
+      }
+    }
+  }
+}

@@ -15,6 +15,7 @@ const shell = new Map([
   ["/editor.mjs", ["editor.mjs", "text/javascript"]],
   ["/state-editor.mjs", ["state-editor.mjs", "text/javascript"]],
   ["/drag-editor.mjs", ["drag-editor.mjs", "text/javascript"]],
+  ["/text-editor.mjs", ["text-editor.mjs", "text/javascript"]],
   ["/offline.js", ["offline.js", "text/javascript"]],
   ["/iimg_web.wasm", ["../../target/wasm32-unknown-unknown/release/iimg_web.wasm", "application/wasm"]],
 ]);
@@ -309,6 +310,47 @@ try {
   await editor.getByRole("button",{name:"Remove slider",exact:true}).click();
   assert.equal(JSON.parse(await source.inputValue()).drag.sliders.length,1);
   console.log("DRAG host/editor passed capture, commit, outside clamping, blur cancellation, real keyboard ranges, initial placement, path translation, literal labels and export.");
+  await editor.getByRole("button",{name:"New canvas",exact:true}).click();
+  await page.getByText("Text and image description",{exact:true}).click();
+  await editor.getByRole("button",{name:"Add text image",exact:true}).click();
+  let textProject=JSON.parse(await source.inputValue());
+  assert.equal(textProject.assets[0].text.text,"مرحبا بالعالم");
+  assert.equal(textProject.assets[0].text.direction,"rtl");
+  const arabicPng=textProject.assets[0].png_base64;
+  const textImage = await design.evaluate((element)=>[...element.getContext("2d").getImageData(0,0,512,320).data]);
+  await page.locator("#editor-description").fill("صورة ترحيبية تفاعلية");
+  await page.locator("#editor-language").fill("ar");
+  await editor.getByRole("button",{name:"Apply image description",exact:true}).click();
+  await page.getByRole("button",{name:"Validate and preview",exact:true}).click();
+  assert.equal(await canvas.getAttribute("aria-label"),"صورة ترحيبية تفاعلية");
+  assert.equal(await canvas.getAttribute("lang"),"ar");
+  assert.deepEqual(await canvas.evaluate((element)=>[...element.getContext("2d").getImageData(0,0,512,320).data]),textImage);
+  await page.locator("#editor-text-text").fill("Hello IIMG");
+  await page.locator("#editor-text-direction").selectOption("ltr");
+  await editor.getByRole("button",{name:"Update selected text",exact:true}).click();
+  textProject=JSON.parse(await source.inputValue());
+  assert.equal(textProject.assets.length,1);assert.notEqual(textProject.assets[0].png_base64,arabicPng);
+  assert.equal(textProject.assets[0].text.text,"Hello IIMG");
+  const acceptedText=await source.inputValue();
+  await page.locator("#editor-text-text").fill("ض".repeat(513));
+  await editor.getByRole("button",{name:"Update selected text",exact:true}).click();
+  assert.equal(await source.inputValue(),acceptedText);
+  assert.match(await page.locator("#editor-status").textContent(),/1024 UTF-8/);
+  await page.locator("#editor-description").fill("<img src=x onerror=alert(1)>");
+  await page.locator("#editor-language").fill("en_US");
+  await editor.getByRole("button",{name:"Apply image description",exact:true}).click();
+  assert.equal(await source.inputValue(),acceptedText);
+  await page.locator("#editor-language").fill("en");
+  await editor.getByRole("button",{name:"Apply image description",exact:true}).click();
+  await page.getByRole("button",{name:"Validate and preview",exact:true}).click();
+  assert.equal(await canvas.getAttribute("aria-label"),"<img src=x onerror=alert(1)>");
+  await page.setViewportSize({width:390,height:844});
+  await page.evaluate(()=>document.documentElement.style.fontSize="200%");
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true,
+    JSON.stringify(await page.evaluate(()=>[...document.querySelectorAll("body *")].filter((e)=>e.getBoundingClientRect().right>innerWidth+1).map((e)=>({tag:e.tagName,id:e.id,width:e.getBoundingClientRect().width})).slice(0,20))));
+  await page.evaluate(()=>document.documentElement.style.fontSize="");
+  await page.setViewportSize({width:1280,height:900});
+  console.log("Arabic/Latin authoring passed raster export/reopen pixel parity, source re-editing, UTF-8 bounds, literal language/description metadata and 390px/200% layout checks.");
   assert.deepEqual(errors, []);
   console.log(`Chromium ${browser.version()} passed offline reload, input, live authoring, export, reopen and inert document labels.`);
 

@@ -1,5 +1,6 @@
 import { mountStateTools } from "./state-editor.mjs";
 import { mountDragTools } from "./drag-editor.mjs";
+import { mountTextTools } from "./text-editor.mjs";
 // A source editor for the existing Core vocabulary. Its WASM instance is private:
 // changing the design must not change the image open in the viewer.
 export function mountEditor(root, source, wasm) {
@@ -41,6 +42,8 @@ export function mountEditor(root, source, wasm) {
   };
   const dragTools = mountDragTools(root, { model: () => model, selected: () => selected, edit, bounds,
     message: (text) => { status.textContent = text; }, core });
+  const textTools = mountTextTools(root, { model: () => model, selected: () => selected, select: (id) => { selected = id; },
+    edit, bounds, hex, rgb, message: (text) => { status.textContent = text; } });
   const stateTools = mountStateTools(root, { model: () => model, selected: () => selected, edit,
     message: (text) => { status.textContent = text; }, hex, rgb, core: () => {
       const field = document.querySelector("#author-v1");
@@ -191,6 +194,7 @@ export function mountEditor(root, source, wasm) {
     selectionBox();
     stateTools.refresh();
     dragTools.refresh();
+    textTools.refresh();
   }
 
   function remember(text) {
@@ -271,6 +275,7 @@ export function mountEditor(root, source, wasm) {
     status.textContent = "Checking source…";
     stateTools.refresh();
     dragTools.refresh();
+    textTools.refresh();
   }
 
   source.addEventListener("input", () => {
