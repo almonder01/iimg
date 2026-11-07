@@ -1,4 +1,4 @@
-use iimg_core::interaction::Runtime;
+use iimg_core::interaction::{Event, Runtime};
 use iimg_core::visual;
 
 const SEED: &[u8] = include_bytes!("../tests/fixtures/v1.0/raster-toggle.iimg");
@@ -53,11 +53,22 @@ pub fn exercise(bytes: &[u8]) {
 }
 
 fn exercise_document(document: &iimg_core::Document) {
-    if let Ok(runtime) = Runtime::new(document) {
+    if let Ok(mut runtime) = Runtime::new(document) {
         let (width, height) = runtime.dimensions();
         let _ = visual::decode_preview(document, (width, height));
-        if usize::from(width) * usize::from(height) <= 4096 {
+        if usize::from(width) * usize::from(height) <= 16384 {
             let _ = runtime.render_rgb();
+            runtime.dispatch(Event::FocusNext);
+            runtime.dispatch(Event::ActivateFocused);
+            if runtime.has_motion() {
+                let _ = runtime.advance_time(500);
+                let _ = runtime.render_rgb();
+                runtime.set_motion_preference(true);
+                let _ = runtime.render_rgb();
+                let _ = runtime.advance_time(86400000);
+                let _ = runtime.render_rgb();
+            }
+            runtime.dispatch(Event::Reset);
         }
     }
 }

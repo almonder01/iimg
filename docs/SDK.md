@@ -4,6 +4,8 @@ The reference SDK consists of the Rust core and a WebAssembly host adapter. The 
 
 The [JSON schemas](../spec/schemas/README.md) support editor integration and structural checks. Complete readers enforce the lexical, resource and semantic rules documented there.
 
+Draft MOTN uses `Runtime::advance_time(milliseconds)`, `set_motion_preference(reduced)`, `has_motion()`, `motion_running()` and `clock_milliseconds()`. Invalid direct clocks return an error without mutation; replay validates all clocks before reset/execution. WASM exports `advance_time` and `motion_preference` with 0=success/1=invalid or unavailable, and `motion_running` as 0/1. `describe()` adds motion/clock/running fields. Suspend host logical time while hidden/paused, cancel stale RAFs on unload, and stop at completion/reduced motion. See [RFC 0004](../rfcs/0004-bounded-motion.md).
+
 The opt-in draft `state-actions` capability uses a distinct critical `STAC` chunk; it does not reinterpret INTR. `Runtime::control_visible(index)` exposes whether a published control can receive focus/activation. WASM `describe()` includes `visible` for each control in the unchanged index order. Hosts must hide invisible semantic buttons and preserve ordinal indices when dispatching focus. `Shape::id()` supplies the validated identifier. See [RFC 0003](../rfcs/0003-state-actions.md) for grouped actions, bindings, reset and limits. Older tested pre-extension CLI/WASM rejects full STAC rendering and can extract/display its exact initial PNG.
 
 ## Rust host

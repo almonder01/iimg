@@ -1,6 +1,7 @@
 {
   "license": "Apache-2.0",
   "wire": "1.0",
+  "file": "panel.iimg",
   "capability": "state-actions",
   "bytes": 9415,
   "sha256": "935a53165da1000736962b097ed3e69e5ad0069f92a005c8f2e80b888fcd2769",

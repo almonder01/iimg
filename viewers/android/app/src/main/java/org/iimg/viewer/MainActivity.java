@@ -288,4 +288,13 @@ public final class MainActivity extends Activity {
         viewer.destroy();
         super.onDestroy();
     }
+
+    @Override protected void onPause() {
+        if (viewer != null) { viewer.evaluateJavascript("window.iimgHostVisibility?.(true)", null); viewer.onPause(); }
+        super.onPause();
+    }
+    @Override protected void onResume() {
+        super.onResume();
+        if (viewer != null) { viewer.onResume(); viewer.evaluateJavascript("window.iimgHostVisibility?.(false)", null); }
+    }
 }

@@ -127,6 +127,42 @@ pub extern "C" fn reset() {
     dispatch(Event::Reset);
 }
 
+#[no_mangle]
+pub extern "C" fn advance_time(milliseconds: u32) -> u32 {
+    VIEWER.with_borrow_mut(|viewer| {
+        if viewer
+            .runtime
+            .as_mut()
+            .is_some_and(|runtime| runtime.advance_time(milliseconds).is_ok())
+        {
+            0
+        } else {
+            1
+        }
+    })
+}
+#[no_mangle]
+pub extern "C" fn motion_preference(reduced: u32) -> u32 {
+    VIEWER.with_borrow_mut(|viewer| {
+        if reduced > 1 {
+            return 1;
+        }
+        if let Some(runtime) = &mut viewer.runtime {
+            if runtime.has_motion() {
+                runtime.set_motion_preference(reduced == 1);
+                return 0;
+            }
+        }
+        1
+    })
+}
+#[no_mangle]
+pub extern "C" fn motion_running() -> u32 {
+    VIEWER.with_borrow(|viewer| {
+        u32::from(viewer.runtime.as_ref().is_some_and(Runtime::motion_running))
+    })
+}
+
 fn dispatch(event: Event) {
     VIEWER.with_borrow_mut(|viewer| {
         if let Some(runtime) = &mut viewer.runtime {
@@ -146,6 +182,7 @@ pub extern "C" fn describe() {
             serde_json::json!({
                 "width": width, "height": height,
                 "focus": runtime.focused_target(), "controls": controls,
+                "motion": runtime.has_motion(), "clock_ms": runtime.clock_milliseconds(), "motion_running": runtime.motion_running(),
             })
             .to_string()
             .into_bytes()

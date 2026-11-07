@@ -1,0 +1,19 @@
+{
+  "license": "Apache-2.0",
+  "wire": "1.0",
+  "file": "motion.iimg",
+  "capability": "motion-linear",
+  "bytes": 19537,
+  "sha256": "a3ecba4cf4b2ffc393c4ee3a89e9442208646cd5cd72c1078d1824afe0e7297e",
+  "rgbSha256": {
+    "initial": "00060438fa71d0fe336984552d7b319995f7da757be473de29ad4fc389845e23",
+    "midpoint": "9afe5cc19a3f48be9cc3f11cd04504b05751ca6c01d681d58ea6ffa7a08952ea",
+    "repeat": "d0500707c755f2608e56a2fa22f36891a7c5cc9fe8cadf2a7503e82efbd82361",
+    "final": "d393a37d09c3300a9e92d8f9b863d52560b6163f76bfdd6142989ee8217b4bf8",
+    "reduced": "d393a37d09c3300a9e92d8f9b863d52560b6163f76bfdd6142989ee8217b4bf8",
+    "reset": "00060438fa71d0fe336984552d7b319995f7da757be473de29ad4fc389845e23",
+    "retrigger": "9afe5cc19a3f48be9cc3f11cd04504b05751ca6c01d681d58ea6ffa7a08952ea",
+    "clock-limit": "d393a37d09c3300a9e92d8f9b863d52560b6163f76bfdd6142989ee8217b4bf8"
+  },
+  "provenance": "Independent Python envelope/PNG encoder and state evaluator; original project-authored example."
+}

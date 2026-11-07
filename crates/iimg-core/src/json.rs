@@ -30,6 +30,14 @@ pub(crate) fn from_slice<T: DeserializeOwned>(bytes: &[u8]) -> Result<T, serde_j
     serde_json::from_slice::<Object<T>>(bytes).map(|Object(value)| value)
 }
 
+pub(crate) fn object<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+where
+    D: Deserializer<'de>,
+    T: Deserialize<'de>,
+{
+    Object::<T>::deserialize(deserializer).map(|Object(value)| value)
+}
+
 pub(crate) fn object_list<'de, D, T>(deserializer: D) -> Result<Vec<T>, D::Error>
 where
     D: Deserializer<'de>,

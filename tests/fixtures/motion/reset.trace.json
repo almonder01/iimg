@@ -1,0 +1,1 @@
+{"version":1,"events":[{"type":"activate_pixel","x":5,"y":5},{"type":"advance_time","milliseconds":500},{"type":"reset"}]}

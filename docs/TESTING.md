@@ -1,5 +1,7 @@
 # Testing and Verification Strategy
 
+Finite motion acceptance runs `python -B tests/conformance/motion.py` and `node viewers/web/smoke-motion.mjs`. Eight independent frame outcomes cover midpoint, exact repeat/final boundaries, retrigger, reset, reduced preference and clock limit. Eleven invalid motion payloads and three invalid time/preference traces reject consistently. Browser tests control RAF timestamps, assert pixels and cancellation under pause/background/reduced-motion/completion/unload, and author/remove tracks. Native tests verify atomic bad replay and direct-clock rejection. Set `IIMG_OLD_WASM` to a pre-motion engine for exact static fallback verification.
+
 State-actions acceptance runs `python -B tests/conformance/state_actions.py` and `node viewers/web/smoke-state.mjs`. Four native/Python/WASM frame outcomes and 20 semantic rejection mutations are compared against a separately encoded STAC fixture. Native tests cover focus/hit behavior, wraparound and hidden worst-case render work. Browser tests author state/actions/styles, preserve them during geometry edits, operate semantic hide/show controls, reset and reject legacy export. For optional old-reader checks, set `IIMG_OLD_WASM` to a pre-extension engine when invoking the smoke test; the tested older engine must return the exact mandatory PNG, not execute STAC. Fixture generation uses stored DEFLATE for host-independent bytes.
 
 ## Local developer checks

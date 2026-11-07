@@ -30,6 +30,12 @@ Ordinary geometry edits retain all state/action/binding data. Deleting an object
 
 ## JSON and CLI
 
+### Finite motion (draft)
+
+Within multi-state tools, choose **Finite motion** for the selected object. Set its trigger state/value, from/to top-left placements, duration and repeat count, then apply. An object has at most one track; removing the final track removes MOTN from the export. Both endpoints and the inactive base geometry must fit, including after resizing. The design canvas shows logical time zero; initially-active targets can be selected at their rendered start. Dragging an initially-active target changes its base/start placement while retaining its destination; ordinary color changes preserve its path. Numeric geometry fields describe the base placement. Motion is supported for rectangles, circles and images, and requires Core 1.0 state actions.
+
+Use **Validate and preview** to activate its state. The viewer provides Pause/Resume, pauses logical advancement in the background, stops at finite completion, and respects reduced-motion preference by displaying active endpoints. Reset returns time/state to their initial values and preserves the host preference. See [RFC 0004](../rfcs/0004-bounded-motion.md) and `examples/motion.source.json`. Motion does not introduce scripts, audio, networking or unrestricted callbacks.
+
 The web editor validates the JSON automatically after a short pause in editing and shows compiler diagnostics or a **Download IIMG** link. Editing the source or changing the target version clears the previous link immediately. Select **Validate and preview** to render the current source in the viewer.
 
 ```sh

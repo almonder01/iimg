@@ -1,0 +1,11 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://raw.githubusercontent.com/almonder01/iimg/main/spec/schemas/motion.schema.json",
+  "title":"Draft bounded linear MOTN",
+  "type":"object","additionalProperties":false,"required":["tracks"],
+  "$defs":{"point":{"type":"object","additionalProperties":false,"required":["x","y"],"properties":{"x":{"$ref":"common.schema.json#/$defs/coordinate"},"y":{"$ref":"common.schema.json#/$defs/coordinate"}}}},
+  "properties":{"tracks":{"type":"array","minItems":1,"maxItems":64,"items":{
+    "type":"object","additionalProperties":false,"required":["target","state","equals","duration_ms","repeat","from","to"],
+    "properties":{"target":{"$ref":"common.schema.json#/$defs/identifier"},"state":{"$ref":"common.schema.json#/$defs/identifier"},"equals":{"type":"integer","minimum":0,"maximum":15},"duration_ms":{"type":"integer","minimum":1,"maximum":60000},"repeat":{"type":"integer","minimum":1,"maximum":16},"from":{"$ref":"#/$defs/point"},"to":{"$ref":"#/$defs/point"}}
+  }}}
+}

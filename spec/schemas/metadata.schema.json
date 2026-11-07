@@ -12,7 +12,8 @@
     "required": {
       "type": "array",
       "uniqueItems": true,
-      "items": { "enum": ["raster-png", "toggle-fill", "state-actions"] },
+      "items": { "enum": ["raster-png", "toggle-fill", "state-actions", "motion-linear"] },
+      "allOf":[{"if":{"contains":{"const":"motion-linear"}},"then":{"contains":{"const":"state-actions"}}}],
       "not": {"allOf":[{"contains":{"const":"toggle-fill"}},{"contains":{"const":"state-actions"}}]}
     }
   }

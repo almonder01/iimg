@@ -7,7 +7,7 @@ import zlib
 
 IIMG_MAGIC = b"IIMG\r\n\x1a\n"
 PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
-CORE = {b"META", b"PREV", b"SCNE", b"ASST", b"INTR", b"STAC", b"IEND"}
+CORE = {b"META", b"PREV", b"SCNE", b"ASST", b"INTR", b"STAC", b"MOTN", b"IEND"}
 PROFILES = {(0, 2): "iimg-visual-0.2", (1, 0): "iimg-core-1"}
 
 
@@ -58,9 +58,11 @@ def envelope(data, preview_only=False):
     if visual:
         known = [kind for kind in kinds if kind in CORE]
         expected = [b"META", b"PREV", b"SCNE"]
-        expected.extend(kind for kind in (b"ASST", b"INTR", b"STAC") if kind in known)
+        expected.extend(kind for kind in (b"ASST", b"INTR", b"STAC", b"MOTN") if kind in known)
         if b"INTR" in known and b"STAC" in known:
             raise Invalid("conflicting interaction chunks")
+        if b"MOTN" in known and not ({b"INTR", b"STAC"} & set(known)):
+            raise Invalid("motion ordering")
         if kinds[1] != b"PREV" or known != expected + [b"IEND"]:
             raise Invalid("invalid visual chunk order")
     return version, records
@@ -116,10 +118,12 @@ def metadata(data, version, preview_only=False):
     if not isinstance(required, list) or not all(isinstance(item, str) for item in required):
         raise Invalid("invalid capability list")
     if not preview_only:
-        if set(required) - {"raster-png", "toggle-fill", "state-actions"} or len(set(required)) != len(required):
+        if set(required) - {"raster-png", "toggle-fill", "state-actions", "motion-linear"} or len(set(required)) != len(required):
             raise Invalid("unsupported or duplicate capability")
         if "state-actions" in required and (version != (1, 0) or "toggle-fill" in required):
             raise Invalid("invalid state capability")
+        if "motion-linear" in required and (version != (1, 0) or "state-actions" not in required):
+            raise Invalid("invalid motion capability")
     return width, height
 
 
@@ -361,6 +365,39 @@ def states_payload(data, targets):
     return payload
 
 
+def motion_payload(data, scene, states, width, height, assets):
+    payload = strict_json(data, 32 * 1024)
+    fields(payload, "tracks")
+    tracks = payload["tracks"]
+    if not isinstance(tracks, list) or not 1 <= len(tracks) <= 64:
+        raise Invalid("motion track count")
+    objects = {shape["id"]: shape for shape in scene["objects"]}
+    variables = {state["id"]: state for state in states["states"]}
+    targets = set()
+    for track in tracks:
+        fields(track, "target", "state", "equals", "duration_ms", "repeat", "from", "to")
+        target, name = track["target"], track["state"]
+        if not isinstance(target, str) or target not in objects or target in targets or not isinstance(name, str) or name not in variables:
+            raise Invalid("motion target/state")
+        targets.add(target)
+        integer(track["equals"], 0, variables[name]["max"])
+        duration, count = integer(track["duration_ms"], 1, 60000), integer(track["repeat"], 1, 16)
+        if duration * count > 600000:
+            raise Invalid("motion lifetime")
+        shape = objects[target]
+        if shape["type"] == "rect":
+            w, h = shape["width"], shape["height"]
+        elif shape["type"] == "circle":
+            w = h = 2 * shape["radius"]
+        else:
+            w, h, _ = assets[shape["asset"]]
+        for point in (track["from"], track["to"]):
+            fields(point, "x", "y")
+            integer(point["x"], 0, width - w)
+            integer(point["y"], 0, height - h)
+    return tracks
+
+
 def validate(data):
     version, records = envelope(data)
     if version == (0, 1):
@@ -369,13 +406,16 @@ def validate(data):
     width, height = metadata(payloads[b"META"], version)
     capabilities = strict_json(payloads[b"META"], 4096)["required"]
     for enabled, kind in (("raster-png" in capabilities, b"ASST"),
-                          ("toggle-fill" in capabilities, b"INTR"), ("state-actions" in capabilities, b"STAC")):
+                          ("toggle-fill" in capabilities, b"INTR"), ("state-actions" in capabilities, b"STAC"),
+                          ("motion-linear" in capabilities, b"MOTN")):
         if enabled != (kind in payloads):
             raise Invalid("capability and payload disagree")
     assets = asset_table(payloads[b"ASST"]) if b"ASST" in payloads else {}
-    _, targets = scene_payload(payloads[b"SCNE"], width, height, assets)
+    scene, targets = scene_payload(payloads[b"SCNE"], width, height, assets)
     if b"STAC" in payloads:
-        states_payload(payloads[b"STAC"], targets)
+        states = states_payload(payloads[b"STAC"], targets)
+        if b"MOTN" in payloads:
+            motion_payload(payloads[b"MOTN"], scene, states, width, height, assets)
     elif b"INTR" in payloads:
         controls_payload(payloads[b"INTR"], targets)
     decode_png(payloads[b"PREV"], width, height)
@@ -396,6 +436,13 @@ def trace_events(trace):
             integer(event["y"], 0, 65535)
         elif kind in ("focus_next", "focus_previous", "activate_focused", "reset"):
             fields(event, "type")
+        elif kind == "advance_time":
+            fields(event, "type", "milliseconds")
+            integer(event["milliseconds"], 0, 86400000)
+        elif kind == "motion_preference":
+            fields(event, "type", "reduced")
+            if type(event["reduced"]) is not bool:
+                raise Invalid("motion preference type")
         else:
             raise Invalid("invalid trace event type")
     return events
@@ -415,6 +462,21 @@ def replay_fixture(data, trace):
     states = {name: state["initial"] for name, state in definitions.items()}
     bindings = {binding["target"]: binding for binding in interaction.get("bindings", [])}
     events = trace_events(trace)
+    tracks = strict_json(payloads[b"MOTN"], 32 * 1024)["tracks"] if b"MOTN" in payloads else []
+    clock = 0
+    reduced = False
+    for event in events:
+        if event["type"] == "reset":
+            clock = 0
+        if event["type"] in ("advance_time", "motion_preference") and not tracks:
+            raise Invalid("motion event without capability")
+        if event["type"] == "advance_time":
+            if event["milliseconds"] < clock:
+                raise Invalid("backward motion clock")
+            clock = event["milliseconds"]
+    clock = 0
+    active = [states[track["state"]] == track["equals"] for track in tracks]
+    origins = [0] * len(tracks)
     targets = {control["target"]: index for index, control in enumerate(controls)}
     pressed = [False] * len(controls)
     focus = None
@@ -436,6 +498,11 @@ def replay_fixture(data, trace):
                 states[name] = action["value"] if action["type"] == "set" else (states[name] + 1) % (definitions[name]["max"] + 1)
             if focus is not None and not visible(controls[focus]["target"]):
                 focus = None
+            for i, track in enumerate(tracks):
+                enabled = states[track["state"]] == track["equals"]
+                if enabled and not active[i]:
+                    origins[i] = clock
+                active[i] = enabled
         else:
             pressed[index] = not pressed[index]
 
@@ -457,8 +524,30 @@ def replay_fixture(data, trace):
             return shape["x"] <= x < shape["x"] + w and shape["y"] <= y < shape["y"] + h
         raise Invalid("unknown fixture shape")
 
+    def placed(shape):
+        for i, track in enumerate(tracks):
+            if track["target"] != shape["id"] or not active[i]:
+                continue
+            elapsed = clock - origins[i]
+            if reduced or clock == 86400000 or elapsed >= track["duration_ms"] * track["repeat"]:
+                point = track["to"]
+            else:
+                phase = elapsed % track["duration_ms"]
+                point = {}
+                for key in ("x", "y"):
+                    delta = (track["to"][key] - track["from"][key]) * phase
+                    point[key] = track["from"][key] + (1 if delta >= 0 else -1) * (abs(delta) // track["duration_ms"])
+            shape = dict(shape)
+            if shape["type"] == "circle":
+                shape["cx"], shape["cy"] = point["x"] + shape["radius"], point["y"] + shape["radius"]
+            else:
+                shape["x"], shape["y"] = point["x"], point["y"]
+            break
+        return shape
+
     def top(x, y):
-        return next((shape for shape in reversed(scene["objects"]) if visible(shape["id"]) and hit(shape, x, y)), None)
+        return next((current for shape in reversed(scene["objects"])
+                     if visible(shape["id"]) and hit(current := placed(shape), x, y)), None)
 
     for event in events:
         kind = event["type"]
@@ -478,6 +567,13 @@ def replay_fixture(data, trace):
             focus = None
             pressed = [False] * len(controls)
             states = {name: state["initial"] for name, state in definitions.items()}
+            clock = 0
+            origins = [0] * len(tracks)
+            active = [states[track["state"]] == track["equals"] for track in tracks]
+        elif kind == "advance_time":
+            clock = event["milliseconds"]
+        elif kind == "motion_preference":
+            reduced = event["reduced"]
         else:
             raise Invalid("unsupported trace event")
 

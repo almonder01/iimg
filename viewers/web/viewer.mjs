@@ -4,6 +4,7 @@ const canvas = document.querySelector("#scene");
 const preview = document.querySelector("#preview");
 const controls = document.querySelector("#controls");
 const reset = document.querySelector("#reset");
+const pauseMotion = document.querySelector("#pause-motion");
 const help = document.querySelector("#interaction-help");
 const main = document.querySelector("main");
 const context = canvas.getContext("2d");
@@ -17,6 +18,27 @@ async function start() {
   if (!response.ok) throw new Error("The WebAssembly engine could not be loaded.");
   const { instance, module } = await WebAssembly.instantiate(await response.arrayBuffer());
   const wasm = instance.exports;
+  let animationFrame = 0, lastTick, logicalClock = 0, motion = false, paused = false, imageData, hostBackground = false;
+  const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+  function stopAnimation() { if (animationFrame) cancelAnimationFrame(animationFrame); animationFrame = 0; lastTick = undefined; }
+  function scheduleAnimation() {
+    if (!motion || paused || hostBackground || document.hidden || reducedMotion.matches || !wasm.motion_running()) { stopAnimation(); return; }
+    if (animationFrame) return;
+    animationFrame = requestAnimationFrame((now) => {
+      animationFrame = 0;
+      if (!motion || paused || hostBackground || document.hidden || reducedMotion.matches) { stopAnimation(); return; }
+      if (lastTick === undefined) lastTick = now;
+      const elapsed = Math.floor(now - lastTick);
+      if (elapsed < 33) { scheduleAnimation(); return; }
+      logicalClock = Math.min(86400000, logicalClock + elapsed); lastTick += elapsed;
+      if (wasm.advance_time(logicalClock) !== 0) { stopAnimation(); status.textContent = "Motion clock stopped."; return; }
+      draw();
+    });
+  }
+  document.addEventListener("visibilitychange", () => { stopAnimation(); scheduleAnimation(); });
+  if (androidHost) window.iimgHostVisibility = (hidden) => { hostBackground = !!hidden; stopAnimation(); scheduleAnimation(); };
+  reducedMotion.addEventListener("change", () => { if (motion) { wasm.motion_preference(Number(reducedMotion.matches)); draw(); } });
+  pauseMotion.addEventListener("click", () => { paused = !paused; stopAnimation(); draw(); });
   const output = () => new Uint8Array(wasm.memory.buffer, wasm.output_ptr(), wasm.output_len());
   const describe = () => {
     wasm.describe();
@@ -24,11 +46,15 @@ async function start() {
   };
 
   function draw() {
-    const { width, height, controls: state } = describe();
+    const description = describe();
+    const { width, height, controls: state } = description;
+    motion = !!description.motion;
+    if (description.clock_ms < logicalClock) stopAnimation();
+    logicalClock = description.clock_ms ?? 0;
     if (wasm.render() !== 0) throw new Error("The scene exceeds the rendering budget.");
     if (canvas.width !== width) canvas.width = width;
     if (canvas.height !== height) canvas.height = height;
-    const image = context.createImageData(width, height);
+    const image = imageData?.width === width && imageData?.height === height ? imageData : (imageData = context.createImageData(width, height));
     const rgb = output();
     for (let source = 0, dest = 0; source < rgb.length; source += 3, dest += 4) {
       image.data[dest] = rgb[source];
@@ -41,9 +67,16 @@ async function start() {
       controls.children[index].setAttribute("aria-pressed", String(control.pressed));
       controls.children[index].hidden = control.visible === false;
     }
+    pauseMotion.hidden = !motion;
+    pauseMotion.textContent = paused ? "Resume motion" : "Pause motion";
+    pauseMotion.setAttribute("aria-pressed", String(paused));
+    scheduleAnimation();
   }
 
   function clear() {
+    stopAnimation(); motion = false; paused = false; logicalClock = 0; imageData = undefined;
+    canvas.width = canvas.height = 1;
+    pauseMotion.hidden = true;
     canvas.hidden = preview.hidden = controls.hidden = reset.hidden = help.hidden = true;
     controls.replaceChildren();
     if (previewUrl) {
@@ -77,6 +110,7 @@ async function start() {
         return;
       }
       if (result !== 0) throw new Error("This IIMG file is invalid or unsupported.");
+      wasm.motion_preference(Number(reducedMotion.matches));
       const state = describe().controls;
       for (const [index, control] of state.entries()) {
         const button = document.createElement("button");
@@ -124,6 +158,7 @@ async function start() {
     draw();
   });
   reset.addEventListener("click", () => {
+    stopAnimation();
     wasm.reset();
     draw();
   });

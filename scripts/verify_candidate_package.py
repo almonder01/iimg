@@ -135,11 +135,14 @@ def verify(package, require_clean):
         subprocess.run([sys.executable, "-B", scratch / "suite/tests/conformance/generated.py",
                         "--cli", cli], check=True)
         subprocess.run([sys.executable, "-B", scratch / "suite/tests/conformance/state_actions.py", "--cli", cli], check=True)
+        subprocess.run([sys.executable, "-B", scratch / "suite/tests/conformance/motion.py", "--cli", cli], check=True)
         subprocess.run([sys.executable, "-B", scratch / "suite/tests/conformance/mail_transport.py",
                         "--cli", cli], check=True)
         subprocess.run(["node", ROOT / "viewers/web/smoke.mjs", wasm], check=True)
         subprocess.run(["node", scratch / "suite/viewers/web/smoke-state.mjs", wasm,
                         scratch / "suite/tests/fixtures/state-actions"], check=True)
+        subprocess.run(["node", scratch / "suite/viewers/web/smoke-motion.mjs", wasm,
+                        scratch / "suite/tests/fixtures/motion"], check=True)
         subprocess.run(["node", ROOT / "viewers/web/smoke-showcase.mjs",
                         scratch / "suite/examples/showcase/generated/manifest.json", wasm], check=True)
     print(f"Verified {len(checksums)} candidate files and extracted CLI/WASM behavior.")

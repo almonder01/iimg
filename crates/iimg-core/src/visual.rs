@@ -64,7 +64,7 @@ struct ScenePayload {
     objects: Vec<Shape>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
 pub enum Shape {
     Image {
@@ -136,6 +136,15 @@ impl Scene {
         override_fill: impl Fn(usize) -> Option<[u8; 3]>,
         visible: impl Fn(usize) -> bool,
     ) -> Result<Vec<u8>, SceneError> {
+        self.render_placed(override_fill, visible, |_| None)
+    }
+
+    pub(crate) fn render_placed(
+        &self,
+        override_fill: impl Fn(usize) -> Option<[u8; 3]>,
+        visible: impl Fn(usize) -> bool,
+        placement: impl Fn(usize) -> Option<(u16, u16)>,
+    ) -> Result<Vec<u8>, SceneError> {
         let width = usize::from(self.width);
         let height = usize::from(self.height);
         let mut work = 0;
@@ -152,6 +161,8 @@ impl Scene {
             if !visible(index) {
                 continue;
             }
+            let placed = placement(index).map(|(x, y)| shape.placed(x, y));
+            let shape = placed.as_ref().unwrap_or(shape);
             let (left, top, right, bottom) = shape.bounds(&self.assets);
             if let Shape::Image { asset, .. } = shape {
                 let stride = (right - left) * 3;
@@ -185,10 +196,22 @@ impl Scene {
         y: u16,
         visible: impl Fn(usize) -> bool,
     ) -> Option<usize> {
+        self.hit_test_placed(x, y, visible, |_| None)
+    }
+
+    pub(crate) fn hit_test_placed(
+        &self,
+        x: u16,
+        y: u16,
+        visible: impl Fn(usize) -> bool,
+        placement: impl Fn(usize) -> Option<(u16, u16)>,
+    ) -> Option<usize> {
         self.objects.iter().enumerate().rposition(|(index, shape)| {
             if !visible(index) {
                 return false;
             }
+            let placed = placement(index).map(|(x, y)| shape.placed(x, y));
+            let shape = placed.as_ref().unwrap_or(shape);
             let (left, top, right, bottom) = shape.bounds(&self.assets);
             (left..right).contains(&usize::from(x))
                 && (top..bottom).contains(&usize::from(y))
@@ -196,9 +219,31 @@ impl Scene {
                     || shape.sample(x.into(), y.into()).is_some())
         })
     }
+
+    pub(crate) fn valid_placement(&self, index: usize, x: u16, y: u16) -> bool {
+        self.objects.get(index).is_some_and(|shape| {
+            let (left, top, right, bottom) = shape.bounds(&self.assets);
+            usize::from(x) + right - left <= usize::from(self.width)
+                && usize::from(y) + bottom - top <= usize::from(self.height)
+        })
+    }
 }
 
 impl Shape {
+    fn placed(&self, left: u16, top: u16) -> Self {
+        let mut shape = self.clone();
+        match &mut shape {
+            Self::Rect { x, y, .. } | Self::Image { x, y, .. } => {
+                *x = left;
+                *y = top;
+            }
+            Self::Circle { cx, cy, radius, .. } => {
+                *cx = left + *radius;
+                *cy = top + *radius;
+            }
+        }
+        shape
+    }
     /// Stable identifier used by controls and bindings in this scene.
     pub fn id(&self) -> &str {
         match self {
@@ -308,9 +353,12 @@ pub(crate) fn validate_profile_scene(
     let asset_chunk = doc.chunks.iter().find(|chunk| &chunk.kind == b"ASST");
     let has_interaction = doc.chunks.iter().any(|chunk| &chunk.kind == b"INTR");
     let has_states = doc.chunks.iter().any(|chunk| &chunk.kind == b"STAC");
+    let has_motion = doc.chunks.iter().any(|chunk| &chunk.kind == b"MOTN");
     if required.contains("raster-png") != asset_chunk.is_some()
         || required.contains("toggle-fill") != has_interaction
         || required.contains("state-actions") != has_states
+        || required.contains("motion-linear") != has_motion
+        || (has_motion && !required.contains("state-actions"))
         || (required.contains("toggle-fill") && required.contains("state-actions"))
     {
         return Err(SceneError::InvalidCapabilities);
@@ -319,6 +367,7 @@ pub(crate) fn validate_profile_scene(
         "raster-png" => false,
         "toggle-fill" => !interactive,
         "state-actions" => !interactive || (doc.major, doc.minor) != (1, 0),
+        "motion-linear" => !interactive || (doc.major, doc.minor) != (1, 0),
         _ => true,
     }) {
         return Err(SceneError::UnsupportedProfile);
