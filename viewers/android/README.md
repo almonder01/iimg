@@ -99,3 +99,7 @@ The subsequent Galaxy S23+ checks passed WhatsApp 2.26.42.74 attachment handoff 
 The [0.1.1-preview follow-up](../../docs/device-tests/2026-11-05-galaxy-s23-plus-preview-0.1.1.md) records the owner's reported success with the showcase, 2048² workload, provider-fault and recovery procedure on `SM-S916B`, Android 17 / API 37, WebView `156.0.8078.47`. Copied Test info reports identify the valid two-control fixture and large workload by exact size/SHA-256. Six host PSS snapshots are documented separately from total/peak renderer or app memory. Explicit assistive-technology tests and broader devices remain open.
 
 [Android document picker](https://developer.android.com/training/data-storage/shared/documents-files?hl=en) · [Android incoming shares](https://developer.android.com/develop/ui/compose/sharing/receive)
+
+## RC1 testing variants
+
+Build `:app:assembleCandidate` and `:handoffFixture:assembleCandidate` for the side-by-side RC apps. Use `scripts/test_android_handoff.py` with `--advanced --viewer-package org.iimg.viewer.rc --sender-package org.iimg.handoff.rc` and an explicit emulator serial to compare the actual WebView's motion and slider frames with independent hashes. The [manual guide](../../docs/RC1-ACCEPTANCE.md) covers the physical phone. The [signing guide](../../docs/ANDROID-SIGNING.md) describes the separate owner-signed production variant and update checks.

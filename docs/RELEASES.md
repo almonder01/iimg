@@ -48,3 +48,11 @@ Published revision `252ebc9a9c307e5797819dc2ae14011dd72b4dcd` passed the [three-
 Verify the checksums, then extract the archives into a scratch directory and run the conformance comparison against the extracted CLI. Use the [web smoke tests](../viewers/web/README.md) and [Android device checks](../viewers/android/README.md) before release. The local debug APK has separate asset and signature checks. Device acceptance and a release-signed APK are separate gates. Publication also requires the confirmed license texts and signed provenance where supported.
 
 See the [adoption and registration tracker](ADOPTION.md) for work separate from the Core release.
+
+## RC1 acceptance and compatibility
+
+Use the [manual test guide](RC1-ACCEPTANCE.md) and [review handoff](reviews/RC1.md) with the exact candidate checksums. Candidate archives can be attested by dispatching **Candidate review package** with `attest=true`. Verify an archive with `gh attestation verify <archive> --repo almonder01/iimg` and compare the source digest and workflow run to the recorded build. [GitHub verification guide](https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations)
+
+Each release tag identifies immutable artifact bytes. Correct a published candidate with a new candidate tag and build number. Retain the matching conformance and migration fixtures. After Core freezes, preserve behavior for the same version and capability names. Changes that alter interpretation of valid files require a compatibility decision and a new profile or version. Older supported visual files can be migrated with `upgrade-v1`; historical 0.1 files require source re-authoring. Report support status per release line and publish security fixes with regression fixtures when disclosure allows.
+
+The Android review variants use separate IDs from the historical preview. The [signing procedure](ANDROID-SIGNING.md) covers the owner certificate and update tests for a stable APK.

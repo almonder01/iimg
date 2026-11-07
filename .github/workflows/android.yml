@@ -7,6 +7,8 @@ on:
       - "viewers/**"
       - "Cargo.*"
       - "scripts/check_android_apk.py"
+      - "scripts/check_android_certificate.py"
+      - "scripts/test_android_signing.py"
       - "scripts/test_android_handoff.py"
       - "scripts/test_android_webview.mjs"
       - "scripts/test_android_reader.py"
@@ -39,7 +41,11 @@ jobs:
         with:
           packages: "platform-tools platforms;android-35 build-tools;36.0.0"
       - run: cargo build --locked --release --target wasm32-unknown-unknown -p iimg-web
-      - run: gradle -p viewers/android :app:assembleDebug :handoffFixture:assembleDebug --no-daemon
+      - run: gradle -p viewers/android :app:assembleDebug :app:assembleCandidate :handoffFixture:assembleDebug :handoffFixture:assembleCandidate --no-daemon
+      - name: Verify fail-closed release signing with a disposable identity
+        run: |
+          python -B scripts/test_android_signing.py --gradle "$(command -v gradle)" \
+            --keytool "$JAVA_HOME/bin/keytool" --apksigner "$ANDROID_HOME/build-tools/36.0.0/apksigner"
       - run: |
           apk=viewers/android/app/build/outputs/apk/debug/app-debug.apk
           python -B scripts/check_android_apk.py "$apk"
@@ -48,6 +54,38 @@ jobs:
           source_apk=viewers/android/handoffFixture/build/outputs/apk/debug/handoffFixture-debug.apk
           "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose "$source_apk"
           sha256sum "$source_apk" > "$source_apk.sha256"
+      - name: Verify the two side-by-side candidate packages
+        run: |
+          apk=viewers/android/app/build/outputs/apk/candidate/app-candidate.apk
+          helper=viewers/android/handoffFixture/build/outputs/apk/candidate/handoffFixture-candidate.apk
+          python -B scripts/check_android_apk.py "$apk"
+          for artifact in "$apk" "$helper"; do
+            "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose "$artifact"
+            sha256sum "$artifact" > "$artifact.sha256"
+          done
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$apk" | grep "package: name='org.iimg.viewer.rc'"
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$helper" | grep "package: name='org.iimg.handoff.rc'"
+          mkdir -p target/android-rc1
+          cp "$apk" "$helper" target/android-rc1/
+          (cd target/android-rc1 && sha256sum ./*.apk > SHA256SUMS)
+          python -B - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          import subprocess
+          import sys
+          sys.path.insert(0, "scripts")
+          from check_android_certificate import fingerprint
+          folder = Path("target/android-rc1")
+          signer = Path(os.environ["ANDROID_HOME"]) / "build-tools/36.0.0/apksigner"
+          evidence = {
+              "git_head": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
+              "workflow_run": os.environ["GITHUB_RUN_ID"],
+              "signing": "development",
+              "certificates_sha256": {apk.name: fingerprint(signer, apk) for apk in sorted(folder.glob("*.apk"))},
+          }
+          (folder / "android-build.json").write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: iimg-android-debug
@@ -57,4 +95,9 @@ jobs:
         with:
           name: iimg-test-sources-debug
           path: viewers/android/handoffFixture/build/outputs/apk/debug/handoffFixture-debug.apk*
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: iimg-android-rc1
+          path: target/android-rc1/
           if-no-files-found: error

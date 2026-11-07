@@ -19,7 +19,7 @@ pub fn exercise(bytes: &[u8]) {
     }
     // Rebuild the outer CRC so mutated data reaches the semantic decoders.
     let mut document = iimg_core::decode(SEED).expect("candidate seed must decode");
-    match selector % 6 {
+    match selector % 7 {
         0 => document.chunks[0].data = payload.to_vec(),
         1 => document.chunks[2].data = payload.to_vec(),
         2 => document.chunks[3].data = payload.to_vec(),
@@ -42,11 +42,18 @@ pub fn exercise(bytes: &[u8]) {
             png.extend((!crc).to_be_bytes());
             png.extend(b"\0\0\0\0IEND\xae\x42\x60\x82");
         }
-        _ => {
+        5 => {
             let mut runtime = Runtime::new(&document).expect("candidate runtime must load");
             let _ = runtime.replay(payload);
             return;
         }
+        _ => document.chunks.insert(
+            document.chunks.len() - 1,
+            iimg_core::Chunk {
+                kind: *b"aTXT",
+                data: payload.to_vec(),
+            },
+        ),
     }
     let encoded = iimg_core::encode(&document).expect("structured seed must encode");
     exercise_document(&iimg_core::decode(&encoded).expect("structured seed must decode"));

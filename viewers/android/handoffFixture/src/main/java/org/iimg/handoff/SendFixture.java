@@ -3,6 +3,7 @@ package org.iimg.handoff;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.widget.TextView;
 import java.io.InputStream;
@@ -16,7 +17,18 @@ public final class SendFixture extends Activity {
             fail("Expected VIEW or SEND fixture action.");
             return;
         }
-        try (InputStream input = getContentResolver().openInputStream(FixtureProvider.DOCUMENT)) {
+        Uri document = FixtureProvider.document(this, getIntent().getStringExtra("fixture_name"));
+        if (document == null) {
+            fail("Unknown fixture name.");
+            return;
+        }
+        String viewerPackage = getIntent().getStringExtra("viewer_package");
+        if (viewerPackage == null) viewerPackage = "org.iimg.viewer";
+        if (!"org.iimg.viewer".equals(viewerPackage) && !"org.iimg.viewer.rc".equals(viewerPackage)) {
+            fail("Unknown viewer package.");
+            return;
+        }
+        try (InputStream input = getContentResolver().openInputStream(document)) {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] buffer = new byte[4096];
             for (int count; (count = input.read(buffer)) != -1;) digest.update(buffer, 0, count);
@@ -30,14 +42,14 @@ public final class SendFixture extends Activity {
                 return;
             }
             Intent delivery = new Intent("VIEW".equals(action) ? Intent.ACTION_VIEW : Intent.ACTION_SEND)
-                    .setPackage("org.iimg.viewer")
+                    .setPackage(viewerPackage)
                     .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            delivery.setClipData(ClipData.newRawUri("IIMG fixture", FixtureProvider.DOCUMENT));
+            delivery.setClipData(ClipData.newRawUri("IIMG fixture", document));
             if ("VIEW".equals(action)) {
-                delivery.setDataAndType(FixtureProvider.DOCUMENT, FixtureProvider.MIME);
+                delivery.setDataAndType(document, FixtureProvider.MIME);
             } else {
                 delivery.setType(FixtureProvider.MIME);
-                delivery.putExtra(Intent.EXTRA_STREAM, FixtureProvider.DOCUMENT);
+                delivery.putExtra(Intent.EXTRA_STREAM, document);
             }
             startActivity(delivery);
             finish();

@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 
 const port = Number(process.argv[2]);
 const mode = process.argv[3] ?? "scripted";
-assert.ok(["scripted", "initial", "active", "preview", "invalid"].includes(mode), "Invalid WebView check mode");
+assert.ok(["scripted", "initial", "active", "preview", "invalid", "motion", "drag"].includes(mode), "Invalid WebView check mode");
 const deadline = Date.now() + 30_000;
 let websocket;
 while (Date.now() < deadline && !websocket) {
@@ -80,6 +81,47 @@ try {
       visible: true, width: 32, height: 32, sceneHidden: true, controlsHidden: true,
       pixel: [250, 204, 21, 255],
     });
+  } else if (mode === "motion" || mode === "drag") {
+    const manifest = JSON.parse(await readFile(new URL(`../tests/fixtures/${mode}/manifest.json`, import.meta.url)));
+    async function frameHash() {
+      const rgba = await evaluate(`(() => {
+        const canvas = document.querySelector("#scene");
+        return [...canvas.getContext("2d").getImageData(0,0,canvas.width,canvas.height).data];
+      })()`);
+      const rgb = Buffer.alloc(rgba.length / 4 * 3);
+      for (let at = 0, target = 0; at < rgba.length; at += 4, target += 3) {
+        assert.equal(rgba[at + 3], 255);
+        rgb[target] = rgba[at]; rgb[target + 1] = rgba[at + 1]; rgb[target + 2] = rgba[at + 2];
+      }
+      return createHash("sha256").update(rgb).digest("hex");
+    }
+    assert.equal(await frameHash(), manifest.rgbSha256.initial);
+    if (mode === "drag") {
+      const values = await evaluate(`(() => {
+        const inputs = [...document.querySelectorAll("#sliders input")];
+        const initial = inputs.map((input) => input.value);
+        for (const input of inputs) {
+          input.value = input.max;
+          input.dispatchEvent(new Event("input", {bubbles:true}));
+        }
+        return initial;
+      })()`);
+      assert.deepEqual(values, ["25", "20"]);
+      assert.equal(await frameHash(), manifest.rgbSha256.range);
+    } else {
+      await evaluate('document.querySelector("#controls button").click()');
+      const end = Date.now() + 8000;
+      let hash;
+      while (Date.now() < end) {
+        hash = await frameHash();
+        if (hash === manifest.rgbSha256.final) break;
+        await new Promise((resolve) => setTimeout(resolve, 250));
+      }
+      assert.equal(hash, manifest.rgbSha256.final);
+    }
+    await evaluate('document.querySelector("#reset").click()');
+    assert.equal(await frameHash(), manifest.rgbSha256.initial);
+    console.log(`Android WebView ${mode} initial, active and reset frames match independent hashes.`);
   } else if (mode === "invalid") {
     assert.deepEqual(await evaluate(`({
       sceneHidden: document.querySelector("#scene").hidden,

@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <application android:label="IIMG Viewer" android:theme="@android:style/Theme.Material.Light.NoActionBar"
+    <application android:label="${iimgAppLabel}" android:theme="@android:style/Theme.Material.Light.NoActionBar"
         android:allowBackup="false" android:usesCleartextTraffic="false">
         <activity android:name=".MainActivity" android:exported="true" android:launchMode="singleTop">
             <intent-filter>

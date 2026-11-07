@@ -28,6 +28,8 @@ The [technical review and independent-review handoff](reviews/2026-11-05-core-ca
 
 ## Locked dependency advisories
 
+RFC 0003–0006 add bounded declarative state groups, clock-driven translation, a single cancelable drag capture and optional alternative descriptions. Hidden geometry counts toward the worst-case render budget. Traces validate ranges and references before mutating runtime state. Gesture generations and host lifecycle events prevent stale input from carrying into another document. Descriptions and labels enter the DOM through text or literal attributes. Text authoring rasterizes system fonts into the existing bounded RGB asset subset. File readers do not load author fonts. Review the new payload parsers and composed interaction/host lifecycles at the exact candidate revision.
+
 Run `python -B scripts/audit_dependencies.py` after fetching the locked runtime and fuzz Cargo dependencies. The script sends public package names and exact versions to OSV and fails when an advisory matches or the request fails. It also checks the browser-test npm lockfile. OSV includes the RustSec advisory feed. [RustSec advisory database](https://github.com/RustSec/advisory-db) · [OSV batch API](https://google.github.io/osv.dev/post-v1-querybatch/)
 
 The local run on 2026-11-04 returned no advisory IDs for 35 distinct Rust and npm versions. It covered 13 runtime/build packages, 24 fuzz-harness packages and one browser-test package, with overlap between the Cargo scopes.

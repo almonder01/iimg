@@ -1,0 +1,15 @@
+{
+  "width": 160,
+  "height": 96,
+  "scene": {
+    "background": [16, 26, 40],
+    "objects": [
+      {"type": "rect", "id": "card", "x": 8, "y": 8, "width": 144, "height": 80, "fill": [40, 58, 80]},
+      {"type": "circle", "id": "lamp", "cx": 80, "cy": 48, "radius": 24, "fill": [120, 137, 152]}
+    ]
+  },
+  "interaction": {
+    "controls": [{"target": "lamp", "label": "إضاءة المصباح", "active_fill": [255, 205, 70]}]
+  },
+  "accessibility": {"description": "بطاقة فيها مصباح وسطها. فعّل زر إضاءة المصباح لتغيير لونه.", "language": "ar"}
+}

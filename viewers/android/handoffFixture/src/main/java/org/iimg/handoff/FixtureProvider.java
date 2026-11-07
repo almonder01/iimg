@@ -2,6 +2,7 @@ package org.iimg.handoff;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
 import android.net.Uri;
@@ -16,8 +17,18 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public final class FixtureProvider extends ContentProvider {
-    static final Uri DOCUMENT = Uri.parse("content://org.iimg.handoff.fixture/two-controls.iimg");
     static final String MIME = "application/octet-stream";
+    static Uri uri(Context context, String name) {
+        return new Uri.Builder().scheme("content").authority(context.getPackageName() + ".fixture")
+                .appendPath(name).build();
+    }
+    static Uri document(Context context, String name) {
+        if (name == null) name = "two-controls.iimg";
+        if ("two-controls.iimg".equals(name) || "motion.iimg".equals(name) || "drag.iimg".equals(name)) {
+            return uri(context, name);
+        }
+        return null;
+    }
     private static final ThreadPoolExecutor WRITERS = new ThreadPoolExecutor(
             2, 2, 0, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(2), runnable -> {
                 Thread thread = new Thread(runnable, "iimg-fixture-writer");
@@ -34,10 +45,11 @@ public final class FixtureProvider extends ContentProvider {
         return openAssetFile(uri, mode, null);
     }
 
-    private static boolean known(Uri uri) {
-        if (!"org.iimg.handoff.fixture".equals(uri.getAuthority()) || uri.getQuery() != null) return false;
+    private boolean known(Uri uri) {
+        if (!(getContext().getPackageName() + ".fixture").equals(uri.getAuthority()) || uri.getQuery() != null) return false;
         String path = uri.getPath();
-        return "/two-controls.iimg".equals(path) || "/denied.iimg".equals(path)
+        return "/two-controls.iimg".equals(path) || "/motion.iimg".equals(path)
+                || "/drag.iimg".equals(path) || "/denied.iimg".equals(path)
                 || "/oversized.iimg".equals(path) || "/delayed.iimg".equals(path)
                 || "/timeout.iimg".equals(path);
     }
@@ -74,7 +86,7 @@ public final class FixtureProvider extends ContentProvider {
                 }
                 return new AssetFileDescriptor(pipe[0], 0, AssetFileDescriptor.UNKNOWN_LENGTH);
             }
-            return getContext().getAssets().openFd("two-controls.iimg");
+            return getContext().getAssets().openFd(path.substring(1));
         } catch (IOException | InterruptedException error) {
             if (error instanceof InterruptedException) Thread.currentThread().interrupt();
             FileNotFoundException missing = new FileNotFoundException("Missing bundled IIMG fixture");

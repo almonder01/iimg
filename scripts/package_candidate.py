@@ -25,6 +25,7 @@ SPEC_FILES = (
     "docs/SECURITY-MODEL.md",
     "docs/TESTING.md", "docs/reviews/2026-11-05-core-candidate.md",
     "docs/ACCESSIBILITY.md", "docs/NEXT-DEVELOPMENT.md",
+    "docs/RC1-ACCEPTANCE.md", "docs/ANDROID-SIGNING.md", "docs/reviews/RC1.md", "docs/RELEASES.md",
     "docs/BENCHMARKS.md", "docs/benchmarks/2026-11-05-gallery-windows.json",
     "docs/adr/0001-container-first.md", "viewers/web/README.md", "viewers/android/README.md",
 )
@@ -157,12 +158,14 @@ def package(output, cli, wasm, target):
         "viewers/web/text-test.mjs", "viewers/web/text-editor.mjs", "tests/conformance/accessibility.py",
         "viewers/web/smoke-motion.mjs", "examples/motion.source.json", "tests/conformance/motion.py",
         "viewers/web/benchmark-gallery.mjs", "viewers/web/benchmark.mjs", "viewers/web/benchmark-native.mjs",
+        "viewers/web/lifecycle-test.mjs", "viewers/web/process-sample.mjs", "examples/described-card.source.json",
         "examples/hello.iimg", "examples/lamp.source.json", "examples/raster-lamp.source.json",
         "tests/conformance/check.py",
         "tests/conformance/generated.py",
         "tests/conformance/reference.py", "tests/conformance/mail_transport.py", "tests/README.md",
         "tests/conformance/android_fixtures.py",
         "scripts/test_android_webview.mjs", "scripts/test_android_handoff.py",
+        "scripts/test_android_signing.py", "scripts/check_android_certificate.py",
         "viewers/web/schema-test.mjs", "viewers/web/package.json", "viewers/web/package-lock.json",
     )))
 

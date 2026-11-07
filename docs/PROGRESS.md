@@ -2,6 +2,14 @@
 
 The active goal is an interoperable IIMG 1.0 release. See the [implementation plan](IMPLEMENTATION-PLAN.md) for scope, dependencies and release gates.
 
+## RC1 verification and handoff
+
+The Windows lifecycle harness completed 50 measured cycles after eight warm-up cycles using the real viewer and a rotation of 2048², state, motion and drag files. Every unload cleared the runtime, controls and canvas. WASM capacity held at 14,221,312 bytes in the working run. JavaScript heap and browser-process samples are recorded independently. CI repeats the regression on Linux, Windows and macOS.
+
+Android API 34 emulator tests passed VIEW and SEND handoff with exact fixture bytes and independent pixel comparisons for basic controls, motion and sliders. The signing test built a release APK with a disposable identity, updated versionCode 2 to 3 using the same certificate, and verified Android rejected a different signer. The public 0.1.1 preview has a different development certificate from the local candidate build. RC1 viewer and helper variants use separate application IDs, so both can coexist with the existing preview apps.
+
+The [phone checklist](RC1-ACCEPTANCE.md), [signing guide](ANDROID-SIGNING.md) and [review handoff](reviews/RC1.md) describe the remaining physical acceptance and stable gates. Record exact artifact and workflow digests when publishing a candidate. Owner signing, physical-device acceptance and external independent review remain separate gates.
+
 ## 2026-11-07 — discrete drag/value implementation
 
 Text/accessibility technical work follows RFC 0006 and ADR 0002: bounded Arabic/Latin raster text authoring and source re-editing, pixel-authoritative RGB PNG assets, optional bounded aTXT alternative description/language, and safe viewer semantics. Runtime text forms/font embedding are explicitly outside the selected Core scope. Two native acceptance tests and independent Python cases cover text hints/metadata; Node zlib and WASM compare complete minimum/maximum multi-block PNG pixels, including old-reader compatibility. Chromium headless passed author/export/reopen pixels, text re-editing, UTF-8 rejection and 390px/200% font layouts. The layout test exposed and fixed an overflowing file picker. Typography/IME/TalkBack manual checks remain deferred.

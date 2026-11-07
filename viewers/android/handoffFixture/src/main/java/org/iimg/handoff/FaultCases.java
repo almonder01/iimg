@@ -41,9 +41,11 @@ public final class FaultCases extends Activity {
         layout.addView(button);
     }
     private void send(String name) {
-        Uri uri = Uri.parse("content://org.iimg.handoff.fixture/" + name);
+        Uri uri = FixtureProvider.uri(this, name);
         Intent intent = new Intent(Intent.ACTION_VIEW).setDataAndType(uri, FixtureProvider.MIME)
-                .setPackage("org.iimg.viewer").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                .setPackage(getPackageName().endsWith(".rc")
+                        ? "org.iimg.viewer.rc" : "org.iimg.viewer")
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         intent.setClipData(ClipData.newRawUri("IIMG test source", uri));
         try { startActivity(intent); }
         catch (android.content.ActivityNotFoundException missing) {
