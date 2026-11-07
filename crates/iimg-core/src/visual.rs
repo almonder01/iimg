@@ -354,10 +354,12 @@ pub(crate) fn validate_profile_scene(
     let has_interaction = doc.chunks.iter().any(|chunk| &chunk.kind == b"INTR");
     let has_states = doc.chunks.iter().any(|chunk| &chunk.kind == b"STAC");
     let has_motion = doc.chunks.iter().any(|chunk| &chunk.kind == b"MOTN");
+    let has_drag = doc.chunks.iter().any(|chunk| &chunk.kind == b"DRAG");
     if required.contains("raster-png") != asset_chunk.is_some()
         || required.contains("toggle-fill") != has_interaction
         || required.contains("state-actions") != has_states
         || required.contains("motion-linear") != has_motion
+        || required.contains("drag-value") != has_drag
         || (has_motion && !required.contains("state-actions"))
         || (required.contains("toggle-fill") && required.contains("state-actions"))
     {
@@ -368,6 +370,7 @@ pub(crate) fn validate_profile_scene(
         "toggle-fill" => !interactive,
         "state-actions" => !interactive || (doc.major, doc.minor) != (1, 0),
         "motion-linear" => !interactive || (doc.major, doc.minor) != (1, 0),
+        "drag-value" => !interactive || (doc.major, doc.minor) != (1, 0),
         _ => true,
     }) {
         return Err(SceneError::UnsupportedProfile);

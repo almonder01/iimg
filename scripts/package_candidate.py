@@ -12,7 +12,7 @@ import zipfile
 
 
 ROOT = Path(__file__).resolve().parents[1]
-WEB_FILES = ("index.html", "offline.js", "viewer.mjs", "editor.mjs", "state-editor.mjs", "README.md")
+WEB_FILES = ("index.html", "offline.js", "viewer.mjs", "editor.mjs", "state-editor.mjs", "drag-editor.mjs", "README.md")
 LICENSE_FILES = ("LICENSES.md", "LICENSE", "NOTICE", "LICENSE-CC-BY-4.0")
 SPEC_FILES = (
     "CHANGELOG.md",
@@ -20,7 +20,7 @@ SPEC_FILES = (
     "spec/IIMG-1.0-candidate.md", "rfcs/0001-wire-compatibility.md",
     "rfcs/0002-raster-assets.md", "docs/AUTHORING.md", "docs/SDK.md", "docs/ARCHITECTURE.md",
     "rfcs/0003-state-actions.md",
-    "rfcs/0004-bounded-motion.md",
+    "rfcs/0004-bounded-motion.md", "rfcs/0005-drag-values.md",
     "docs/SECURITY-MODEL.md",
     "docs/TESTING.md", "docs/reviews/2026-11-05-core-candidate.md",
     "docs/ACCESSIBILITY.md", "docs/NEXT-DEVELOPMENT.md",
@@ -152,6 +152,7 @@ def package(output, cli, wasm, target):
         "examples/showcase/previews/signal-garden.png",
         "viewers/web/smoke-showcase.mjs",
         "viewers/web/smoke-state.mjs", "examples/state-panel.source.json", "tests/conformance/state_actions.py",
+        "viewers/web/smoke-drag.mjs", "examples/drag.source.json", "tests/conformance/drag.py",
         "viewers/web/smoke-motion.mjs", "examples/motion.source.json", "tests/conformance/motion.py",
         "viewers/web/benchmark-gallery.mjs", "viewers/web/benchmark.mjs", "viewers/web/benchmark-native.mjs",
         "examples/hello.iimg", "examples/lamp.source.json", "examples/raster-lamp.source.json",

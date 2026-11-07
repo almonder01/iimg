@@ -1,4 +1,5 @@
 import { mountStateTools } from "./state-editor.mjs";
+import { mountDragTools } from "./drag-editor.mjs";
 // A source editor for the existing Core vocabulary. Its WASM instance is private:
 // changing the design must not change the image open in the viewer.
 export function mountEditor(root, source, wasm) {
@@ -34,6 +35,12 @@ export function mountEditor(root, source, wasm) {
   const object = () => model?.scene.objects.find((shape) => shape.id === selected);
   const controls = (value) => value.interaction?.controls ?? [];
   const advanced = () => !!model?.interaction?.states;
+  const core = () => {
+    const field = document.querySelector("#author-v1");
+    if (!field.checked) { field.checked = true; field.dispatchEvent(new Event("change", { bubbles: true })); }
+  };
+  const dragTools = mountDragTools(root, { model: () => model, selected: () => selected, edit, bounds,
+    message: (text) => { status.textContent = text; }, core });
   const stateTools = mountStateTools(root, { model: () => model, selected: () => selected, edit,
     message: (text) => { status.textContent = text; }, hex, rgb, core: () => {
       const field = document.querySelector("#author-v1");
@@ -121,6 +128,11 @@ export function mountEditor(root, source, wasm) {
   function initialState(name) { return model?.interaction?.states?.find((state) => state.id === name)?.initial; }
   function designBounds(shape) {
     const box = bounds(shape), track = model.motion?.tracks.find((entry) => entry.target === shape.id && initialState(entry.state) === entry.equals);
+    const slider = model.drag?.sliders.find((entry) => entry.target === shape.id);
+    if (slider) {
+      const point = (key) => slider.from[key] + Math.trunc((slider.to[key] - slider.from[key]) * (slider.initial - slider.min) / (slider.max - slider.min));
+      return { ...box, x: point("x"), y: point("y") };
+    }
     return track ? { ...box, x: track.from.x, y: track.from.y } : box;
   }
   function initiallyVisible(shape) {
@@ -155,7 +167,7 @@ export function mountEditor(root, source, wasm) {
     get("forward").disabled = !shape || index === model.scene.objects.length - 1;
     list.value = selected ?? "";
     if (shape) {
-      const box = bounds(shape);
+      const box = model.drag?.sliders.some((entry) => entry.target === shape.id) ? designBounds(shape) : bounds(shape);
       get("object-name").textContent = `${shape.id} (${shape.type})`;
       get("x").value = box.x; get("y").value = box.y;
       for (const name of ["shape-width", "shape-height"]) {
@@ -178,6 +190,7 @@ export function mountEditor(root, source, wasm) {
     toggleFields();
     selectionBox();
     stateTools.refresh();
+    dragTools.refresh();
   }
 
   function remember(text) {
@@ -257,6 +270,7 @@ export function mountEditor(root, source, wasm) {
     get("canvas-form").querySelector("button").disabled = true;
     status.textContent = "Checking source…";
     stateTools.refresh();
+    dragTools.refresh();
   }
 
   source.addEventListener("input", () => {
@@ -380,7 +394,7 @@ export function mountEditor(root, source, wasm) {
     if (!object()) return;
     edit((next) => {
       const shape = next.scene.objects.find((entry) => entry.id === selected);
-      const previous = bounds(object());
+      const previous = model.drag?.sliders.some((entry) => entry.target === selected) ? designBounds(object()) : bounds(object());
       const x = Number(get("x").value), y = Number(get("y").value);
       if (shape.type === "circle") {
         shape.radius = Number(get("radius").value);
@@ -394,6 +408,7 @@ export function mountEditor(root, source, wasm) {
       if (shape.type !== "image") shape.fill = rgb(get("fill").value);
       const track = next.motion?.tracks.find((entry) => entry.target === selected && initialState(entry.state) === entry.equals);
       if (track && (x !== previous.x || y !== previous.y)) track.from = { x, y };
+      translateSlider(next, x - previous.x, y - previous.y);
       if (next.interaction?.states) return;
       const entries = controls(next).filter((entry) => entry.target !== selected);
       const old = controls(next).findIndex((entry) => entry.target === selected);
@@ -413,6 +428,7 @@ export function mountEditor(root, source, wasm) {
     edit((next) => {
     next.scene.objects = next.scene.objects.filter((shape) => shape.id !== selected);
     if (next.motion) { next.motion.tracks = next.motion.tracks.filter((track) => track.target !== selected); if (!next.motion.tracks.length) delete next.motion; }
+    if (next.drag) { next.drag.sliders = next.drag.sliders.filter((slider) => slider.target !== selected); if (!next.drag.sliders.length) delete next.drag; }
     const entries = controls(next).filter((entry) => entry.target !== selected);
     if (next.interaction?.states) {
       next.interaction.controls = entries;
@@ -440,17 +456,29 @@ export function mountEditor(root, source, wasm) {
   }
 
   function move(box, dx, dy) {
+    const slider = model.drag?.sliders.find((entry) => entry.target === selected);
+    if (slider) {
+      dx = Math.max(-Math.min(slider.from.x, slider.to.x), Math.min(model.width - box.width - Math.max(slider.from.x, slider.to.x), dx));
+      dy = Math.max(-Math.min(slider.from.y, slider.to.y), Math.min(model.height - box.height - Math.max(slider.from.y, slider.to.y), dy));
+      return { ...box, x: box.x + dx, y: box.y + dy };
+    }
     return { ...box, x: Math.max(0, Math.min(model.width - box.width, box.x + dx)),
       y: Math.max(0, Math.min(model.height - box.height, box.y + dy)) };
   }
   function relocate(box) {
+    const previous = designBounds(object());
     edit((next) => {
       const shape = next.scene.objects.find((entry) => entry.id === selected);
       if (shape.type === "circle") { shape.cx = box.x + shape.radius; shape.cy = box.y + shape.radius; }
       else { shape.x = box.x; shape.y = box.y; }
       const track = next.motion?.tracks.find((entry) => entry.target === selected && initialState(entry.state) === entry.equals);
       if (track) track.from = { x: box.x, y: box.y };
+      translateSlider(next, box.x - previous.x, box.y - previous.y);
     });
+  }
+  function translateSlider(next, dx, dy) {
+    const slider = next.drag?.sliders.find((entry) => entry.target === selected);
+    if (slider) for (const point of [slider.from, slider.to]) { point.x += dx; point.y += dy; }
   }
   function point(event) {
     const rect = canvas.getBoundingClientRect();

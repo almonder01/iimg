@@ -36,6 +36,7 @@ struct Source {
     scene: Box<RawValue>,
     interaction: Option<Box<RawValue>>,
     motion: Option<Box<RawValue>>,
+    drag: Option<Box<RawValue>>,
     #[serde(default, deserialize_with = "crate::json::object_list")]
     assets: Vec<SourceAsset>,
 }
@@ -63,6 +64,13 @@ fn compile_visual(source: &[u8], major: u8, minor: u8) -> Result<Vec<u8>, SceneE
         return Err(SceneError::PayloadTooLarge);
     }
     let source: Source = crate::json::from_slice(source).map_err(SceneError::InvalidJson)?;
+    if source
+        .drag
+        .as_ref()
+        .is_some_and(|value| value.get().len() > 32 * 1024)
+    {
+        return Err(SceneError::PayloadTooLarge);
+    }
     if source
         .motion
         .as_ref()
@@ -96,6 +104,9 @@ fn compile_visual(source: &[u8], major: u8, minor: u8) -> Result<Vec<u8>, SceneE
     }
     if source.motion.is_some() {
         required.push("motion-linear");
+    }
+    if source.drag.is_some() {
+        required.push("drag-value");
     }
     let metadata = serde_json::json!({
         "profile": profile,
@@ -137,6 +148,12 @@ fn compile_visual(source: &[u8], major: u8, minor: u8) -> Result<Vec<u8>, SceneE
         doc.chunks.push(Chunk {
             kind: *b"MOTN",
             data: motion.get().as_bytes().to_vec(),
+        });
+    }
+    if let Some(drag) = source.drag {
+        doc.chunks.push(Chunk {
+            kind: *b"DRAG",
+            data: drag.get().as_bytes().to_vec(),
         });
     }
     doc.chunks.push(Chunk {

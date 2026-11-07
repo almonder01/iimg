@@ -34,3 +34,6 @@ The [Core specification](../IIMG-1.0-candidate.md) also requires raw UTF-8 and i
 Full readers additionally check envelope framing and CRCs, JSON byte limits, capability/chunk agreement, unique object and asset IDs, cross-references, canvas-relative geometry, PNG validity, aggregate asset pixels and rendering work. The `contentEncoding` annotation describes Base64 data, and the Core compiler checks its actual bytes and PNG format. Preview-only readers follow the separate fallback rules and can skip unsupported capability declarations.
 
 The test runner includes sources that satisfy the structural schemas but fail Core semantic or lexical checks. Use `iimg-cli compile-v1` for complete source validation and `iimg-cli validate` for encoded documents. The independent [conformance runner](../../tests/README.md) exercises complete reader behavior.
+# Draft slider schema
+
+`drag.schema.json` defines DRAG structural fields. Core additionally checks unique IDs/targets, range and initial-step alignment, nonzero axis paths, endpoint fit, conflicts with button/motion ownership, payload size and capability/chunk agreement. `trace.schema.json` includes drag lifecycle and direct slider values; replay checks the actual document's indices/ranges before mutating state. Schema acceptance alone is insufficient.

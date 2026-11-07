@@ -69,6 +69,20 @@ fn exercise_document(document: &iimg_core::Document) {
                 let _ = runtime.render_rgb();
             }
             runtime.dispatch(Event::Reset);
+            let ranges: Vec<_> = runtime
+                .sliders()
+                .enumerate()
+                .map(|(i, s)| (i, s.min, s.max))
+                .collect();
+            for (index, low, high) in ranges {
+                runtime.set_slider_value(index, high).unwrap();
+                let _ = runtime.render_rgb();
+                runtime.set_slider_value(index, low).unwrap();
+                let _ = runtime.drag_start(0, 0);
+                runtime.drag_move(u16::MAX, u16::MAX);
+                runtime.drag_cancel();
+            }
+            runtime.dispatch(Event::Reset);
         }
     }
 }

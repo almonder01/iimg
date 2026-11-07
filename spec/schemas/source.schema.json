@@ -4,26 +4,58 @@
   "title": "IIMG visual authoring source",
   "type": "object",
   "additionalProperties": false,
-  "required": ["width", "height", "scene"],
+  "required": [
+    "width",
+    "height",
+    "scene"
+  ],
   "properties": {
-    "width": { "$ref": "common.schema.json#/$defs/side" },
-    "height": { "$ref": "common.schema.json#/$defs/side" },
-    "scene": { "$ref": "scene.schema.json" },
-    "motion":{"anyOf":[{"$ref":"motion.schema.json"},{"type":"null"}]},
-    "interaction": { "anyOf": [
-      { "$ref": "interaction.schema.json" },
-      { "$ref": "state-actions.schema.json" },
-      { "type": "null" }
-    ] },
+    "width": {
+      "$ref": "common.schema.json#/$defs/side"
+    },
+    "height": {
+      "$ref": "common.schema.json#/$defs/side"
+    },
+    "scene": {
+      "$ref": "scene.schema.json"
+    },
+    "motion": {
+      "anyOf": [
+        {
+          "$ref": "motion.schema.json"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "interaction": {
+      "anyOf": [
+        {
+          "$ref": "interaction.schema.json"
+        },
+        {
+          "$ref": "state-actions.schema.json"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "assets": {
       "type": "array",
       "maxItems": 32,
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "png_base64"],
+        "required": [
+          "id",
+          "png_base64"
+        ],
         "properties": {
-          "id": { "$ref": "common.schema.json#/$defs/identifier" },
+          "id": {
+            "$ref": "common.schema.json#/$defs/identifier"
+          },
           "png_base64": {
             "type": "string",
             "minLength": 4,
@@ -33,6 +65,16 @@
           }
         }
       }
+    },
+    "drag": {
+      "anyOf": [
+        {
+          "$ref": "drag.schema.json"
+        },
+        {
+          "type": "null"
+        }
+      ]
     }
   }
 }

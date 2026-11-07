@@ -8,6 +8,10 @@
   canvas, img { display: block; width: min(100%, 24rem); height: auto; image-rendering: pixelated; }
   [hidden] { display: none !important; }
   #controls { display: flex; gap: .5rem; flex-wrap: wrap; margin: 1rem 0; }
+  #scene { touch-action: none; }
+  #sliders label { display: grid; grid-template-columns: minmax(0, 1fr) 3rem; gap: .5rem; margin: 1rem 0; }
+  #sliders label span { grid-column: 1 / -1; overflow-wrap: anywhere; }
+  #sliders input { width: 100%; min-width: 0; min-height: 48px; }
   button { font: inherit; padding: .65rem .85rem; min-height: 48px; min-width: 48px; max-width: 100%; overflow-wrap: anywhere; white-space: normal; border: 2px solid #64748b; border-radius: .5rem; background: #fff; color: #172033; }
   button:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible, a:focus-visible { outline: 3px solid #1d4ed8; outline-offset: 3px; }
   button[aria-pressed="true"] { border-color: #0f766e; background: #ccfbf1; border-width: 3px; }
@@ -35,11 +39,12 @@
 <main>
   <h1>IIMG viewer</h1>
   <label>Open an IIMG file <input id="file" type="file" accept=".iimg" disabled></label>
-  <p id="status" role="status">Loading viewer…</p>
+  <p id="status" role="status">Loading viewerâ€¦</p>
   <canvas id="scene" role="img" aria-label="Interactive image" aria-describedby="interaction-help" hidden></canvas>
   <img id="preview" alt="Static preview of the IIMG file" hidden>
   <div id="controls" role="group" aria-label="Image controls" hidden></div>
-  <p id="interaction-help" hidden>Tap an interactive area or use the controls above. Use Tab to move between buttons and Enter or Space to activate them. Each button reports its pressed state.</p>
+  <div id="sliders" role="group" aria-label="Image sliders" hidden></div>
+  <p id="interaction-help" hidden>Tap or drag an interactive area, or use the controls above. Tab moves between controls; Enter or Space activates buttons. Arrow keys adjust sliders, Home and End select their limits. Buttons report their pressed state.</p>
   <button id="reset" type="button" hidden>Reset image</button>
   <button id="pause-motion" type="button" aria-pressed="false" hidden>Pause motion</button>
   <details id="author" hidden>
@@ -72,7 +77,7 @@
       <div id="editor-stage" role="group" aria-label="Design canvas" tabindex="0">
         <canvas id="editor-canvas" role="img" aria-label="Design preview" hidden></canvas>
         <div id="editor-selection" aria-hidden="true" hidden></div>
-        <button id="editor-resize" type="button" aria-label="Resize selected shape" title="Drag to resize; use numeric properties for precise size" hidden>↘</button>
+        <button id="editor-resize" type="button" aria-label="Resize selected shape" title="Drag to resize; use numeric properties for precise size" hidden>â†˜</button>
       </div>
       <label for="editor-objects">Objects (back to front)</label>
       <select id="editor-objects" size="5" aria-label="Objects (back to front)"></select>
@@ -151,6 +156,26 @@
           </details>
         </div>
       </details>
+      <details id="editor-drag-tools">
+        <summary>Constrained sliders</summary>
+        <p>Move the selected object's bounding box along one axis. Endpoints must fit. A slider cannot also own a button or motion track. Export requires Core 1.0.</p>
+        <form id="editor-drag-form"><fieldset id="editor-drag-fields" disabled><legend>Selected object's slider</legend>
+          <div class="editor-fields">
+            <label>Slider ID <input id="editor-drag-id" pattern="[A-Za-z0-9_-]{1,64}" required></label>
+            <label>Slider name <input id="editor-drag-label" dir="auto" maxlength="256" required></label>
+            <label>Axis <select id="editor-drag-axis"><option value="x">Horizontal</option><option value="y">Vertical</option></select></label>
+            <label>Minimum <input id="editor-drag-min" type="number" min="0" max="1024" step="1" required></label>
+            <label>Maximum <input id="editor-drag-max" type="number" min="1" max="1024" step="1" required></label>
+            <label>Step <input id="editor-drag-step" type="number" min="1" max="1024" step="1" required></label>
+            <label>Slider initial value <input id="editor-drag-initial" type="number" min="0" max="1024" step="1" required></label>
+          </div><div class="editor-fields">
+            <label>From left <input id="editor-drag-from-x" type="number" min="0" max="2048" step="1" required></label>
+            <label>From top <input id="editor-drag-from-y" type="number" min="0" max="2048" step="1" required></label>
+            <label>To left <input id="editor-drag-to-x" type="number" min="0" max="2048" step="1" required></label>
+            <label>To top <input id="editor-drag-to-y" type="number" min="0" max="2048" step="1" required></label>
+          </div><button type="submit">Apply slider</button><button id="editor-drag-remove" type="button">Remove slider</button>
+        </fieldset></form>
+      </details>
       <label><input id="editor-autosave" type="checkbox"> Keep a local recovery copy in this browser</label>
       <p id="editor-recovery-status" role="status">Recovery is off. Save source JSON before closing.</p>
       <div class="editor-toolbar">
@@ -159,7 +184,7 @@
       </div>
       <label>Import source JSON <input id="editor-import" type="file" accept=".json,application/json"></label>
       <a id="editor-save" download="project.iimg.json" hidden>Save source JSON</a>
-      <p>Use <strong>Validate and preview</strong> below to test interactions, then <strong>Download IIMG</strong> to export. PNG imports must be non-interlaced RGB8 without transparency, at most 1 MiB, and fit the canvas. Animation and drag interactions inside exported images are planned separately.</p>
+      <p>Use <strong>Validate and preview</strong> below to test interactions, then <strong>Download IIMG</strong> to export. PNG imports must be non-interlaced RGB8 without transparency, at most 1 MiB, and fit the canvas. Use the multi-state, finite-motion and constrained-slider tools for advanced interactions; unsupported readers show the static preview.</p>
     </section>
     <label for="source">IIMG source JSON</label>
     <textarea id="source" spellcheck="false">{
