@@ -205,7 +205,9 @@ async function start() {
     clickTimer = setTimeout(() => { suppressClick = false; }, 0);
   });
   canvas.addEventListener("pointercancel", cancelDrag);
-  canvas.addEventListener("lostpointercapture", cancelDrag);
+  canvas.addEventListener("lostpointercapture", (event) => {
+    if (pointer !== undefined && !canvas.hasPointerCapture(pointer)) cancelDrag(event);
+  });
   canvas.addEventListener("click", (event) => {
     if (suppressClick) { suppressClick = false; return; }
     const { x, y } = coordinates(event);
