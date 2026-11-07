@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <application android:label="IIMG test sources" android:allowBackup="false">
+    <application android:label="${iimgFixtureLabel}" android:allowBackup="false">
         <activity android:name=".FaultCases" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -7,7 +7,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".SendFixture" android:exported="true" />
-        <provider android:name=".FixtureProvider" android:authorities="org.iimg.handoff.fixture"
+        <provider android:name=".FixtureProvider" android:authorities="${applicationId}.fixture"
             android:exported="false" android:grantUriPermissions="true" />
     </application>
 </manifest>

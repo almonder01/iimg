@@ -6,7 +6,7 @@ Status — draft for interoperability and security review. The 1.0 wire values a
 
 All binary integers are unsigned and big-endian. A file starts with the eight bytes `49 49 4d 47 0d 0a 1a 0a`, version bytes `01 00` and two zero reserved bytes. Its length is at most 16 MiB.
 
-A chunk is `length:u32 | type:4 ASCII letters | payload:length bytes | crc:u32`. CRC-32/ISO-HDLC covers type followed by payload. Each payload is at most 8 MiB and the file has at most 1024 chunks. `META` and `PREV` occur once, in that order, as the first two chunks. The known sequence then contains one `SCNE`, optional `ASST`, optional `INTR` or `STAC` (mutually exclusive), optional `MOTN` after `STAC`, and one empty `IEND`. No bytes follow `IEND`.
+A chunk is `length:u32 | type:4 ASCII letters | payload:length bytes | crc:u32`. CRC-32/ISO-HDLC covers type followed by payload. Each payload is at most 8 MiB and the file has at most 1024 chunks. `META` and `PREV` occur once, in that order, as the first two chunks. The critical sequence then contains one `SCNE`, optional `ASST`, optional `INTR` or `STAC` (mutually exclusive), optional `MOTN` after `STAC`, optional `DRAG`, and one empty `IEND`. The optional ancillary `aTXT` appears once after `SCNE` and before `IEND` without altering that order. No bytes follow `IEND`.
 
 Unknown lowercase-initial chunk types can be skipped after the mandatory prefix. Full readers reject unknown uppercase-initial chunks. Preview readers may skip either type after the prefix. Every reader verifies the full envelope, including CRCs after the preview. Writers should omit unknown extensions when rewriting a document unless their rules explicitly permit copying. CRC detects corruption and does not authenticate content.
 
@@ -23,6 +23,7 @@ Objects, including individual shapes, controls and replay events, use JSON objec
 | `toggle-fill` | `INTR` | [Declarative controls and normalized events](IIMG-0.2-interaction.md) |
 | `state-actions` | `STAC` | [Bounded state groups, visibility and color bindings](../rfcs/0003-state-actions.md) |
 | `motion-linear` | `MOTN` and `STAC` | [Finite linear placement tracks and logical time](../rfcs/0004-bounded-motion.md) |
+| `drag-value` | `DRAG` | [Discrete values and cancelable single-axis capture](../rfcs/0005-drag-values.md) |
 
 Optional capability chunks are present exactly when their capability is required. Each capability identifier is case-sensitive. A full reader reports malformed capability metadata when the list repeats an identifier or a known optional chunk disagrees with its declaration. Otherwise a reader that encounters an unsupported required capability reports unsupported for full rendering. A preview-only reader may ignore required capabilities and scene payloads when the metadata profile, dimensions, envelope and PNG are valid.
 
@@ -32,7 +33,7 @@ The [PNG subset](IIMG-0.2-visual.md#png-preview) defines static RGB8 images with
 
 The visual payload is limited to 128 KiB, metadata to 4 KiB and interaction to 32 KiB. A scene has at most 256 objects and 64 controls. Each PNG is at most 1 MiB. An asset table contains 1–32 PNGs and at most 4,194,304 aggregate decoded pixels. Reject rendering above 16,777,216 bounding-box pixel visits.
 
-Controls start unpressed with no focus. Events dispatch synchronously in order and never schedule other events. A single activation changes at most one control. A host should expose the ordered controls as toggle buttons with names and pressed states. Files contain no executable code or external resources.
+The runtime starts with declared initial values and no focus. Events dispatch synchronously in order. Activation selects one eligible button and applies its bounded action group atomically. Hosts expose ordered buttons with names and pressed states, followed by named slider ranges. Motion advances when the host supplies a normalized clock. Files contain no executable code or external resources.
 
 ## Migration and version policy
 

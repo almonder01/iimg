@@ -77,3 +77,12 @@ jobs:
       - run: npm --prefix viewers/web test
         env:
           IIMG_PLAYWRIGHT_CHROMIUM: "1"
+      - run: node viewers/web/lifecycle-test.mjs target/lifecycle.json
+        env:
+          IIMG_PLAYWRIGHT_CHROMIUM: "1"
+          IIMG_LIFECYCLE_ITERATIONS: "20"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: iimg-lifecycle-${{ matrix.os }}
+          path: target/lifecycle.json
+          if-no-files-found: error

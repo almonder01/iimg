@@ -10,16 +10,22 @@ from zipfile import ZIP_STORED, ZipFile
 
 ROOT = Path(__file__).resolve().parents[1]
 APP = "org.iimg.viewer"
-SENDER = "org.iimg.handoff/.SendFixture"
+SENDER = "org.iimg.handoff"
 
 
-def run(adb, serial, apk, sender_apk):
-    fixture_path = ROOT / "tests/fixtures/v0.2/two-controls.iimg"
-    fixture = fixture_path.read_bytes()
+def run(adb, serial, apk, sender_apk, advanced=False, viewer_package=APP, sender_package=SENDER):
+    cases = [("VIEW", "v0.2/two-controls.iimg", "scripted"), ("SEND", "v0.2/two-controls.iimg", "scripted")]
+    if advanced:
+        cases.extend([("VIEW", "motion/motion.iimg", "motion"), ("SEND", "drag/drag.iimg", "drag")])
+    fixtures = {}
     with ZipFile(sender_apk) as archive:
-        asset = archive.getinfo("assets/two-controls.iimg")
-        if asset.compress_type != ZIP_STORED or archive.read(asset) != fixture:
-            raise RuntimeError("Sender APK must contain the original fixture as an uncompressed asset")
+        for _, fixture, _ in cases:
+            path = ROOT / "tests/fixtures" / fixture
+            data = path.read_bytes()
+            asset = archive.getinfo(f"assets/{path.name}")
+            if asset.compress_type != ZIP_STORED or archive.read(asset) != data:
+                raise RuntimeError(f"Sender APK must contain original uncompressed {path.name}")
+            fixtures[fixture] = (path.name, hashlib.sha256(data).hexdigest())
 
     def device(*args):
         result = subprocess.run([str(adb), "-s", serial, *map(str, args)],
@@ -34,11 +40,11 @@ def run(adb, serial, apk, sender_apk):
     def text(*args):
         return shell(*args).decode(errors="replace").strip()
 
-    def expect_controls():
+    def expect_controls(mode):
         deadline = time.monotonic() + 30
         while time.monotonic() < deadline:
             try:
-                pid = text("pidof", APP)
+                pid = text("pidof", viewer_package)
             except RuntimeError:
                 time.sleep(0.5)
                 continue
@@ -49,7 +55,7 @@ def run(adb, serial, apk, sender_apk):
             raise RuntimeError("viewer activity process did not start")
         port = device("forward", "tcp:0", f"localabstract:webview_devtools_remote_{pid}").decode().strip()
         try:
-            subprocess.run(["node", ROOT / "scripts/test_android_webview.mjs", port],
+            subprocess.run(["node", ROOT / "scripts/test_android_webview.mjs", port, mode],
                            check=True, timeout=60)
         finally:
             device("forward", "--remove", f"tcp:{port}")
@@ -57,16 +63,19 @@ def run(adb, serial, apk, sender_apk):
     print(f"Android API {text('getprop', 'ro.build.version.sdk')}")
     print(device("install", "-r", apk).decode().strip())
     print(device("install", "-r", sender_apk).decode().strip())
-    expected = hashlib.sha256(fixture).hexdigest()
-    for action in ("VIEW", "SEND"):
-        shell("am", "force-stop", APP)
-        launch = text("am", "start", "-n", SENDER, "--es", "fixture_action", action,
-                      "--es", "expected_sha256", expected)
+    for action, fixture, mode in cases:
+        name, expected = fixtures[fixture]
+        shell("am", "force-stop", viewer_package)
+        # The viewer can occupy the sender's previous task after the sender
+        # finishes. Start a fresh sender task for each fixture and app variant.
+        sender = f"{sender_package}/org.iimg.handoff.SendFixture"
+        launch = text("am", "start", "-f", "0x10008000", "-n", sender, "--es", "fixture_action", action,
+                      "--es", "fixture_name", name, "--es", "expected_sha256", expected,
+                      "--es", "viewer_package", viewer_package)
         if "Error:" in launch or "Starting: Intent" not in launch:
             raise RuntimeError(f"{action} fixture sender failed to start: {launch}")
-        expect_controls()
-        print(f"{action} resolved to IIMG and passed the WebView pixel and activation checks.")
-    print(f"Provider fixture SHA-256 verified by sender: {expected}")
+        expect_controls(mode)
+        print(f"{action} {name} matched SHA-256 {expected} and passed WebView checks.")
 
 
 if __name__ == "__main__":
@@ -75,5 +84,8 @@ if __name__ == "__main__":
     parser.add_argument("--serial", required=True, help="Explicit test emulator or device serial")
     parser.add_argument("--apk", type=Path, required=True)
     parser.add_argument("--sender-apk", type=Path, required=True)
+    parser.add_argument("--advanced", action="store_true", help="Also exercise bounded motion and DRAG fixtures")
+    parser.add_argument("--viewer-package", choices=[APP, APP + ".rc"], default=APP)
+    parser.add_argument("--sender-package", choices=[SENDER, SENDER + ".rc"], default=SENDER)
     args = parser.parse_args()
-    run(args.adb, args.serial, args.apk, args.sender_apk)
+    run(args.adb, args.serial, args.apk, args.sender_apk, args.advanced, args.viewer_package, args.sender_package)

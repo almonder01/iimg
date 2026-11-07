@@ -2,6 +2,22 @@ plugins {
     id "com.android.application"
 }
 
+def signingVariables = ["IIMG_ANDROID_KEYSTORE", "IIMG_ANDROID_STORE_PASSWORD", "IIMG_ANDROID_KEY_ALIAS", "IIMG_ANDROID_KEY_PASSWORD"]
+if (providers.gradleProperty("iimgBuildDirectory").isPresent()) {
+    layout.buildDirectory.set(file(providers.gradleProperty("iimgBuildDirectory").get()))
+}
+def signingValues = signingVariables.collectEntries { name -> [(name): providers.environmentVariable(name).orNull] }
+def verifyReleaseSigning = tasks.register("verifyReleaseSigning") {
+    doLast {
+        if (signingValues.values().any { it == null || it.isEmpty() }) {
+            throw new GradleException("Release signing requires all IIMG_ANDROID_KEYSTORE/STORE_PASSWORD/KEY_ALIAS/KEY_PASSWORD environment variables. Debug builds are test-only.")
+        }
+        if (!file(signingValues.IIMG_ANDROID_KEYSTORE).isFile()) {
+            throw new GradleException("The configured release keystore file does not exist.")
+        }
+    }
+}
+
 android {
     namespace "org.iimg.viewer"
     compileSdk 35
@@ -16,8 +32,27 @@ android {
         applicationId "org.iimg.viewer"
         minSdk 23
         targetSdk 34
-        versionCode 2
-        versionName "0.1.1-preview"
+        versionCode 3
+        versionName "1.0.0-rc.1"
+        manifestPlaceholders = [iimgAppLabel: "IIMG Viewer"]
+    }
+
+    signingConfigs {
+        release {
+            if (signingValues.IIMG_ANDROID_KEYSTORE) storeFile file(signingValues.IIMG_ANDROID_KEYSTORE)
+            storePassword signingValues.IIMG_ANDROID_STORE_PASSWORD
+            keyAlias signingValues.IIMG_ANDROID_KEY_ALIAS
+            keyPassword signingValues.IIMG_ANDROID_KEY_PASSWORD
+        }
+    }
+    buildTypes {
+        release { signingConfig signingConfigs.release }
+        candidate {
+            initWith debug
+            applicationIdSuffix ".rc"
+            matchingFallbacks = ["debug"]
+            manifestPlaceholders = [iimgAppLabel: "IIMG Viewer RC"]
+        }
     }
 
     sourceSets.main.assets.srcDir(layout.buildDirectory.dir("generated/iimgAssets").get().asFile)
@@ -40,3 +75,6 @@ def stageViewer = tasks.register("stageViewer", Sync) {
     }
 }
 tasks.named("preBuild").configure { dependsOn(stageViewer) }
+tasks.matching { it.name in ["preReleaseBuild", "validateSigningRelease"] }.configureEach {
+    dependsOn(verifyReleaseSigning)
+}

@@ -1,0 +1,83 @@
+name: Android signed release build
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  sign:
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: iimg-android-signing
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Require a release tag on main
+        run: |
+          [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]
+          git merge-base --is-ancestor HEAD origin/main
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.6.0"
+          cache-disabled: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: "platform-tools platforms;android-35 build-tools;36.0.0"
+      - run: cargo build --locked --release --target wasm32-unknown-unknown -p iimg-web
+      - name: Build and verify with the owner release certificate
+        env:
+          IIMG_ANDROID_KEYSTORE: ${{ runner.temp }}/iimg-owner-release.p12
+          IIMG_ANDROID_KEYSTORE_B64: ${{ secrets.IIMG_ANDROID_KEYSTORE_B64 }}
+          IIMG_ANDROID_STORE_PASSWORD: ${{ secrets.IIMG_ANDROID_STORE_PASSWORD }}
+          IIMG_ANDROID_KEY_ALIAS: ${{ secrets.IIMG_ANDROID_KEY_ALIAS }}
+          IIMG_ANDROID_KEY_PASSWORD: ${{ secrets.IIMG_ANDROID_KEY_PASSWORD }}
+          IIMG_EXPECTED_CERTIFICATE: ${{ vars.IIMG_ANDROID_CERT_SHA256 }}
+        run: |
+          python -B - <<'PY'
+          import base64
+          import os
+          from pathlib import Path
+          encoded = os.environ.pop("IIMG_ANDROID_KEYSTORE_B64")
+          if not encoded:
+              raise SystemExit("Configure the owner keystore in the signing environment")
+          key = Path(os.environ["IIMG_ANDROID_KEYSTORE"])
+          descriptor = os.open(key, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+          with os.fdopen(descriptor, "wb") as stream:
+              stream.write(base64.b64decode(encoded, validate=True))
+          PY
+          unset IIMG_ANDROID_KEYSTORE_B64
+          gradle -p viewers/android :app:assembleRelease --no-daemon
+          apk=viewers/android/app/build/outputs/apk/release/app-release.apk
+          python -B scripts/check_android_apk.py "$apk"
+          python -B scripts/check_android_certificate.py \
+            --apksigner "$ANDROID_HOME/build-tools/36.0.0/apksigner" \
+            --apk "$apk" --expected "$IIMG_EXPECTED_CERTIFICATE"
+          mkdir -p target/signed-android
+          cp "$apk" target/signed-android/iimg-viewer-release.apk
+          (cd target/signed-android && sha256sum iimg-viewer-release.apk > SHA256SUMS)
+      - name: Remove temporary signing file
+        if: always()
+        run: python -B -c 'import os; from pathlib import Path; (Path(os.environ["RUNNER_TEMP"]) / "iimg-owner-release.p12").unlink(missing_ok=True)'
+      - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: target/signed-android/iimg-viewer-release.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: iimg-android-owner-signed
+          path: target/signed-android/
+          if-no-files-found: error

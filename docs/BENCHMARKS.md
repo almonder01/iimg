@@ -85,6 +85,10 @@ The [raw results](benchmarks/2026-11-05-gallery-windows.json) include input/engi
 
 The vector-only SVG and HTML equivalents are smaller for these scenes. IIMG carries both scene data and a mandatory PNG preview. These results do not support a universal file-size advantage.
 
+## Repeated full-viewer lifecycle
+
+Generate the showcase into `target/showcase`, build release WASM, and run `node viewers/web/lifecycle-test.mjs target/lifecycle.json`. The harness rotates through 2048², state, motion and drag files on the actual offline viewer. It exercises controls and reset, then checks runtime and canvas clearing after each unload. It records post-GC JavaScript heap, WASM capacity, and browser/renderer process samples as separate series. The ready-time distribution includes automation overhead. CI uploads reports for each supported host. Physical Android peak memory and TalkBack speech have separate acceptance checks.
+
 IIMG initial work includes instantiation/load/rasterization/canvas submission. Native initial work includes parsing, DOM insertion and handlers. These are different operations and their work times are not a paint-speed ranking. Both paths also record reopen/activation to the next animation-frame opportunity, which is browser scheduling rather than physical presentation. Whole IIMG RGB hashes and native painted activation pixels were checked outside timed samples.
 
 Memory fields distinguish maximum observed WASM linear capacity, JavaScript heap after explicit GC, and current aggregate browser-process working sets/private bytes. The latter include browser/renderer overhead and can count shared pages twice; they are not transient peak, PSS or standalone image memory. Explicit GC and verification occur outside timing. The 2048² workload reached 37.69 MiB of WASM capacity; full low-memory Android/process-tree measurements remain open. Rive equivalents remain a separately tracked comparison.

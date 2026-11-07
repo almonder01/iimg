@@ -2,6 +2,11 @@ name: Candidate review package
 on:
   pull_request:
   workflow_dispatch:
+    inputs:
+      attest:
+        description: "Attest verified candidate archives"
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -47,3 +52,19 @@ jobs:
           name: iimg-candidate-${{ matrix.os }}
           path: target/review-package/
           if-no-files-found: error
+  provenance:
+    if: github.event_name == 'workflow_dispatch' && inputs.attest
+    needs: package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: iimg-candidate-*
+          path: target/verified
+      - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: 'target/verified/iimg-candidate-*/*.zip'

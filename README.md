@@ -5,12 +5,14 @@
 Explore the [original large-scene showcase](examples/showcase/README.md): an orbital scene, a solar house and a portrait garden, with interactive Arabic-labeled controls. Their PNGs are static previews; the IIMG files require the viewer. See [performance measurements](docs/BENCHMARKS.md) and [accessibility checks](docs/ACCESSIBILITY.md) for measured scope and remaining acceptance work.
 
 ## What works today
-- Rust parsing, validation, RGB rendering and deterministic toggle interaction with bounded resources.
+- Rust parsing, validation and RGB rendering with bounded toggles, grouped actions, finite motion and constrained sliders.
 - CLI authoring, migration, preview extraction and portable event replay.
-- Offline web viewer and source editor with live validation, preview and file export.
+- Offline web viewer and visual editor with source recovery, PNG and raster text authoring, preview and file export.
 - Android reference viewer with local document and sharing adapters. Device acceptance remains in progress.
 - Versioned fixtures and an independent Python implementation for conformance comparison.
 - Candidate specifications, contributor workflow, security model and release tooling.
+
+The RC1 [test guide](docs/RC1-ACCEPTANCE.md) covers Android, sharing, accessibility and editor acceptance. The [review handoff](docs/reviews/RC1.md) lists the evidence and stable release gates.
 
 ## Quick start
 Install stable Rust, then run these commands from the repository root. Output paths must be new files.
