@@ -46,3 +46,11 @@ where
     Vec::<Object<T>>::deserialize(deserializer)
         .map(|objects| objects.into_iter().map(|Object(value)| value).collect())
 }
+
+pub(crate) fn optional_object<'de, D, T>(deserializer: D) -> Result<Option<T>, D::Error>
+where
+    D: Deserializer<'de>,
+    T: Deserialize<'de>,
+{
+    Option::<Object<T>>::deserialize(deserializer).map(|value| value.map(|Object(value)| value))
+}

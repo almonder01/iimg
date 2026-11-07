@@ -57,3 +57,9 @@ RFC 0003 specifies the opt-in STAC payload, limits and hidden-target focus/hit s
 ## Draft finite motion
 
 RFC 0004 specifies MOTN, requiring state-actions in Core 1.0. At most 64 tracks translate fixed-size objects between validated endpoints with bounded duration/repetition. Logical time, preferences, exact repeat boundaries, host suspension and trace atomicity follow that RFC. This opt-in draft is not an independently approved stable capability.
+
+## Draft constrained values and text metadata
+
+RFC 0005 specifies critical DRAG/`drag-value`: at most 32 discrete sliders, nonzero single-axis paths, bounded step-aligned values and singular cancelable capture. It may stand alone without buttons; slider targets cannot also own button controls or motion tracks. Older readers can use the PNG preview.
+
+RFC 0006 defines optional ancillary aTXT after SCNE and before IEND, at most once/4 KiB, with bounded description/language. Readers may ignore it without changing pixels or interactions. Recognizing readers reject malformed payloads. Source text hints aid authoring only; Core raster assets carry fixed glyph pixels and no executable fonts or editable runtime forms. These additions remain drafts pending independent review.

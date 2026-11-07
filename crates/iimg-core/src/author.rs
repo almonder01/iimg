@@ -37,6 +37,7 @@ struct Source {
     interaction: Option<Box<RawValue>>,
     motion: Option<Box<RawValue>>,
     drag: Option<Box<RawValue>>,
+    accessibility: Option<Box<RawValue>>,
     #[serde(default, deserialize_with = "crate::json::object_list")]
     assets: Vec<SourceAsset>,
 }
@@ -46,6 +47,19 @@ struct Source {
 struct SourceAsset {
     id: String,
     png_base64: String,
+    #[serde(default, deserialize_with = "crate::json::optional_object")]
+    text: Option<TextHint>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct TextHint {
+    text: String,
+    font_family: String,
+    font_size: u16,
+    direction: String,
+    color: [u8; 3],
+    background: [u8; 3],
 }
 
 /// Validate, render, generate a preview and encode an authored v0.2 file.
@@ -156,6 +170,15 @@ fn compile_visual(source: &[u8], major: u8, minor: u8) -> Result<Vec<u8>, SceneE
             data: drag.get().as_bytes().to_vec(),
         });
     }
+    if let Some(accessibility) = source.accessibility {
+        if accessibility.get().len() > 4096 {
+            return Err(SceneError::PayloadTooLarge);
+        }
+        doc.chunks.push(Chunk {
+            kind: *b"aTXT",
+            data: accessibility.get().as_bytes().to_vec(),
+        });
+    }
     doc.chunks.push(Chunk {
         kind: *b"IEND",
         data: Vec::new(),
@@ -175,6 +198,23 @@ fn encode_assets(assets: &[SourceAsset]) -> Result<Vec<u8>, SceneError> {
     }
     let mut table = (assets.len() as u16).to_be_bytes().to_vec();
     for asset in assets {
+        if let Some(text) = &asset.text {
+            if text.text.trim().is_empty()
+                || text.text.len() > 1024
+                || text.text.split('\n').count() > 8
+                || text.text.chars().any(|c| c.is_control() && c != '\n')
+                || !(8..=128).contains(&text.font_size)
+                || !matches!(
+                    text.font_family.as_str(),
+                    "sans-serif" | "serif" | "monospace"
+                )
+                || !matches!(text.direction.as_str(), "ltr" | "rtl")
+            {
+                return Err(SceneError::InvalidAssetImage);
+            }
+            // Hints aid source re-editing only. Pixels in the PNG stay normative.
+            let _ = (text.color, text.background);
+        }
         if !visual::valid_id(&asset.id) {
             return Err(SceneError::InvalidAssetTable);
         }

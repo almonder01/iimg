@@ -100,6 +100,8 @@ async function start() {
     pauseMotion.hidden = true;
     canvas.hidden = preview.hidden = controls.hidden = reset.hidden = help.hidden = true;
     controls.replaceChildren(); sliders.replaceChildren(); sliders.hidden = true;
+    canvas.setAttribute("aria-label", "Interactive image");
+    canvas.removeAttribute("lang"); controls.removeAttribute("lang"); sliders.removeAttribute("lang");
     if (previewUrl) {
       preview.removeAttribute("src");
       URL.revokeObjectURL(previewUrl);
@@ -133,6 +135,10 @@ async function start() {
       if (result !== 0) throw new Error("This IIMG file is invalid or unsupported.");
       wasm.motion_preference(Number(reducedMotion.matches));
       const description = describe(), state = description.controls;
+      if (description.accessibility) {
+        canvas.setAttribute("aria-label", description.accessibility.description);
+        for (const element of [canvas, controls, sliders]) element.lang = description.accessibility.language;
+      }
       for (const [index, control] of state.entries()) {
         const button = document.createElement("button");
         button.type = "button";
@@ -205,7 +211,11 @@ async function start() {
     clickTimer = setTimeout(() => { suppressClick = false; }, 0);
   });
   canvas.addEventListener("pointercancel", cancelDrag);
-  canvas.addEventListener("lostpointercapture", cancelDrag);
+  canvas.addEventListener("lostpointercapture", (event) => {
+    // A queued loss from an earlier gesture may arrive after recapture with
+    // the same mouse pointer ID. Do not cancel the newer live capture.
+    if (pointer !== undefined && !canvas.hasPointerCapture(pointer)) cancelDrag(event);
+  });
   canvas.addEventListener("click", (event) => {
     if (suppressClick) { suppressClick = false; return; }
     const { x, y } = coordinates(event);

@@ -131,9 +131,9 @@ impl Drag {
         self.sliders.iter()
     }
     pub fn valid_value(&self, index: usize, value: u16) -> bool {
-        self.sliders
-            .get(index)
-            .is_some_and(|s| value >= s.min && value <= s.max && (value - s.min) % s.step == 0)
+        self.sliders.get(index).is_some_and(|s| {
+            value >= s.min && value <= s.max && (value - s.min).is_multiple_of(s.step)
+        })
     }
     pub fn set(&mut self, index: usize, value: u16) -> bool {
         if !self.valid_value(index, value) {

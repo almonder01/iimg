@@ -43,6 +43,7 @@
 //! profile remain candidates under review.
 use std::fmt;
 
+pub mod accessibility;
 pub mod author;
 mod drag;
 pub mod interaction;
@@ -106,7 +107,16 @@ fn valid_kind(k: &[u8; 4]) -> bool {
 fn known(k: &[u8; 4]) -> bool {
     matches!(
         k,
-        b"META" | b"PREV" | b"SCNE" | b"INTR" | b"STAC" | b"MOTN" | b"DRAG" | b"ASST" | b"IEND"
+        b"META"
+            | b"PREV"
+            | b"SCNE"
+            | b"INTR"
+            | b"STAC"
+            | b"MOTN"
+            | b"DRAG"
+            | b"ASST"
+            | b"aTXT"
+            | b"IEND"
     )
 }
 
@@ -134,6 +144,7 @@ fn check_visual_order(chunks: &[Chunk]) -> Result<(), Error> {
         return Err(Error::BadOrdering);
     }
     let mut stage = 0;
+    let mut description = false;
     for chunk in &chunks[2..] {
         stage = match &chunk.kind {
             b"SCNE" if stage == 0 => 1,
@@ -141,6 +152,10 @@ fn check_visual_order(chunks: &[Chunk]) -> Result<(), Error> {
             b"INTR" | b"STAC" if (1..=2).contains(&stage) => 3,
             b"MOTN" if stage == 3 => 4,
             b"DRAG" if (1..=4).contains(&stage) => 5,
+            b"aTXT" if stage > 0 && !description => {
+                description = true;
+                stage
+            }
             b"IEND" if stage > 0 => return Ok(()),
             kind if !known(kind) => stage,
             _ => return Err(Error::BadOrdering),

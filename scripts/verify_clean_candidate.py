@@ -57,11 +57,12 @@ def build(folder, verify):
         run(folder, sys.executable, "-B", "tests/conformance/check.py", "--cli",
             folder / "target/release" / CLI, env=env)
         run(folder, "node", "viewers/web/smoke.mjs", env=env)
-        for name in ("state_actions", "motion", "drag"):
+        for name in ("state_actions", "motion", "drag", "accessibility"):
             run(folder, sys.executable, "-B", f"tests/conformance/{name}.py", "--cli",
                 folder / "target/release" / CLI, env=env)
         for name in ("state", "motion", "drag"):
             run(folder, "node", f"viewers/web/smoke-{name}.mjs", env=env)
+        run(folder, "node", "viewers/web/text-test.mjs", env=env)
 
 
 def verify(scratch):

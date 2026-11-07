@@ -56,6 +56,8 @@ def envelope(data, preview_only=False):
         if any(kind not in CORE and kind[:1].isupper() for kind in kinds):
             raise Invalid("unknown critical chunk")
     if visual:
+        if kinds.count(b"aTXT") > 1 or (b"aTXT" in kinds and (b"SCNE" not in kinds or kinds.index(b"aTXT") < kinds.index(b"SCNE"))):
+            raise Invalid("alternative description ordering/count")
         known = [kind for kind in kinds if kind in CORE]
         expected = [b"META", b"PREV", b"SCNE"]
         expected.extend(kind for kind in (b"ASST", b"INTR", b"STAC", b"MOTN", b"DRAG") if kind in known)
@@ -440,6 +442,8 @@ def validate(data):
     if version == (0, 1):
         return
     payloads = dict(records)
+    if b"aTXT" in payloads:
+        accessibility_payload(payloads[b"aTXT"])
     width, height = metadata(payloads[b"META"], version)
     capabilities = strict_json(payloads[b"META"], 4096)["required"]
     for enabled, kind in (("raster-png" in capabilities, b"ASST"),
@@ -460,6 +464,18 @@ def validate(data):
         tracks = strict_json(payloads[b"MOTN"],32768)["tracks"] if b"MOTN" in payloads else []
         drag_payload(payloads[b"DRAG"], scene, width, height, assets, interaction["controls"], tracks)
     decode_png(payloads[b"PREV"], width, height)
+
+
+def accessibility_payload(data):
+    value = strict_json(data, 4096)
+    fields(value, "description", "language")
+    description, language = value["description"], value["language"]
+    if (not isinstance(description,str) or not description.strip() or len(description.encode("utf-8"))>2048
+            or any(ord(c)<32 or 127<=ord(c)<=159 for c in description)
+            or not isinstance(language,str) or len(language)>35
+            or not re.fullmatch(r"[A-Za-z]{2,8}(-[A-Za-z0-9]{1,8})*",language)):
+        raise Invalid("alternative description/language")
+    return value
 
 
 def trace_events(trace):
