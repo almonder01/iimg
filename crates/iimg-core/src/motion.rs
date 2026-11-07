@@ -21,7 +21,9 @@ struct TrackPayload {
     equals: u8,
     duration_ms: u32,
     repeat: u8,
+    #[serde(deserialize_with = "crate::json::object")]
     from: Point,
+    #[serde(deserialize_with = "crate::json::object")]
     to: Point,
 }
 #[derive(Debug, Deserialize)]

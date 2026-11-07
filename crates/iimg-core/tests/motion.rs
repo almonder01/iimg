@@ -75,6 +75,7 @@ fn motion_ranges_references_duplicates_and_placements_are_rejected() {
         ("/motion/tracks/0/to/x", json!(81)),
         ("/motion/tracks/1/target", json!("orb")),
         ("/motion/tracks/0/from/x", json!(65535)),
+        ("/motion/tracks/0/from", json!([8, 32])),
     ] {
         let mut changed = source.clone();
         *changed.pointer_mut(path).unwrap() = value;

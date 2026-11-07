@@ -31,6 +31,7 @@ def run(cli):
         payload=json.loads(json.dumps(original));payload["tracks"][1]["target"]="orb";mutations.append(payload)
         payload=json.loads(json.dumps(original));payload["tracks"][0]["to"]["x"]=81;mutations.append(payload)
         payload=json.loads(json.dumps(original));payload["tracks"][0].update(duration_ms=60000,repeat=11);mutations.append(payload)
+        payload=json.loads(json.dumps(original));payload["tracks"][0]["from"]=[8,32];mutations.append(payload)
         for index,payload in enumerate(mutations):
             changed=data[:12]+b"".join(record(kind,json.dumps(payload).encode() if kind==b"MOTN" else body) for kind,body in entries)
             path=scratch/f"bad-{index}.iimg";path.write_bytes(changed)
