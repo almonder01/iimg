@@ -6,6 +6,10 @@ The SDK remains at 0.1.0. Wire 1.0 is a published candidate under review.
 
 ### Added
 
+- Draft finite-motion/MOTN capability with integer time, bounded repeats, motion-aware hit testing, reduced-motion endpoints, pause/background/unload handling and visual track authoring.
+
+- Draft state-actions/STAC capability with bounded atomic state groups, visibility/color bindings, hidden-target focus/hit semantics, independent fixtures and visual authoring tools.
+
 - Direct bounded RGB8 PNG authoring import, three original templates, pointer/keyboard resize, and opt-in local recovery with explicit restore/delete, text budget and quota diagnostics.
 
 - Visual web authoring workspace with Core-rendered design preview, pointer/keyboard movement, layers, toggle bindings, bounded history and editable source import/save.

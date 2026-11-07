@@ -118,8 +118,17 @@ export function mountEditor(root, source, wasm) {
     }
     return { x: shape.x, y: shape.y, width: shape.width, height: shape.height };
   }
+  function initialState(name) { return model?.interaction?.states?.find((state) => state.id === name)?.initial; }
+  function designBounds(shape) {
+    const box = bounds(shape), track = model.motion?.tracks.find((entry) => entry.target === shape.id && initialState(entry.state) === entry.equals);
+    return track ? { ...box, x: track.from.x, y: track.from.y } : box;
+  }
+  function initiallyVisible(shape) {
+    const binding = model?.interaction?.bindings?.find((entry) => entry.target === shape.id);
+    return binding ? binding.values[initialState(binding.state)].visible : true;
+  }
 
-  function selectionBox(box = object() && bounds(object())) {
+  function selectionBox(box = object() && designBounds(object())) {
     outline.hidden = !box || canvas.hidden;
     get("resize").hidden = !box || canvas.hidden || object()?.type === "image";
     if (!box) return;
@@ -371,6 +380,7 @@ export function mountEditor(root, source, wasm) {
     if (!object()) return;
     edit((next) => {
       const shape = next.scene.objects.find((entry) => entry.id === selected);
+      const previous = bounds(object());
       const x = Number(get("x").value), y = Number(get("y").value);
       if (shape.type === "circle") {
         shape.radius = Number(get("radius").value);
@@ -382,6 +392,8 @@ export function mountEditor(root, source, wasm) {
         }
       }
       if (shape.type !== "image") shape.fill = rgb(get("fill").value);
+      const track = next.motion?.tracks.find((entry) => entry.target === selected && initialState(entry.state) === entry.equals);
+      if (track && (x !== previous.x || y !== previous.y)) track.from = { x, y };
       if (next.interaction?.states) return;
       const entries = controls(next).filter((entry) => entry.target !== selected);
       const old = controls(next).findIndex((entry) => entry.target === selected);
@@ -400,6 +412,7 @@ export function mountEditor(root, source, wasm) {
     }
     edit((next) => {
     next.scene.objects = next.scene.objects.filter((shape) => shape.id !== selected);
+    if (next.motion) { next.motion.tracks = next.motion.tracks.filter((track) => track.target !== selected); if (!next.motion.tracks.length) delete next.motion; }
     const entries = controls(next).filter((entry) => entry.target !== selected);
     if (next.interaction?.states) {
       next.interaction.controls = entries;
@@ -435,6 +448,8 @@ export function mountEditor(root, source, wasm) {
       const shape = next.scene.objects.find((entry) => entry.id === selected);
       if (shape.type === "circle") { shape.cx = box.x + shape.radius; shape.cy = box.y + shape.radius; }
       else { shape.x = box.x; shape.y = box.y; }
+      const track = next.motion?.tracks.find((entry) => entry.target === selected && initialState(entry.state) === entry.equals);
+      if (track) track.from = { x: box.x, y: box.y };
     });
   }
   function point(event) {
@@ -456,10 +471,11 @@ export function mountEditor(root, source, wasm) {
   }
   function applySize(box) {
     if (!object()) return;
+    const original = bounds(object());
     const applied = edit((next) => {
       const shape = next.scene.objects.find((entry) => entry.id === selected);
       if (shape.type === "rect") { shape.width = box.width; shape.height = box.height; }
-      if (shape.type === "circle") { shape.radius = box.width / 2; shape.cx = box.x + shape.radius; shape.cy = box.y + shape.radius; }
+      if (shape.type === "circle") { shape.radius = box.width / 2; shape.cx = original.x + shape.radius; shape.cy = original.y + shape.radius; }
     });
     if (!applied) selectionBox();
   }
@@ -467,7 +483,7 @@ export function mountEditor(root, source, wasm) {
     if (!object() || object().type === "image" || event.button !== 0) return;
     event.preventDefault(); stage.focus({ preventScroll: true });
     canvas.setPointerCapture(event.pointerId);
-    drag = { mode: "resize", pointer: event.pointerId, start: point(event), box: bounds(object()), next: bounds(object()) };
+    drag = { mode: "resize", pointer: event.pointerId, start: point(event), box: designBounds(object()), next: designBounds(object()) };
   });
   get("resize").addEventListener("click", () => {
     if (object()) get(object().type === "circle" ? "radius" : "shape-width").focus();
@@ -477,15 +493,16 @@ export function mountEditor(root, source, wasm) {
     if (!offset || !object()) return;
     event.preventDefault(); event.stopPropagation();
     const step = (event.shiftKey ? 10 : 1) * (object().type === "circle" ? 2 : 1);
-    applySize(resized(bounds(object()), offset[0] * step, offset[1] * step, object().type === "circle"));
+    applySize(resized(designBounds(object()), offset[0] * step, offset[1] * step, object().type === "circle"));
     get("resize").focus();
   });
   canvas.addEventListener("pointerdown", (event) => {
     if (!model || event.button !== 0 || drag) return;
     const start = point(event);
     const hit = [...model.scene.objects].reverse().find((shape) => {
-      const box = bounds(shape), x = start.x + .5, y = start.y + .5;
-      return shape.type === "circle" ? (x - shape.cx) ** 2 + (y - shape.cy) ** 2 <= shape.radius ** 2
+      if (!initiallyVisible(shape)) return false;
+      const box = designBounds(shape), x = start.x + .5, y = start.y + .5;
+      return shape.type === "circle" ? (x - box.x - shape.radius) ** 2 + (y - box.y - shape.radius) ** 2 <= shape.radius ** 2
         : x >= box.x && y >= box.y && x < box.x + box.width && y < box.y + box.height;
     });
     selected = hit?.id;
@@ -493,7 +510,7 @@ export function mountEditor(root, source, wasm) {
     if (!hit) return;
     event.preventDefault();
     canvas.setPointerCapture(event.pointerId);
-    drag = { pointer: event.pointerId, start, box: bounds(hit), next: bounds(hit) };
+    drag = { pointer: event.pointerId, start, box: designBounds(hit), next: designBounds(hit) };
   });
   canvas.addEventListener("pointermove", (event) => {
     if (!drag || drag.pointer !== event.pointerId || !model) return;
@@ -518,7 +535,7 @@ export function mountEditor(root, source, wasm) {
     if (!offset || !object()) return;
     event.preventDefault();
     const step = event.shiftKey ? 10 : 1;
-    relocate(move(bounds(object()), offset[0] * step, offset[1] * step));
+    relocate(move(designBounds(object()), offset[0] * step, offset[1] * step));
   });
 
   get("import").addEventListener("change", async (event) => {

@@ -46,6 +46,7 @@ use std::fmt;
 pub mod author;
 pub mod interaction;
 mod json;
+mod motion;
 mod state;
 pub mod visual;
 pub const MAGIC: &[u8; 8] = b"IIMG\r\n\x1a\n";
@@ -104,7 +105,7 @@ fn valid_kind(k: &[u8; 4]) -> bool {
 fn known(k: &[u8; 4]) -> bool {
     matches!(
         k,
-        b"META" | b"PREV" | b"SCNE" | b"INTR" | b"STAC" | b"ASST" | b"IEND"
+        b"META" | b"PREV" | b"SCNE" | b"INTR" | b"STAC" | b"MOTN" | b"ASST" | b"IEND"
     )
 }
 
@@ -137,6 +138,7 @@ fn check_visual_order(chunks: &[Chunk]) -> Result<(), Error> {
             b"SCNE" if stage == 0 => 1,
             b"ASST" if stage == 1 => 2,
             b"INTR" | b"STAC" if (1..=2).contains(&stage) => 3,
+            b"MOTN" if stage == 3 => 4,
             b"IEND" if stage > 0 => return Ok(()),
             kind if !known(kind) => stage,
             _ => return Err(Error::BadOrdering),

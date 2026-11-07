@@ -9,6 +9,7 @@
     "width": { "$ref": "common.schema.json#/$defs/side" },
     "height": { "$ref": "common.schema.json#/$defs/side" },
     "scene": { "$ref": "scene.schema.json" },
+    "motion":{"anyOf":[{"$ref":"motion.schema.json"},{"type":"null"}]},
     "interaction": { "anyOf": [
       { "$ref": "interaction.schema.json" },
       { "$ref": "state-actions.schema.json" },

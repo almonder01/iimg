@@ -7,6 +7,8 @@
 | Container | Bounds, version, chunk order and CRC validation | `crates/iimg-core/src/lib.rs` |
 | Visual model | Typed payloads, geometry, embedded assets and PNG decoding | `crates/iimg-core/src/visual.rs` |
 | Runtime | Ordered synchronous events, focus, toggle state and replay | `crates/iimg-core/src/interaction.rs` |
+| State groups | Bounded variables/actions and indexed visibility/color bindings | `crates/iimg-core/src/state.rs` |
+| Finite motion | Validated endpoint translation and integer logical time | `crates/iimg-core/src/motion.rs` |
 | Renderer | Pixel-center sampling of validated shapes with a work budget | `visual::Scene` and `interaction::Runtime` |
 | Authoring | Source validation, generated preview and draft migration | `crates/iimg-core/src/author.rs` |
 | Web host | WASM buffers, canvas presentation, controls and offline editing | `crates/iimg-web/` and `viewers/web/` |

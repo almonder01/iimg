@@ -6,7 +6,7 @@ Status — draft for interoperability and security review. The 1.0 wire values a
 
 All binary integers are unsigned and big-endian. A file starts with the eight bytes `49 49 4d 47 0d 0a 1a 0a`, version bytes `01 00` and two zero reserved bytes. Its length is at most 16 MiB.
 
-A chunk is `length:u32 | type:4 ASCII letters | payload:length bytes | crc:u32`. CRC-32/ISO-HDLC covers type followed by payload. Each payload is at most 8 MiB and the file has at most 1024 chunks. `META` and `PREV` occur once, in that order, as the first two chunks. The known sequence then contains one `SCNE`, optional `ASST`, optional `INTR` or `STAC` (mutually exclusive), and one empty `IEND`. No bytes follow `IEND`.
+A chunk is `length:u32 | type:4 ASCII letters | payload:length bytes | crc:u32`. CRC-32/ISO-HDLC covers type followed by payload. Each payload is at most 8 MiB and the file has at most 1024 chunks. `META` and `PREV` occur once, in that order, as the first two chunks. The known sequence then contains one `SCNE`, optional `ASST`, optional `INTR` or `STAC` (mutually exclusive), optional `MOTN` after `STAC`, and one empty `IEND`. No bytes follow `IEND`.
 
 Unknown lowercase-initial chunk types can be skipped after the mandatory prefix. Full readers reject unknown uppercase-initial chunks. Preview readers may skip either type after the prefix. Every reader verifies the full envelope, including CRCs after the preview. Writers should omit unknown extensions when rewriting a document unless their rules explicitly permit copying. CRC detects corruption and does not authenticate content.
 
@@ -22,6 +22,7 @@ Objects, including individual shapes, controls and replay events, use JSON objec
 | `raster-png` | `ASST` | [Binary asset table and image objects](../rfcs/0002-raster-assets.md) |
 | `toggle-fill` | `INTR` | [Declarative controls and normalized events](IIMG-0.2-interaction.md) |
 | `state-actions` | `STAC` | [Bounded state groups, visibility and color bindings](../rfcs/0003-state-actions.md) |
+| `motion-linear` | `MOTN` and `STAC` | [Finite linear placement tracks and logical time](../rfcs/0004-bounded-motion.md) |
 
 Optional capability chunks are present exactly when their capability is required. Each capability identifier is case-sensitive. A full reader reports malformed capability metadata when the list repeats an identifier or a known optional chunk disagrees with its declaration. Otherwise a reader that encounters an unsupported required capability reports unsupported for full rendering. A preview-only reader may ignore required capabilities and scene payloads when the metadata profile, dimensions, envelope and PNG are valid.
 
@@ -52,3 +53,7 @@ The versioned candidate fixture exercises both capabilities and is generated ind
 ## Draft state-actions capability
 
 RFC 0003 specifies the opt-in STAC payload, limits and hidden-target focus/hit semantics. It requires Core 1.0 and cannot coexist with toggle-fill/INTR. The static PNG is generated from declared initial states. The 32 KiB state payload allows at most 32 variables, 64 controls, eight distinct state writes per control and 256 indexed bindings; values range from zero through at most 15. Hidden geometry still counts toward the complete scene work budget. Existing activation/focus/reset traces apply. This draft extends the candidate and is not an independently approved stable capability.
+
+## Draft finite motion
+
+RFC 0004 specifies MOTN, requiring state-actions in Core 1.0. At most 64 tracks translate fixed-size objects between validated endpoints with bounded duration/repetition. Logical time, preferences, exact repeat boundaries, host suspension and trace atomicity follow that RFC. This opt-in draft is not an independently approved stable capability.

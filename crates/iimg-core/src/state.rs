@@ -74,6 +74,16 @@ pub(crate) struct Machine {
 }
 
 impl Machine {
+    pub fn definition(&self, name: &str) -> Option<(usize, u8)> {
+        self.states
+            .iter()
+            .enumerate()
+            .find(|(_, state)| state.id == name)
+            .map(|(index, state)| (index, state.max))
+    }
+    pub fn value(&self, index: usize) -> u8 {
+        self.values[index]
+    }
     pub fn new(
         document: &Document,
         scene: &Scene,

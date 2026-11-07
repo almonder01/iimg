@@ -41,6 +41,7 @@
   <div id="controls" role="group" aria-label="Image controls" hidden></div>
   <p id="interaction-help" hidden>Tap an interactive area or use the controls above. Use Tab to move between buttons and Enter or Space to activate them. Each button reports its pressed state.</p>
   <button id="reset" type="button" hidden>Reset image</button>
+  <button id="pause-motion" type="button" aria-pressed="false" hidden>Pause motion</button>
   <details id="author" hidden>
     <summary>Author an IIMG image</summary>
     <section id="visual-editor" aria-label="Visual editor" hidden>
@@ -128,6 +129,26 @@
             <div id="editor-binding-values"></div>
             <div class="editor-toolbar"><button type="submit">Apply state binding</button><button id="editor-remove-binding" type="button">Remove state binding</button></div>
           </form>
+          <details id="editor-motion-tools">
+            <summary>Finite motion</summary>
+            <p>Move the selected object's bounding box between two positions while a state has the chosen value. Motion overrides the base placement; the design shows time zero. Both endpoints must fit after a size edit.</p>
+            <form id="editor-motion-form">
+              <div class="editor-fields">
+                <label for="editor-motion-state">Motion state</label><select id="editor-motion-state"></select>
+                <label>Trigger value <input id="editor-motion-equals" type="number" min="0" max="15" step="1" required></label>
+                <label>Duration ms <input id="editor-motion-duration" type="number" min="1" max="60000" step="1" value="1000" required></label>
+                <label>Repeat count <input id="editor-motion-repeat" type="number" min="1" max="16" step="1" value="1" required></label>
+              </div>
+              <div class="editor-fields">
+                <label>From left <input id="editor-motion-from-x" type="number" min="0" max="2048" step="1" required></label>
+                <label>From top <input id="editor-motion-from-y" type="number" min="0" max="2048" step="1" required></label>
+                <label>To left <input id="editor-motion-to-x" type="number" min="0" max="2048" step="1" required></label>
+                <label>To top <input id="editor-motion-to-y" type="number" min="0" max="2048" step="1" required></label>
+              </div>
+              <button type="submit">Apply motion track</button>
+              <button id="editor-remove-motion" type="button">Remove motion track</button>
+            </form>
+          </details>
         </div>
       </details>
       <label><input id="editor-autosave" type="checkbox"> Keep a local recovery copy in this browser</label>

@@ -44,7 +44,7 @@ export function mountStateTools(root, { model, selected, edit, message, core, he
     get("state-fields").hidden = !current;
     if (!current) return;
     core();
-    for (const name of ["state-list", "action-state", "binding-state"]) choices(name, current.states);
+    for (const name of ["state-list", "action-state", "binding-state", "motion-state"]) choices(name, current.states);
     const active = current.states.find((entry) => entry.id === get("state-list").value);
     get("state-id").value = active?.id ?? "";
     get("state-initial").value = active?.initial ?? 0; get("state-max").value = active?.max ?? 1;
@@ -66,6 +66,21 @@ export function mountStateTools(root, { model, selected, edit, message, core, he
       });
       return button;
     }));
+    const track = model().motion?.tracks.find((entry) => entry.target === target?.id);
+    if (track) get("motion-state").value = track.state;
+    const variable = current.states.find((entry) => entry.id === get("motion-state").value);
+    get("motion-equals").max = variable?.max ?? 15;
+    get("motion-equals").value = track?.equals ?? Math.min(1, variable?.max ?? 1);
+    get("motion-duration").value = track?.duration_ms ?? 1000;
+    get("motion-repeat").value = track?.repeat ?? 1;
+    const x = target?.type === "circle" ? target.cx - target.radius : target?.x ?? 0;
+    const y = target?.type === "circle" ? target.cy - target.radius : target?.y ?? 0;
+    for (const side of ["from", "to"]) {
+      get(`motion-${side}-x`).value = track?.[side].x ?? x;
+      get(`motion-${side}-y`).value = track?.[side].y ?? y;
+    }
+    get("motion-form").querySelector("button").disabled = !target;
+    get("remove-motion").disabled = !track;
     actionValue(); bindingRows();
   }
   get("enable-states").addEventListener("click", () => {
@@ -102,6 +117,7 @@ export function mountStateTools(root, { model, selected, edit, message, core, he
   get("delete-state").addEventListener("click", () => {
     const value = machine(), id = get("state-list").value; if (!value) return;
     if (value.states.length === 1 || value.bindings.some((entry) => entry.state === id)
+        || model().motion?.tracks.some((entry) => entry.state === id)
         || value.controls.some((entry) => entry.actions.some((action) => action.state === id))) {
       message("State is still referenced, or is the last state. Remove its bindings/actions first."); return;
     }
@@ -139,6 +155,23 @@ export function mountStateTools(root, { model, selected, edit, message, core, he
   });
   get("remove-binding").addEventListener("click", () => {
     if (machine() && shape()) edit((next) => { next.interaction.bindings = next.interaction.bindings.filter((entry) => entry.target !== selected()); });
+  });
+  get("motion-state").addEventListener("change", () => {
+    get("motion-equals").max = machine()?.states.find((entry) => entry.id === get("motion-state").value)?.max ?? 15;
+  });
+  get("motion-form").addEventListener("submit", (event) => {
+    event.preventDefault(); if (!machine() || !shape()) return;
+    const track = { target: selected(), state: get("motion-state").value, equals: Number(get("motion-equals").value),
+      duration_ms: Number(get("motion-duration").value), repeat: Number(get("motion-repeat").value),
+      from: { x: Number(get("motion-from-x").value), y: Number(get("motion-from-y").value) },
+      to: { x: Number(get("motion-to-x").value), y: Number(get("motion-to-y").value) } };
+    edit((next) => { next.motion = { tracks: [...(next.motion?.tracks ?? []).filter((entry) => entry.target !== selected()), track] }; });
+  });
+  get("remove-motion").addEventListener("click", () => {
+    if (machine() && shape()) edit((next) => {
+      next.motion.tracks = next.motion.tracks.filter((entry) => entry.target !== selected());
+      if (!next.motion.tracks.length) delete next.motion;
+    });
   });
   return { refresh };
 }

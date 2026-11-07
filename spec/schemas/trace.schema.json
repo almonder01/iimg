@@ -12,6 +12,8 @@
       "maxItems": 1024,
       "items": {
         "oneOf": [
+          {"type":"object","additionalProperties":false,"required":["type","milliseconds"],"properties":{"type":{"const":"advance_time"},"milliseconds":{"type":"integer","minimum":0,"maximum":86400000}}},
+          {"type":"object","additionalProperties":false,"required":["type","reduced"],"properties":{"type":{"const":"motion_preference"},"reduced":{"type":"boolean"}}},
           {
             "type": "object",
             "additionalProperties": false,

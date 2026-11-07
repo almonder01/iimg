@@ -1,0 +1,17 @@
+{
+  "width":96,"height":64,
+  "scene":{"background":[12,20,32],"objects":[
+    {"type":"rect","id":"start","x":4,"y":4,"width":24,"height":16,"fill":[40,80,140]},
+    {"type":"circle","id":"orb","cx":16,"cy":40,"radius":8,"fill":[250,200,0]},
+    {"type":"rect","id":"return","x":72,"y":4,"width":16,"height":16,"fill":[40,200,220]}
+  ]},
+  "interaction":{
+    "states":[{"id":"play","initial":0,"max":1}],
+    "controls":[{"target":"start","label":"تشغيل الحركة","actions":[{"type":"cycle","state":"play"}]}],
+    "bindings":[{"target":"start","state":"play","values":[{"visible":true},{"visible":true,"fill":[80,160,120]}]}]
+  },
+  "motion":{"tracks":[
+    {"target":"orb","state":"play","equals":1,"duration_ms":1000,"repeat":2,"from":{"x":8,"y":32},"to":{"x":72,"y":32}},
+    {"target":"return","state":"play","equals":1,"duration_ms":1000,"repeat":1,"from":{"x":72,"y":4},"to":{"x":40,"y":20}}
+  ]}
+}
