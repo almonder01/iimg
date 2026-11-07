@@ -54,3 +54,8 @@ The source is a UTF-8 JSON object of at most 12 MiB. It contains integer `width`
 The source supports rectangles, circles, embedded RGB8 PNG images and toggle controls. Each asset contains an `id` and a `png_base64` field using standard Base64. An image object references the asset ID in its `asset` field. The compiler preserves the PNG bytes and applies the Core limits for image dimensions, total pixels and encoded asset sizes. See [the mixed raster example](../examples/raster-lamp.source.json). Retain the source JSON to edit a compiled image.
 
 The [source JSON schema](../spec/schemas/source.schema.json) supports editor hints and structural validation. The [schema guide](../spec/schemas/README.md) describes the semantic and lexical checks performed by Core.
+# Discrete sliders (draft Core extension)
+
+Open **Constrained sliders**, select a shape/image, set its ID/name/range/step/initial value and bounding-box endpoints, then apply. The path must move along exactly one axis and both endpoints must fit. Its target cannot also own a button or motion track; visibility/style bindings remain supported. Moving the design selection translates the entire slider path; resizing is rejected if an endpoint no longer fits. Numeric properties and the object list are keyboard alternatives to canvas operations.
+
+See [the complete source example](../examples/drag.source.json) and [RFC 0005](../rfcs/0005-drag-values.md). Sliders can stand alone without button controls. Use Core 1.0 export; older engines should show the embedded preview. In the viewer, drag the handle or use the named range controls with arrows/Home/End. A cancelled gesture restores its previous value; Reset restores declared initial values. Save source JSON to re-edit the slider later.

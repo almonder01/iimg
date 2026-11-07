@@ -14,6 +14,7 @@ const shell = new Map([
   ["/viewer.mjs", ["viewer.mjs", "text/javascript"]],
   ["/editor.mjs", ["editor.mjs", "text/javascript"]],
   ["/state-editor.mjs", ["state-editor.mjs", "text/javascript"]],
+  ["/drag-editor.mjs", ["drag-editor.mjs", "text/javascript"]],
   ["/offline.js", ["offline.js", "text/javascript"]],
   ["/iimg_web.wasm", ["../../target/wasm32-unknown-unknown/release/iimg_web.wasm", "application/wasm"]],
 ]);
@@ -266,6 +267,48 @@ try {
   assert.equal(await page.evaluate(() => globalThis.iimgLabelExecuted), undefined);
   await literalControl.click();
   assert.deepEqual(await pixel(16, 16), [248, 113, 113, 255]);
+  // A DRAG-only file has no buttons, but retains named keyboard range controls.
+  await page.locator("#file").setInputFiles(fileURLToPath(new URL("../../tests/fixtures/drag/drag.iimg", import.meta.url)));
+  const horizontal = page.getByRole("slider", { name: "المستوى الأفقي", exact: true });
+  await horizontal.waitFor({ state: "visible" });
+  assert.equal(await horizontal.inputValue(), "25");
+  assert.equal(await page.locator("#reset").isVisible(), true);
+  assert.equal(await page.locator("#controls button").count(), 0);
+  const dragBox = await canvas.boundingBox();
+  const dragPoint = (x,y) => ({ x: dragBox.x + (x+.5)*dragBox.width/128, y: dragBox.y + (y+.5)*dragBox.height/96 });
+  const beginDrag = async () => { const p=dragPoint(40,32);await page.mouse.move(p.x,p.y);await page.mouse.down(); };
+  const middle = dragPoint(88,32);
+  await beginDrag();await page.mouse.move(middle.x,middle.y);assert.equal(await horizontal.inputValue(),"75");
+  await page.mouse.up();assert.equal(await horizontal.inputValue(),"75");
+  await page.locator("#reset").click();await beginDrag();await page.mouse.move(middle.x,middle.y);
+  await page.evaluate(() => window.dispatchEvent(new Event("blur")));
+  assert.equal(await horizontal.inputValue(),"25");await page.mouse.up();
+  await beginDrag();await page.mouse.move(dragBox.x+dragBox.width+20,middle.y);await page.mouse.up();
+  assert.equal(await horizontal.inputValue(),"100");
+  await horizontal.focus();await page.keyboard.press("Home");assert.equal(await horizontal.inputValue(),"0");
+  await page.keyboard.press("ArrowRight");assert.equal(await horizontal.inputValue(),"5");
+  await page.keyboard.press("End");assert.equal(await horizontal.inputValue(),"100");
+  const dragSource = await readFile(new URL("../../examples/drag.source.json",import.meta.url),"utf8");
+  await source.fill(dragSource);await page.waitForFunction(() => document.querySelector("#editor-status").textContent.includes("Design ready"));
+  await page.locator("#editor-objects").selectOption("handleX");
+  const outlineDragLeft = await page.locator("#editor-selection").evaluate((element)=>parseFloat(element.style.left));
+  assert.equal(outlineDragLeft,25);
+  await page.getByText("Constrained sliders",{exact:true}).click();
+  await page.locator("#editor-drag-initial").fill("50");
+  await editor.getByRole("button",{name:"Apply slider",exact:true}).click();
+  assert.equal(JSON.parse(await source.inputValue()).drag.sliders[0].initial,50);
+  await page.locator("#editor-stage").focus();await page.keyboard.press("ArrowDown");
+  const movedSlider = JSON.parse(await source.inputValue()).drag.sliders[0];
+  assert.equal(movedSlider.from.y,25);assert.equal(movedSlider.to.y,25);
+  await page.locator("#editor-drag-label").fill("<img src=x onerror=alert(1)>");
+  await editor.getByRole("button",{name:"Apply slider",exact:true}).click();
+  await page.getByRole("button",{name:"Validate and preview",exact:true}).click();
+  await page.getByRole("slider",{name:"<img src=x onerror=alert(1)>",exact:true}).waitFor();
+  assert.equal(await page.locator("#sliders img").count(),0);
+  await page.locator("#editor-objects").selectOption("handleX");
+  await editor.getByRole("button",{name:"Remove slider",exact:true}).click();
+  assert.equal(JSON.parse(await source.inputValue()).drag.sliders.length,1);
+  console.log("DRAG host/editor passed capture, commit, outside clamping, blur cancellation, real keyboard ranges, initial placement, path translation, literal labels and export.");
   assert.deepEqual(errors, []);
   console.log(`Chromium ${browser.version()} passed offline reload, input, live authoring, export, reopen and inert document labels.`);
 

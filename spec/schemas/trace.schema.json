@@ -4,32 +4,119 @@
   "title": "IIMG portable replay trace version 1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["version", "events"],
+  "required": [
+    "version",
+    "events"
+  ],
   "properties": {
-    "version": { "type": "integer", "const": 1 },
+    "version": {
+      "type": "integer",
+      "const": 1
+    },
     "events": {
       "type": "array",
       "maxItems": 1024,
       "items": {
         "oneOf": [
-          {"type":"object","additionalProperties":false,"required":["type","milliseconds"],"properties":{"type":{"const":"advance_time"},"milliseconds":{"type":"integer","minimum":0,"maximum":86400000}}},
-          {"type":"object","additionalProperties":false,"required":["type","reduced"],"properties":{"type":{"const":"motion_preference"},"reduced":{"type":"boolean"}}},
           {
             "type": "object",
             "additionalProperties": false,
-            "required": ["type", "x", "y"],
+            "required": [
+              "type",
+              "milliseconds"
+            ],
             "properties": {
-              "type": { "const": "activate_pixel" },
-              "x": { "$ref": "common.schema.json#/$defs/coordinate" },
-              "y": { "$ref": "common.schema.json#/$defs/coordinate" }
+              "type": {
+                "const": "advance_time"
+              },
+              "milliseconds": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 86400000
+              }
             }
           },
           {
             "type": "object",
             "additionalProperties": false,
-            "required": ["type"],
+            "required": [
+              "type",
+              "reduced"
+            ],
             "properties": {
-              "type": { "enum": ["focus_next", "focus_previous", "activate_focused", "reset"] }
+              "type": {
+                "const": "motion_preference"
+              },
+              "reduced": {
+                "type": "boolean"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type",
+              "x",
+              "y"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "activate_pixel",
+                  "drag_start",
+                  "drag_move"
+                ]
+              },
+              "x": {
+                "$ref": "common.schema.json#/$defs/coordinate"
+              },
+              "y": {
+                "$ref": "common.schema.json#/$defs/coordinate"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "focus_next",
+                  "focus_previous",
+                  "activate_focused",
+                  "reset",
+                  "drag_end",
+                  "drag_cancel"
+                ]
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type",
+              "index",
+              "value"
+            ],
+            "properties": {
+              "type": {
+                "const": "set_slider"
+              },
+              "index": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 65535
+              },
+              "value": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 65535
+              }
             }
           }
         ]

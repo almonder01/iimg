@@ -2,6 +2,14 @@
 
 The active goal is an interoperable IIMG 1.0 release. See the [implementation plan](IMPLEMENTATION-PLAN.md) for scope, dependencies and release gates.
 
+## 2026-11-07 — discrete drag/value implementation
+
+Draft RFC 0005 adds the critical DRAG carrier and `drag-value` capability without changing INTR/STAC semantics. The compiler, bounded native engine, WASM API, independent Python evaluator, source/trace schemas, offline viewer and visual slider authoring use the same declared range/path model. Direct values are aligned and prevalidated; pointer capture preserves the grab offset, clamps/snaps, commits or restores on cancel. Hidden targets cancel capture. Real range inputs provide named keyboard/accessibility equivalents, including DRAG-only documents. Files do not gain scripts or external actions.
+
+Local checks matched ten independently encoded frames in native/WASM, rejected fourteen semantic mutations and four invalid traces, and confirmed exact PNG fallback with the pre-DRAG engine. Four native feature tests cover reverse paths, ties, hidden cancellation and atomic invalid calls. Browser acceptance covers capture/commit, outside clamping, blur cancellation, keyboard limits/step, source editing/translation/export and literal labels. Full test and package evidence is recorded with the reviewed commit; owner manual and external review remain deferred.
+
+CI diagnosis found newer stable Clippy rejecting a checked `unwrap` in the state compiler, despite the older local Clippy passing. The equivalent `if let` fix was backported to state (`35cfbfe`) and motion (`12bcd40`), rather than suppressing the warning. The state sanitizer rerun [42322526252](https://github.com/almonder01/iimg/actions/runs/42322526252) passed 325,705 decode and 747,292 author executions, each over 61 seconds; these counts apply to `d5c9e0f`, not later motion/drag changes.
+
 | Milestone | Status | Exit evidence |
 | --- | --- | --- |
 | M0 · Verified foundation | Gate verified | Linux, Windows and macOS CI and review packages passed on published revision `252ebc9`; main protection and private reporting verified |

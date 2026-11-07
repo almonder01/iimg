@@ -4,17 +4,62 @@
   "title": "IIMG Core 1.0 candidate META",
   "type": "object",
   "additionalProperties": false,
-  "required": ["profile", "width", "height", "required"],
+  "required": [
+    "profile",
+    "width",
+    "height",
+    "required"
+  ],
   "properties": {
-    "profile": { "const": "iimg-core-1" },
-    "width": { "$ref": "common.schema.json#/$defs/side" },
-    "height": { "$ref": "common.schema.json#/$defs/side" },
+    "profile": {
+      "const": "iimg-core-1"
+    },
+    "width": {
+      "$ref": "common.schema.json#/$defs/side"
+    },
+    "height": {
+      "$ref": "common.schema.json#/$defs/side"
+    },
     "required": {
       "type": "array",
       "uniqueItems": true,
-      "items": { "enum": ["raster-png", "toggle-fill", "state-actions", "motion-linear"] },
-      "allOf":[{"if":{"contains":{"const":"motion-linear"}},"then":{"contains":{"const":"state-actions"}}}],
-      "not": {"allOf":[{"contains":{"const":"toggle-fill"}},{"contains":{"const":"state-actions"}}]}
+      "items": {
+        "enum": [
+          "raster-png",
+          "toggle-fill",
+          "state-actions",
+          "motion-linear",
+          "drag-value"
+        ]
+      },
+      "allOf": [
+        {
+          "if": {
+            "contains": {
+              "const": "motion-linear"
+            }
+          },
+          "then": {
+            "contains": {
+              "const": "state-actions"
+            }
+          }
+        }
+      ],
+      "not": {
+        "allOf": [
+          {
+            "contains": {
+              "const": "toggle-fill"
+            }
+          },
+          {
+            "contains": {
+              "const": "state-actions"
+            }
+          }
+        ]
+      }
     }
   }
 }

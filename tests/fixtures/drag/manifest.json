@@ -1,0 +1,21 @@
+{
+  "license": "Apache-2.0",
+  "wire": "1.0",
+  "file": "drag.iimg",
+  "capability": "drag-value",
+  "bytes": 37898,
+  "sha256": "53af231e888c50a8b50a27ba1fe66d64e114b939b5e55ae1eb4af4a7e03e966e",
+  "rgbSha256": {
+    "initial": "eff4ceca479adec5e415272496700f407a0807f82eb61b7a1aa5152825bc1891",
+    "captured": "cafa33ad6c3b9d7d76e5e5c52dfa00358333af02014e97c6407dedf8c3860726",
+    "commit": "cafa33ad6c3b9d7d76e5e5c52dfa00358333af02014e97c6407dedf8c3860726",
+    "cancel": "eff4ceca479adec5e415272496700f407a0807f82eb61b7a1aa5152825bc1891",
+    "reset": "eff4ceca479adec5e415272496700f407a0807f82eb61b7a1aa5152825bc1891",
+    "snap": "d828646945152a08bca6d874fa10a5690ace8ee6b708c6d333e639d8b7e6c5e4",
+    "clamp": "df46f7695c204e6b469ec5fe79729a751748cfcd654213d2412a420a038f23f7",
+    "reverse": "ed2b47df36bd7a89bdcfdc69aa3865e7215b213aaaae3dec4ecc9a991563e286",
+    "range": "206805a13b445be27dc92f210f8e646aa3437f39f8c7457fd559dfe43d7cd64d",
+    "miss": "eff4ceca479adec5e415272496700f407a0807f82eb61b7a1aa5152825bc1891"
+  },
+  "provenance": "Independent Python envelope/PNG encoder and state evaluator; original project-authored example."
+}

@@ -2,7 +2,7 @@
 
 use crate::visual::{self, Scene, SceneError, Shape};
 use crate::Document;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 const MAX_CONTROLS: usize = 64;
 const MAX_PAYLOAD: usize = 32 * 1024;
@@ -18,6 +18,11 @@ pub enum Event {
     Reset,
     AdvanceTime { milliseconds: u32 },
     MotionPreference { reduced: bool },
+    DragStart { x: u16, y: u16 },
+    DragMove { x: u16, y: u16 },
+    DragEnd,
+    DragCancel,
+    SetSlider { index: u16, value: u16 },
 }
 
 #[derive(Deserialize, Clone, Copy)]
@@ -30,6 +35,11 @@ enum TraceEvent {
     Reset {},
     AdvanceTime { milliseconds: u32 },
     MotionPreference { reduced: bool },
+    DragStart { x: u16, y: u16 },
+    DragMove { x: u16, y: u16 },
+    DragEnd {},
+    DragCancel {},
+    SetSlider { index: u16, value: u16 },
 }
 
 impl From<TraceEvent> for Event {
@@ -42,6 +52,11 @@ impl From<TraceEvent> for Event {
             TraceEvent::Reset {} => Self::Reset,
             TraceEvent::AdvanceTime { milliseconds } => Self::AdvanceTime { milliseconds },
             TraceEvent::MotionPreference { reduced } => Self::MotionPreference { reduced },
+            TraceEvent::DragStart { x, y } => Self::DragStart { x, y },
+            TraceEvent::DragMove { x, y } => Self::DragMove { x, y },
+            TraceEvent::DragEnd {} => Self::DragEnd,
+            TraceEvent::DragCancel {} => Self::DragCancel,
+            TraceEvent::SetSlider { index, value } => Self::SetSlider { index, value },
         }
     }
 }
@@ -86,6 +101,20 @@ pub struct Runtime {
     focus: Option<usize>,
     state: Option<crate::state::Machine>,
     motion: Option<crate::motion::Motion>,
+    drag: Option<crate::drag::Drag>,
+}
+
+/// A named bounded range in published slider order. Hidden ranges are inert.
+#[derive(Debug, Serialize)]
+pub struct SliderView<'a> {
+    pub id: &'a str,
+    pub target: &'a str,
+    pub label: &'a str,
+    pub min: u16,
+    pub max: u16,
+    pub step: u16,
+    pub value: u16,
+    pub visible: bool,
 }
 
 pub(crate) fn valid_label(label: &str) -> bool {
@@ -118,6 +147,23 @@ impl Runtime {
                     return Err(SceneError::InvalidTrace)
                 }
                 TraceEvent::Reset {} => clock = 0,
+                TraceEvent::DragStart { .. }
+                | TraceEvent::DragMove { .. }
+                | TraceEvent::DragEnd {}
+                | TraceEvent::DragCancel {}
+                | TraceEvent::SetSlider { .. }
+                    if self.drag.is_none() =>
+                {
+                    return Err(SceneError::InvalidTrace)
+                }
+                TraceEvent::SetSlider { index, value }
+                    if !self
+                        .drag
+                        .as_ref()
+                        .is_some_and(|drag| drag.valid_value(usize::from(index), value)) =>
+                {
+                    return Err(SceneError::InvalidTrace)
+                }
                 _ => {}
             }
         }
@@ -193,12 +239,21 @@ impl Runtime {
         } else {
             None
         };
+        let drag = if visual::has_capability(document, "drag-value")? {
+            Some(crate::drag::Drag::new(document, &scene, |shape| {
+                controls.iter().any(|control| control.shape_index == shape)
+                    || motion.as_ref().is_some_and(|motion| motion.owns(shape))
+            })?)
+        } else {
+            None
+        };
         Ok(Self {
             scene,
             controls,
             focus: None,
             state,
             motion,
+            drag,
         })
     }
 
@@ -230,6 +285,107 @@ impl Runtime {
     }
     pub fn clock_milliseconds(&self) -> u32 {
         self.motion.as_ref().map_or(0, |motion| motion.clock())
+    }
+    fn visible(&self, shape: usize) -> bool {
+        self.state.as_ref().is_none_or(|state| state.visible(shape))
+    }
+    fn placement(&self, shape: usize) -> Option<(u16, u16)> {
+        self.drag
+            .as_ref()
+            .and_then(|drag| drag.placement(shape))
+            .or_else(|| {
+                self.motion
+                    .as_ref()
+                    .and_then(|motion| motion.placement(shape))
+            })
+    }
+    fn hit_shape(&self, x: u16, y: u16) -> Option<usize> {
+        if self.drag.is_none() && self.motion.is_none() {
+            return self.state.as_ref().map_or_else(
+                || self.scene.hit_test(x, y),
+                |state| {
+                    self.scene
+                        .hit_test_visible(x, y, |index| state.visible(index))
+                },
+            );
+        }
+        self.scene.hit_test_placed(
+            x,
+            y,
+            |index| self.visible(index),
+            |index| self.placement(index),
+        )
+    }
+    pub fn sliders(&self) -> impl Iterator<Item = SliderView<'_>> {
+        self.drag
+            .iter()
+            .flat_map(|drag| drag.sliders())
+            .map(|s| SliderView {
+                id: &s.id,
+                target: &s.target,
+                label: &s.label,
+                min: s.min,
+                max: s.max,
+                step: s.step,
+                value: s.value,
+                visible: self.visible(s.shape),
+            })
+    }
+    pub fn drag_index(&self) -> Option<usize> {
+        self.drag.as_ref().and_then(|drag| drag.index())
+    }
+    pub fn dragging(&self) -> bool {
+        self.drag.as_ref().is_some_and(|drag| drag.dragging())
+    }
+    pub fn drag_start(&mut self, x: u16, y: u16) -> bool {
+        let Some(shape) = self.hit_shape(x, y) else {
+            return false;
+        };
+        let started = self
+            .drag
+            .as_mut()
+            .is_some_and(|drag| drag.start(shape, x, y));
+        if started {
+            self.focus = None;
+        }
+        started
+    }
+    pub fn drag_move(&mut self, x: u16, y: u16) -> bool {
+        self.drag
+            .as_mut()
+            .is_some_and(|drag| drag.move_pointer(x, y))
+    }
+    pub fn drag_end(&mut self) {
+        if let Some(drag) = &mut self.drag {
+            drag.end();
+        }
+    }
+    pub fn drag_cancel(&mut self) {
+        if let Some(drag) = &mut self.drag {
+            drag.cancel();
+        }
+    }
+    pub fn set_slider_value(&mut self, index: usize, value: u16) -> Result<(), SceneError> {
+        let valid = self
+            .drag
+            .as_ref()
+            .is_some_and(|drag| drag.valid_value(index, value));
+        if !valid {
+            return Err(SceneError::InvalidTrace);
+        }
+        let shape = self
+            .drag
+            .as_ref()
+            .unwrap()
+            .sliders()
+            .nth(index)
+            .unwrap()
+            .shape;
+        self.drag.as_mut().unwrap().cancel();
+        if self.visible(shape) {
+            self.drag.as_mut().unwrap().set(index, value);
+        }
+        Ok(())
     }
 
     /// Target ID, accessible label and pressed state in keyboard focus order.
@@ -279,6 +435,10 @@ impl Runtime {
 
     fn traverse(&mut self, forward: bool) {
         let count = self.controls.len();
+        if count == 0 {
+            self.focus = None;
+            return;
+        }
         let origin = self.focus.unwrap_or(if forward { count - 1 } else { 0 });
         self.focus = (1..=count)
             .map(|step| {
@@ -297,27 +457,9 @@ impl Runtime {
     /// shape can receive the activation, and a shape without a control blocks
     /// lower objects. Focus traversal follows control-array order.
     pub fn dispatch(&mut self, event: Event) {
-        let count = self.controls.len();
-        if count == 0 {
-            return;
-        }
         match event {
             Event::ActivatePixel { x, y } => {
-                if let Some(shape) = self.state.as_ref().map_or_else(
-                    || self.scene.hit_test(x, y),
-                    |state| {
-                        self.scene.hit_test_placed(
-                            x,
-                            y,
-                            |index| state.visible(index),
-                            |index| {
-                                self.motion
-                                    .as_ref()
-                                    .and_then(|motion| motion.placement(index))
-                            },
-                        )
-                    },
-                ) {
+                if let Some(shape) = self.hit_shape(x, y) {
                     if let Some(index) = self
                         .controls
                         .iter()
@@ -337,6 +479,9 @@ impl Runtime {
             }
             Event::Reset => {
                 self.focus = None;
+                if let Some(drag) = &mut self.drag {
+                    drag.reset();
+                }
                 if let Some(state) = &mut self.state {
                     state.reset();
                 }
@@ -351,9 +496,24 @@ impl Runtime {
                 let _ = self.advance_time(milliseconds);
             }
             Event::MotionPreference { reduced } => self.set_motion_preference(reduced),
+            Event::DragStart { x, y } => {
+                self.drag_start(x, y);
+            }
+            Event::DragMove { x, y } => {
+                self.drag_move(x, y);
+            }
+            Event::DragEnd => self.drag_end(),
+            Event::DragCancel => self.drag_cancel(),
+            Event::SetSlider { index, value } => {
+                let _ = self.set_slider_value(usize::from(index), value);
+            }
         }
         if let (Some(motion), Some(state)) = (&mut self.motion, &self.state) {
             motion.sync(state);
+        }
+        if let Some(drag) = &mut self.drag {
+            let state = &self.state;
+            drag.cancel_hidden(|index| state.as_ref().is_none_or(|state| state.visible(index)));
         }
     }
 
@@ -362,6 +522,23 @@ impl Runtime {
     /// Returns [SceneError::RenderBudgetExceeded] when shape bounding-box visits
     /// exceed the profile's work limit.
     pub fn render_rgb(&self) -> Result<Vec<u8>, SceneError> {
+        if self.drag.is_some() {
+            return self.scene.render_placed(
+                |index| {
+                    self.state
+                        .as_ref()
+                        .and_then(|state| state.fill(index))
+                        .or_else(|| {
+                            self.controls
+                                .iter()
+                                .find(|control| control.shape_index == index && control.active)
+                                .map(|control| control.active_fill)
+                        })
+                },
+                |index| self.visible(index),
+                |index| self.placement(index),
+            );
+        }
         if let Some(state) = &self.state {
             return self.scene.render_placed(
                 |index| state.fill(index),

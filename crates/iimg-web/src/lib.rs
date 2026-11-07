@@ -163,6 +163,53 @@ pub extern "C" fn motion_running() -> u32 {
     })
 }
 
+fn drag_pointer(x: u32, y: u32, begin: bool) -> u32 {
+    let (Ok(x), Ok(y)) = (u16::try_from(x), u16::try_from(y)) else {
+        return 1;
+    };
+    VIEWER.with_borrow_mut(|viewer| {
+        let Some(runtime) = &mut viewer.runtime else {
+            return 1;
+        };
+        let accepted = if begin {
+            runtime.drag_start(x, y)
+        } else {
+            runtime.drag_move(x, y)
+        };
+        u32::from(!accepted)
+    })
+}
+#[no_mangle]
+pub extern "C" fn drag_start(x: u32, y: u32) -> u32 {
+    drag_pointer(x, y, true)
+}
+#[no_mangle]
+pub extern "C" fn drag_move(x: u32, y: u32) -> u32 {
+    drag_pointer(x, y, false)
+}
+#[no_mangle]
+pub extern "C" fn drag_end() {
+    dispatch(Event::DragEnd);
+}
+#[no_mangle]
+pub extern "C" fn drag_cancel() {
+    dispatch(Event::DragCancel);
+}
+#[no_mangle]
+pub extern "C" fn set_slider_value(index: u32, value: u32) -> u32 {
+    let Ok(value) = u16::try_from(value) else {
+        return 1;
+    };
+    VIEWER.with_borrow_mut(|viewer| {
+        u32::from(
+            viewer
+                .runtime
+                .as_mut()
+                .is_none_or(|rt| rt.set_slider_value(index as usize, value).is_err()),
+        )
+    })
+}
+
 fn dispatch(event: Event) {
     VIEWER.with_borrow_mut(|viewer| {
         if let Some(runtime) = &mut viewer.runtime {
@@ -182,6 +229,7 @@ pub extern "C" fn describe() {
             serde_json::json!({
                 "width": width, "height": height,
                 "focus": runtime.focused_target(), "controls": controls,
+                "sliders": runtime.sliders().collect::<Vec<_>>(), "drag_index": runtime.drag_index(),
                 "motion": runtime.has_motion(), "clock_ms": runtime.clock_milliseconds(), "motion_running": runtime.motion_running(),
             })
             .to_string()

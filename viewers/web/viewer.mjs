@@ -3,6 +3,7 @@ const status = document.querySelector("#status");
 const canvas = document.querySelector("#scene");
 const preview = document.querySelector("#preview");
 const controls = document.querySelector("#controls");
+const sliders = document.querySelector("#sliders");
 const reset = document.querySelector("#reset");
 const pauseMotion = document.querySelector("#pause-motion");
 const help = document.querySelector("#interaction-help");
@@ -18,6 +19,17 @@ async function start() {
   if (!response.ok) throw new Error("The WebAssembly engine could not be loaded.");
   const { instance, module } = await WebAssembly.instantiate(await response.arrayBuffer());
   const wasm = instance.exports;
+  let pointer, suppressClick = false, clickTimer;
+  function releasePointer() {
+    const previous = pointer; pointer = undefined;
+    if (previous !== undefined && canvas.hasPointerCapture(previous)) canvas.releasePointerCapture(previous);
+    if (previous !== undefined) { clearTimeout(clickTimer); clickTimer = setTimeout(() => { suppressClick = false; }, 0); }
+  }
+  function cancelDrag(event) {
+    if (pointer === undefined) return;
+    if (event?.pointerId !== undefined && event.pointerId !== pointer) return;
+    wasm.drag_cancel(); releasePointer(); draw();
+  }
   let animationFrame = 0, lastTick, logicalClock = 0, motion = false, paused = false, imageData, hostBackground = false;
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
   function stopAnimation() { if (animationFrame) cancelAnimationFrame(animationFrame); animationFrame = 0; lastTick = undefined; }
@@ -35,8 +47,9 @@ async function start() {
       draw();
     });
   }
-  document.addEventListener("visibilitychange", () => { stopAnimation(); scheduleAnimation(); });
-  if (androidHost) window.iimgHostVisibility = (hidden) => { hostBackground = !!hidden; stopAnimation(); scheduleAnimation(); };
+  document.addEventListener("visibilitychange", () => { if (document.hidden) cancelDrag(); stopAnimation(); scheduleAnimation(); });
+  window.addEventListener("blur", cancelDrag);
+  if (androidHost) window.iimgHostVisibility = (hidden) => { hostBackground = !!hidden; if (hostBackground) cancelDrag(); stopAnimation(); scheduleAnimation(); };
   reducedMotion.addEventListener("change", () => { if (motion) { wasm.motion_preference(Number(reducedMotion.matches)); draw(); } });
   pauseMotion.addEventListener("click", () => { paused = !paused; stopAnimation(); draw(); });
   const output = () => new Uint8Array(wasm.memory.buffer, wasm.output_ptr(), wasm.output_len());
@@ -67,6 +80,13 @@ async function start() {
       controls.children[index].setAttribute("aria-pressed", String(control.pressed));
       controls.children[index].hidden = control.visible === false;
     }
+    for (const [index, slider] of (description.sliders ?? []).entries()) {
+      const row = sliders.children[index];
+      row.hidden = !slider.visible;
+      row.querySelector("input").value = slider.value;
+      row.querySelector("output").textContent = slider.value;
+    }
+    if (pointer !== undefined && description.drag_index == null) releasePointer();
     pauseMotion.hidden = !motion;
     pauseMotion.textContent = paused ? "Resume motion" : "Pause motion";
     pauseMotion.setAttribute("aria-pressed", String(paused));
@@ -74,11 +94,12 @@ async function start() {
   }
 
   function clear() {
+    releasePointer(); clearTimeout(clickTimer); suppressClick = false;
     stopAnimation(); motion = false; paused = false; logicalClock = 0; imageData = undefined;
     canvas.width = canvas.height = 1;
     pauseMotion.hidden = true;
     canvas.hidden = preview.hidden = controls.hidden = reset.hidden = help.hidden = true;
-    controls.replaceChildren();
+    controls.replaceChildren(); sliders.replaceChildren(); sliders.hidden = true;
     if (previewUrl) {
       preview.removeAttribute("src");
       URL.revokeObjectURL(previewUrl);
@@ -111,7 +132,7 @@ async function start() {
       }
       if (result !== 0) throw new Error("This IIMG file is invalid or unsupported.");
       wasm.motion_preference(Number(reducedMotion.matches));
-      const state = describe().controls;
+      const description = describe(), state = description.controls;
       for (const [index, control] of state.entries()) {
         const button = document.createElement("button");
         button.type = "button";
@@ -125,13 +146,24 @@ async function start() {
         });
         controls.append(button);
       }
+      for (const [index, slider] of description.sliders.entries()) {
+        const row = document.createElement("label"), name = document.createElement("span"), range = document.createElement("input"), value = document.createElement("output");
+        name.textContent = slider.label; name.dir = "auto";
+        range.type = "range"; range.min = slider.min; range.max = slider.max; range.step = slider.step; range.value = slider.value;
+        range.setAttribute("aria-label", slider.label);
+        range.addEventListener("focus", () => wasm.focus_control(-1));
+        range.addEventListener("input", () => { wasm.set_slider_value(index, Number(range.value)); draw(); });
+        row.append(name, range, value); sliders.append(row);
+      }
       draw();
       canvas.hidden = false;
-      controls.hidden = reset.hidden = state.length === 0;
-      help.hidden = state.length === 0;
-      if (state.length) canvas.setAttribute("aria-describedby", "interaction-help");
+      const interactive = state.length + description.sliders.length > 0;
+      controls.hidden = state.length === 0;
+      sliders.hidden = description.sliders.length === 0;
+      reset.hidden = help.hidden = !interactive;
+      if (interactive) canvas.setAttribute("aria-describedby", "interaction-help");
       else canvas.removeAttribute("aria-describedby");
-      status.textContent = state.length ? "Image ready. Tap the image or use its controls." : "Image ready.";
+      status.textContent = interactive ? "Image ready. Use the image or its controls." : "Image ready.";
     } catch (error) {
       if (current !== selection) return;
       clear();
@@ -149,10 +181,34 @@ async function start() {
     }));
   });
 
-  canvas.addEventListener("click", (event) => {
+  function coordinates(event, clamp = false) {
     const bounds = canvas.getBoundingClientRect();
-    const x = Math.floor((event.clientX - bounds.left) * canvas.width / bounds.width);
-    const y = Math.floor((event.clientY - bounds.top) * canvas.height / bounds.height);
+    let x = Math.floor((event.clientX - bounds.left) * canvas.width / bounds.width);
+    let y = Math.floor((event.clientY - bounds.top) * canvas.height / bounds.height);
+    if (clamp) { x = Math.max(0, Math.min(canvas.width - 1, x)); y = Math.max(0, Math.min(canvas.height - 1, y)); }
+    return { x, y };
+  }
+  canvas.addEventListener("pointerdown", (event) => {
+    if (!event.isPrimary || event.button !== 0 || pointer !== undefined) return;
+    const { x, y } = coordinates(event);
+    if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height || wasm.drag_start(x, y) !== 0) return;
+    pointer = event.pointerId; suppressClick = true; clearTimeout(clickTimer);
+    canvas.setPointerCapture(pointer); event.preventDefault(); draw();
+  });
+  canvas.addEventListener("pointermove", (event) => {
+    if (pointer !== event.pointerId) return;
+    const { x, y } = coordinates(event, true); wasm.drag_move(x, y); event.preventDefault(); draw();
+  });
+  canvas.addEventListener("pointerup", (event) => {
+    if (pointer !== event.pointerId) return;
+    const { x, y } = coordinates(event, true); wasm.drag_move(x, y); wasm.drag_end(); releasePointer(); draw();
+    clickTimer = setTimeout(() => { suppressClick = false; }, 0);
+  });
+  canvas.addEventListener("pointercancel", cancelDrag);
+  canvas.addEventListener("lostpointercapture", cancelDrag);
+  canvas.addEventListener("click", (event) => {
+    if (suppressClick) { suppressClick = false; return; }
+    const { x, y } = coordinates(event);
     if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) return;
     wasm.activate_pixel(x, y);
     draw();

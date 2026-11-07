@@ -19,19 +19,21 @@ def compact(value):
 def generate(directory, source_name="state-panel", file_name="panel.iimg", custom_traces=None):
     directory.mkdir(parents=True, exist_ok=True)
     source = json.loads((ROOT / f"examples/{source_name}.source.json").read_text(encoding="utf-8"))
-    meta = dict(profile="iimg-core-1", width=source["width"], height=source["height"], required=["state-actions"])
+    meta = dict(profile="iimg-core-1", width=source["width"], height=source["height"], required=["state-actions"] if "interaction" in source else [])
     if "motion" in source:
         meta["required"].append("motion-linear")
+    if "drag" in source: meta["required"].append("drag-value")
     def envelope(preview):
         entries = [
-            (b"META", compact(meta)), (b"PREV", preview), (b"SCNE", compact(source["scene"])),
-            (b"STAC", compact(source["interaction"]))]
+            (b"META", compact(meta)), (b"PREV", preview), (b"SCNE", compact(source["scene"]))]
+        if "interaction" in source: entries.append((b"STAC", compact(source["interaction"])))
         if "motion" in source:
             entries.append((b"MOTN", compact(source["motion"])))
+        if "drag" in source: entries.append((b"DRAG", compact(source["drag"])))
         entries.append((b"IEND", b""))
         return IIMG_MAGIC + b"\x01\0\0\0" + b"".join(record(kind, data) for kind, data in entries)
     _, targets = scene_payload(compact(source["scene"]), source["width"], source["height"], {})
-    states_payload(compact(source["interaction"]), targets)
+    if "interaction" in source: states_payload(compact(source["interaction"]), targets)
     if "motion" in source:
         motion_payload(compact(source["motion"]), source["scene"], source["interaction"], source["width"], source["height"], {})
     initial_trace = {"version":1,"events":[]}

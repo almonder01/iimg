@@ -25,7 +25,10 @@ pub fn exercise(bytes: &[u8]) {
             // New required capabilities deliberately cannot be represented by
             // historical 0.2. Do not mistake that documented rejection for a bug.
             let document = decode(&candidate).unwrap();
-            assert!(document.chunks.iter().any(|chunk| &chunk.kind == b"STAC"));
+            assert!(document
+                .chunks
+                .iter()
+                .any(|chunk| matches!(&chunk.kind, b"STAC" | b"DRAG")));
             verify(&candidate);
         }
         (Err(_), Err(_)) => {}

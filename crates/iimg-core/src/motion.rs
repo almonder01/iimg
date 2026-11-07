@@ -51,6 +51,9 @@ pub(crate) struct Motion {
     reduced: bool,
 }
 impl Motion {
+    pub fn owns(&self, shape: usize) -> bool {
+        self.tracks.iter().any(|track| track.shape == shape)
+    }
     pub fn new(document: &Document, scene: &Scene, state: &Machine) -> Result<Self, SceneError> {
         let payload: Payload = visual::payload(document, b"MOTN", 32 * 1024)?;
         if !(1..=64).contains(&payload.tracks.len()) {

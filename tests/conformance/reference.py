@@ -7,7 +7,7 @@ import zlib
 
 IIMG_MAGIC = b"IIMG\r\n\x1a\n"
 PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
-CORE = {b"META", b"PREV", b"SCNE", b"ASST", b"INTR", b"STAC", b"MOTN", b"IEND"}
+CORE = {b"META", b"PREV", b"SCNE", b"ASST", b"INTR", b"STAC", b"MOTN", b"DRAG", b"IEND"}
 PROFILES = {(0, 2): "iimg-visual-0.2", (1, 0): "iimg-core-1"}
 
 
@@ -58,7 +58,7 @@ def envelope(data, preview_only=False):
     if visual:
         known = [kind for kind in kinds if kind in CORE]
         expected = [b"META", b"PREV", b"SCNE"]
-        expected.extend(kind for kind in (b"ASST", b"INTR", b"STAC", b"MOTN") if kind in known)
+        expected.extend(kind for kind in (b"ASST", b"INTR", b"STAC", b"MOTN", b"DRAG") if kind in known)
         if b"INTR" in known and b"STAC" in known:
             raise Invalid("conflicting interaction chunks")
         if b"MOTN" in known and not ({b"INTR", b"STAC"} & set(known)):
@@ -118,10 +118,12 @@ def metadata(data, version, preview_only=False):
     if not isinstance(required, list) or not all(isinstance(item, str) for item in required):
         raise Invalid("invalid capability list")
     if not preview_only:
-        if set(required) - {"raster-png", "toggle-fill", "state-actions", "motion-linear"} or len(set(required)) != len(required):
+        if set(required) - {"raster-png", "toggle-fill", "state-actions", "motion-linear", "drag-value"} or len(set(required)) != len(required):
             raise Invalid("unsupported or duplicate capability")
         if "state-actions" in required and (version != (1, 0) or "toggle-fill" in required):
             raise Invalid("invalid state capability")
+        if "drag-value" in required and version != (1, 0):
+            raise Invalid("invalid drag capability")
         if "motion-linear" in required and (version != (1, 0) or "state-actions" not in required):
             raise Invalid("invalid motion capability")
     return width, height
@@ -398,6 +400,41 @@ def motion_payload(data, scene, states, width, height, assets):
     return tracks
 
 
+def drag_payload(data, scene, width, height, assets, controls, tracks):
+    payload = strict_json(data, 32 * 1024)
+    fields(payload, "sliders")
+    sliders = payload["sliders"]
+    if not isinstance(sliders, list) or not 1 <= len(sliders) <= 32:
+        raise Invalid("slider count")
+    objects = {shape["id"]: shape for shape in scene["objects"]}
+    ids, targets = set(), {item["target"] for item in controls + tracks}
+    for slider in sliders:
+        fields(slider, "id", "target", "label", "axis", "min", "max", "step", "initial", "from", "to")
+        name, target, label = identifier(slider["id"]), slider["target"], slider["label"]
+        if name in ids or not isinstance(target, str) or target not in objects or target in targets:
+            raise Invalid("slider target/ID conflict")
+        ids.add(name); targets.add(target)
+        if (not isinstance(label, str) or not label.strip() or len(label.encode("utf-8")) > 256
+                or any(ord(c) < 32 or 127 <= ord(c) <= 159 for c in label)):
+            raise Invalid("slider label")
+        low, high = integer(slider["min"], 0, 1023), integer(slider["max"], 1, 1024)
+        step = integer(slider["step"], 1, 1024)
+        initial = integer(slider["initial"], low, high)
+        if low >= high or (high-low) % step or (initial-low) % step:
+            raise Invalid("slider range alignment")
+        shape = objects[target]
+        if shape["type"] == "circle": w = h = shape["radius"] * 2
+        elif shape["type"] == "rect": w, h = shape["width"], shape["height"]
+        else: w, h, _ = assets[shape["asset"]]
+        for point in (slider["from"], slider["to"]):
+            fields(point, "x", "y")
+            integer(point["x"], 0, width-w); integer(point["y"], 0, height-h)
+        axis = slider["axis"]
+        if axis not in ("x", "y") or slider["from"][axis] == slider["to"][axis] or slider["from"]["y" if axis == "x" else "x"] != slider["to"]["y" if axis == "x" else "x"]:
+            raise Invalid("slider axis/path")
+    return sliders
+
+
 def validate(data):
     version, records = envelope(data)
     if version == (0, 1):
@@ -407,7 +444,7 @@ def validate(data):
     capabilities = strict_json(payloads[b"META"], 4096)["required"]
     for enabled, kind in (("raster-png" in capabilities, b"ASST"),
                           ("toggle-fill" in capabilities, b"INTR"), ("state-actions" in capabilities, b"STAC"),
-                          ("motion-linear" in capabilities, b"MOTN")):
+                          ("motion-linear" in capabilities, b"MOTN"), ("drag-value" in capabilities, b"DRAG")):
         if enabled != (kind in payloads):
             raise Invalid("capability and payload disagree")
     assets = asset_table(payloads[b"ASST"]) if b"ASST" in payloads else {}
@@ -418,6 +455,10 @@ def validate(data):
             motion_payload(payloads[b"MOTN"], scene, states, width, height, assets)
     elif b"INTR" in payloads:
         controls_payload(payloads[b"INTR"], targets)
+    if b"DRAG" in payloads:
+        interaction = strict_json(payloads.get(b"STAC", payloads.get(b"INTR", b'{"controls":[]}')), 32768)
+        tracks = strict_json(payloads[b"MOTN"],32768)["tracks"] if b"MOTN" in payloads else []
+        drag_payload(payloads[b"DRAG"], scene, width, height, assets, interaction["controls"], tracks)
     decode_png(payloads[b"PREV"], width, height)
 
 
@@ -430,12 +471,15 @@ def trace_events(trace):
         raise Invalid("invalid trace event list")
     for event in events:
         kind = event.get("type") if isinstance(event, dict) else None
-        if kind == "activate_pixel":
+        if kind in ("activate_pixel", "drag_start", "drag_move"):
             fields(event, "type", "x", "y")
             integer(event["x"], 0, 65535)
             integer(event["y"], 0, 65535)
-        elif kind in ("focus_next", "focus_previous", "activate_focused", "reset"):
+        elif kind in ("focus_next", "focus_previous", "activate_focused", "reset", "drag_end", "drag_cancel"):
             fields(event, "type")
+        elif kind == "set_slider":
+            fields(event, "type", "index", "value")
+            integer(event["index"], 0, 65535); integer(event["value"], 0, 65535)
         elif kind == "advance_time":
             fields(event, "type", "milliseconds")
             integer(event["milliseconds"], 0, 86400000)
@@ -455,7 +499,7 @@ def replay_fixture(data, trace):
     payloads = dict(records)
     scene = strict_json(payloads[b"SCNE"], 128 * 1024)
     assets = asset_table(payloads[b"ASST"]) if b"ASST" in payloads else {}
-    interaction = strict_json(payloads[b"STAC"] if b"STAC" in payloads else payloads[b"INTR"], 32 * 1024)
+    interaction = strict_json(payloads.get(b"STAC", payloads.get(b"INTR", b'{"controls":[]}')), 32 * 1024)
     controls = interaction["controls"]
     machine = "states" in interaction
     definitions = {state["id"]: state for state in interaction.get("states", [])}
@@ -463,9 +507,18 @@ def replay_fixture(data, trace):
     bindings = {binding["target"]: binding for binding in interaction.get("bindings", [])}
     events = trace_events(trace)
     tracks = strict_json(payloads[b"MOTN"], 32 * 1024)["tracks"] if b"MOTN" in payloads else []
+    sliders = strict_json(payloads[b"DRAG"], 32768)["sliders"] if b"DRAG" in payloads else []
+    values = [slider["initial"] for slider in sliders]
+    capture = None
     clock = 0
     reduced = False
     for event in events:
+        if event["type"] in ("drag_start", "drag_move", "drag_end", "drag_cancel", "set_slider") and not sliders:
+            raise Invalid("drag event without capability")
+        if event["type"] == "set_slider":
+            index = integer(event["index"], 0, len(sliders)-1)
+            slider = sliders[index]; value = integer(event["value"], slider["min"], slider["max"])
+            if (value-slider["min"]) % slider["step"]: raise Invalid("unaligned slider value")
         if event["type"] == "reset":
             clock = 0
         if event["type"] in ("advance_time", "motion_preference") and not tracks:
@@ -489,7 +542,7 @@ def replay_fixture(data, trace):
         return style(target).get("visible", True)
 
     def activate(index):
-        nonlocal focus
+        nonlocal focus, capture
         if not visible(controls[index]["target"]):
             return
         if machine:
@@ -505,6 +558,8 @@ def replay_fixture(data, trace):
                 active[i] = enabled
         else:
             pressed[index] = not pressed[index]
+        if capture is not None and not visible(sliders[capture[0]]["target"]):
+            values[capture[0]] = capture[1]; capture = None
 
     def traverse(step):
         origin = focus if focus is not None else (-1 if step == 1 else 0)
@@ -525,6 +580,16 @@ def replay_fixture(data, trace):
         raise Invalid("unknown fixture shape")
 
     def placed(shape):
+        for i, slider in enumerate(sliders):
+            if slider["target"] != shape["id"]: continue
+            point = {}
+            for key in ("x", "y"):
+                delta = (slider["to"][key] - slider["from"][key]) * (values[i] - slider["min"])
+                point[key] = slider["from"][key] + (1 if delta >= 0 else -1) * (abs(delta) // (slider["max"] - slider["min"]))
+            shape = dict(shape)
+            if shape["type"] == "circle": shape["cx"], shape["cy"] = point["x"] + shape["radius"], point["y"] + shape["radius"]
+            else: shape["x"], shape["y"] = point["x"], point["y"]
+            return shape
         for i, track in enumerate(tracks):
             if track["target"] != shape["id"] or not active[i]:
                 continue
@@ -551,7 +616,29 @@ def replay_fixture(data, trace):
 
     for event in events:
         kind = event["type"]
-        if kind == "activate_pixel":
+        if kind == "drag_start":
+            shape = top(event["x"], event["y"])
+            if capture is None and shape is not None:
+                for i, slider in enumerate(sliders):
+                    if slider["target"] != shape["id"]: continue
+                    axis = slider["axis"]
+                    origin = shape["c"+axis] - shape["radius"] if shape["type"] == "circle" else shape[axis]
+                    capture = (i, values[i], event[axis] - origin)
+        elif kind == "drag_move":
+            if capture is not None:
+                i, _, offset = capture; slider = sliders[i]; axis = slider["axis"]
+                delta = slider["to"][axis] - slider["from"][axis]; distance = abs(delta)
+                along = max(0, min(distance, (event[axis] - offset - slider["from"][axis]) * (1 if delta > 0 else -1)))
+                steps = (slider["max"]-slider["min"]) // slider["step"]
+                values[i] = slider["min"] + ((along*steps + distance//2)//distance)*slider["step"]
+        elif kind in ("drag_end", "drag_cancel"):
+            if kind == "drag_cancel" and capture is not None: values[capture[0]] = capture[1]
+            capture = None
+        elif kind == "set_slider":
+            if capture is not None: values[capture[0]] = capture[1]
+            capture = None
+            if visible(sliders[event["index"]]["target"]): values[event["index"]] = event["value"]
+        elif kind == "activate_pixel":
             shape = top(event["x"], event["y"])
             if shape is not None and shape["id"] in targets:
                 focus = targets[shape["id"]]
@@ -565,6 +652,8 @@ def replay_fixture(data, trace):
                 activate(focus)
         elif kind == "reset":
             focus = None
+            capture = None
+            values = [slider["initial"] for slider in sliders]
             pressed = [False] * len(controls)
             states = {name: state["initial"] for name, state in definitions.items()}
             clock = 0
