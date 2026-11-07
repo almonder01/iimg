@@ -20,6 +20,14 @@ Choose **Template → Use template** for an original card, signal lights or room
 
 Recovery is **off by default**. **Keep a local recovery copy in this browser** opts in to one last accepted source document, debounced by 350 ms and limited to 2 MiB of serialized UTF-16 text including its version/timestamp wrapper. The file remains local to this browser origin; it is not uploaded, and selected viewer files are not included. Oversized projects or blocked/full storage produce a diagnostic and retain the prior copy. On reload, **Restore recovery copy** validates and restores it only on request; ordinary opening must not overwrite an existing copy. **Discard recovery copy** deletes it; disabling recovery deletes it too and stops writes. Use source JSON as a portable backup regardless of recovery. Source/font/RFC expansion is tracked in the [next-development plan](NEXT-DEVELOPMENT.md).
 
+## Multi-state interactions (draft)
+
+**Multi-state interactions → Convert to multi-state controls** converts up to 32 existing toggle controls without changing their initial/active colors. A scene with no control starts from its first object. The editor enables Core 1.0 export; explicitly selecting 0.2 makes the compiler reject the unsupported capability. Keep the source for editing.
+
+Add or update named states (ASCII IDs, initial value and maximum 1–15). Select a scene object, name its control and add/update a `cycle` or `set` action for a chosen state; multiple distinct states form one atomic group. Select a binding state and edit each value's visibility/color, then **Apply state binding**. A bound color overrides the object's base fill. Growing/shrinking a state resizes its bound style lists using the previous last style for new values; out-of-range set actions reject the transaction. A referenced or last state cannot be deleted, and the editor preserves at least one state control.
+
+Ordinary geometry edits retain all state/action/binding data. Deleting an object removes its control and binding references; an attempted deletion of the last state control is rejected. Image targets can control state and have visibility bindings, but cannot have color overrides. Hidden targets are omitted from viewer hit testing and semantic controls; **Reset image** restores declared initial values. See [RFC 0003](../rfcs/0003-state-actions.md) and `examples/state-panel.source.json`. Old viewers supporting unknown-critical preview fallback show the initial PNG instead of executing STAC. Pre-extension CLI/WASM behavior was checked separately; this draft still requires review.
+
 ## JSON and CLI
 
 The web editor validates the JSON automatically after a short pause in editing and shows compiler diagnostics or a **Download IIMG** link. Editing the source or changing the target version clears the previous link immediately. Select **Validate and preview** to render the current source in the viewer.

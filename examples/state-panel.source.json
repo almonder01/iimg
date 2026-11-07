@@ -1,0 +1,29 @@
+{
+  "width": 64,
+  "height": 40,
+  "scene": {
+    "background": [12, 20, 32],
+    "objects": [
+      {"type":"rect","id":"base","x":0,"y":0,"width":16,"height":16,"fill":[0,128,0]},
+      {"type":"rect","id":"cover","x":0,"y":0,"width":16,"height":16,"fill":[128,0,0]},
+      {"type":"rect","id":"switch","x":20,"y":0,"width":16,"height":16,"fill":[0,80,160]},
+      {"type":"rect","id":"self","x":40,"y":0,"width":16,"height":16,"fill":[120,40,140]},
+      {"type":"circle","id":"lamp","cx":32,"cy":28,"radius":8,"fill":[250,200,0]}
+    ]
+  },
+  "interaction": {
+    "states": [{"id":"panel","initial":0,"max":1},{"id":"tone","initial":0,"max":2},{"id":"selfVisible","initial":1,"max":1}],
+    "controls": [
+      {"target":"cover","label":"إخفاء الغطاء","actions":[{"type":"set","state":"panel","value":0}]},
+      {"target":"base","label":"تغيير اللون","actions":[{"type":"cycle","state":"tone"}]},
+      {"target":"switch","label":"تبديل الغطاء واللون","actions":[{"type":"cycle","state":"panel"},{"type":"cycle","state":"tone"}]},
+      {"target":"self","label":"إخفاء هذا الزر","actions":[{"type":"set","state":"selfVisible","value":0}]}
+    ],
+    "bindings": [
+      {"target":"cover","state":"panel","values":[{"visible":false},{"visible":true}]},
+      {"target":"base","state":"tone","values":[{"visible":true},{"visible":true,"fill":[160,80,0]},{"visible":true,"fill":[0,0,180]}]},
+      {"target":"lamp","state":"tone","values":[{"visible":true},{"visible":true,"fill":[40,80,220]},{"visible":true,"fill":[0,220,220]}]},
+      {"target":"self","state":"selfVisible","values":[{"visible":false},{"visible":true}]}
+    ]
+  }
+}

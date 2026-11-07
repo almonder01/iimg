@@ -70,6 +70,7 @@ struct Control {
     shape_index: usize,
     active_fill: [u8; 3],
     active: bool,
+    actions: Vec<crate::state::Action>,
 }
 
 #[derive(Debug)]
@@ -77,6 +78,11 @@ pub struct Runtime {
     scene: Scene,
     controls: Vec<Control>,
     focus: Option<usize>,
+    state: Option<crate::state::Machine>,
+}
+
+pub(crate) fn valid_label(label: &str) -> bool {
+    !label.trim().is_empty() && label.len() <= 256 && !label.chars().any(char::is_control)
 }
 
 impl Runtime {
@@ -104,15 +110,29 @@ impl Runtime {
     pub fn new(document: &Document) -> Result<Self, SceneError> {
         let scene = visual::validate_profile_scene(document, true)?;
         let mut controls: Vec<Control> = Vec::new();
-        if document.chunks.iter().any(|chunk| &chunk.kind == b"INTR") {
+        let state = if visual::has_capability(document, "state-actions")? {
+            let (state, entries) = crate::state::Machine::new(document, &scene)?;
+            for entry in entries {
+                controls.push(Control {
+                    target: entry.target,
+                    label: entry.label,
+                    shape_index: entry.shape,
+                    active_fill: [0, 0, 0],
+                    active: false,
+                    actions: entry.actions,
+                });
+            }
+            Some(state)
+        } else {
+            None
+        };
+        if state.is_none() && document.chunks.iter().any(|chunk| &chunk.kind == b"INTR") {
             let payload: InteractionPayload = visual::payload(document, b"INTR", MAX_PAYLOAD)?;
             if !(1..=MAX_CONTROLS).contains(&payload.controls.len()) {
                 return Err(SceneError::InvalidInteraction);
             }
             for control in payload.controls {
-                if control.label.trim().is_empty()
-                    || control.label.len() > 256
-                    || control.label.chars().any(char::is_control)
+                if !valid_label(&control.label)
                     || controls.iter().any(|prior| prior.target == control.target)
                 {
                     return Err(SceneError::InvalidInteraction);
@@ -131,6 +151,7 @@ impl Runtime {
                     shape_index,
                     active_fill: control.active_fill,
                     active: false,
+                    actions: Vec::new(),
                 });
             }
         }
@@ -138,6 +159,7 @@ impl Runtime {
             scene,
             controls,
             focus: None,
+            state,
         })
     }
 
@@ -151,7 +173,9 @@ impl Runtime {
             (
                 control.target.as_str(),
                 control.label.as_str(),
-                control.active,
+                self.state
+                    .as_ref()
+                    .map_or(control.active, |state| state.pressed(&control.actions)),
             )
         })
     }
@@ -162,7 +186,44 @@ impl Runtime {
 
     /// Synchronize host-managed focus with a control in the published focus order.
     pub fn focus_control(&mut self, index: Option<usize>) {
-        self.focus = index.filter(|&index| index < self.controls.len());
+        self.focus = index.filter(|&index| self.control_visible(index));
+    }
+
+    /// Whether the control's target is visible and can receive focus/activation.
+    pub fn control_visible(&self, index: usize) -> bool {
+        self.controls.get(index).is_some_and(|control| {
+            self.state
+                .as_ref()
+                .is_none_or(|state| state.visible(control.shape_index))
+        })
+    }
+
+    fn activate(&mut self, index: usize) {
+        if !self.control_visible(index) {
+            return;
+        }
+        if let Some(state) = &mut self.state {
+            state.apply(&self.controls[index].actions);
+        } else {
+            self.controls[index].active = !self.controls[index].active;
+        }
+        if self.focus.is_some_and(|focus| !self.control_visible(focus)) {
+            self.focus = None;
+        }
+    }
+
+    fn traverse(&mut self, forward: bool) {
+        let count = self.controls.len();
+        let origin = self.focus.unwrap_or(if forward { count - 1 } else { 0 });
+        self.focus = (1..=count)
+            .map(|step| {
+                if forward {
+                    (origin + step) % count
+                } else {
+                    (origin + count - step) % count
+                }
+            })
+            .find(|&index| self.control_visible(index));
     }
 
     /// Apply one normalized event synchronously.
@@ -177,33 +238,35 @@ impl Runtime {
         }
         match event {
             Event::ActivatePixel { x, y } => {
-                if let Some(shape) = self.scene.hit_test(x, y) {
+                if let Some(shape) = self.state.as_ref().map_or_else(
+                    || self.scene.hit_test(x, y),
+                    |state| {
+                        self.scene
+                            .hit_test_visible(x, y, |index| state.visible(index))
+                    },
+                ) {
                     if let Some(index) = self
                         .controls
                         .iter()
                         .position(|control| control.shape_index == shape)
                     {
                         self.focus = Some(index);
-                        self.controls[index].active = !self.controls[index].active;
+                        self.activate(index);
                     }
                 }
             }
-            Event::FocusNext => {
-                self.focus = Some(self.focus.map_or(0, |index| (index + 1) % count))
-            }
-            Event::FocusPrevious => {
-                self.focus = Some(
-                    self.focus
-                        .map_or(count - 1, |index| (index + count - 1) % count),
-                )
-            }
+            Event::FocusNext => self.traverse(true),
+            Event::FocusPrevious => self.traverse(false),
             Event::ActivateFocused => {
                 if let Some(index) = self.focus {
-                    self.controls[index].active = !self.controls[index].active;
+                    self.activate(index);
                 }
             }
             Event::Reset => {
                 self.focus = None;
+                if let Some(state) = &mut self.state {
+                    state.reset();
+                }
                 for control in &mut self.controls {
                     control.active = false;
                 }
@@ -216,6 +279,11 @@ impl Runtime {
     /// Returns [SceneError::RenderBudgetExceeded] when shape bounding-box visits
     /// exceed the profile's work limit.
     pub fn render_rgb(&self) -> Result<Vec<u8>, SceneError> {
+        if let Some(state) = &self.state {
+            return self
+                .scene
+                .render_with_styles(|index| state.fill(index), |index| state.visible(index));
+        }
         self.scene.render_with_fills(|shape_index| {
             self.controls
                 .iter()

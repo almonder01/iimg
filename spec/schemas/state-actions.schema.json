@@ -1,0 +1,19 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://raw.githubusercontent.com/almonder01/iimg/main/spec/schemas/state-actions.schema.json",
+  "title":"Draft bounded state-actions STAC",
+  "type":"object","additionalProperties":false,"required":["states","controls","bindings"],
+  "$defs":{
+    "value":{"type":"integer","minimum":0,"maximum":15},
+    "action":{"oneOf":[
+      {"type":"object","additionalProperties":false,"required":["type","state"],"properties":{"type":{"const":"cycle"},"state":{"$ref":"common.schema.json#/$defs/identifier"}}},
+      {"type":"object","additionalProperties":false,"required":["type","state","value"],"properties":{"type":{"const":"set"},"state":{"$ref":"common.schema.json#/$defs/identifier"},"value":{"$ref":"#/$defs/value"}}}
+    ]},
+    "style":{"type":"object","additionalProperties":false,"required":["visible"],"properties":{"visible":{"type":"boolean"},"fill":{"anyOf":[{"$ref":"common.schema.json#/$defs/color"},{"type":"null"}]}}}
+  },
+  "properties":{
+    "states":{"type":"array","minItems":1,"maxItems":32,"items":{"type":"object","additionalProperties":false,"required":["id","initial","max"],"properties":{"id":{"$ref":"common.schema.json#/$defs/identifier"},"initial":{"$ref":"#/$defs/value"},"max":{"type":"integer","minimum":1,"maximum":15}}}},
+    "controls":{"type":"array","minItems":1,"maxItems":64,"items":{"type":"object","additionalProperties":false,"required":["target","label","actions"],"properties":{"target":{"$ref":"common.schema.json#/$defs/identifier"},"label":{"$ref":"common.schema.json#/$defs/label"},"actions":{"type":"array","minItems":1,"maxItems":8,"items":{"$ref":"#/$defs/action"}}}}},
+    "bindings":{"type":"array","maxItems":256,"items":{"type":"object","additionalProperties":false,"required":["target","state","values"],"properties":{"target":{"$ref":"common.schema.json#/$defs/identifier"},"state":{"$ref":"common.schema.json#/$defs/identifier"},"values":{"type":"array","minItems":2,"maxItems":16,"items":{"$ref":"#/$defs/style"}}}}}
+  }
+}

@@ -98,7 +98,7 @@ def verify(package, require_clean):
         extract(package / cli_archive, scratch / "cli")
         extract(package / "iimg-web.zip", scratch / "web")
         extract(package / "iimg-spec-and-conformance.zip", scratch / "suite")
-        for name in ("index.html", "viewer.mjs", "editor.mjs", "offline.js", "iimg_web.wasm", "serve.py"):
+        for name in ("index.html", "viewer.mjs", "editor.mjs", "state-editor.mjs", "offline.js", "iimg_web.wasm", "serve.py"):
             if not (scratch / "web" / name).is_file():
                 raise ValueError(f"missing web shell asset {name}")
         # Reproduce the broken Windows module mapping and verify the packaged
@@ -110,7 +110,7 @@ def verify(package, require_clean):
             thread.start()
             try:
                 for name, mime in (("index.html", "text/html"), ("viewer.mjs", "text/javascript"),
-                                   ("editor.mjs", "text/javascript"), ("offline.js", "text/javascript"),
+                                   ("editor.mjs", "text/javascript"), ("state-editor.mjs", "text/javascript"), ("offline.js", "text/javascript"),
                                    ("iimg_web.wasm", "application/wasm")):
                     with urlopen(f"http://127.0.0.1:{server.server_port}/{name}", timeout=5) as response:
                         if response.headers.get_content_type() != mime or response.read() != (scratch / "web" / name).read_bytes():
@@ -134,9 +134,12 @@ def verify(package, require_clean):
                         "--cli", cli], check=True)
         subprocess.run([sys.executable, "-B", scratch / "suite/tests/conformance/generated.py",
                         "--cli", cli], check=True)
+        subprocess.run([sys.executable, "-B", scratch / "suite/tests/conformance/state_actions.py", "--cli", cli], check=True)
         subprocess.run([sys.executable, "-B", scratch / "suite/tests/conformance/mail_transport.py",
                         "--cli", cli], check=True)
         subprocess.run(["node", ROOT / "viewers/web/smoke.mjs", wasm], check=True)
+        subprocess.run(["node", scratch / "suite/viewers/web/smoke-state.mjs", wasm,
+                        scratch / "suite/tests/fixtures/state-actions"], check=True)
         subprocess.run(["node", ROOT / "viewers/web/smoke-showcase.mjs",
                         scratch / "suite/examples/showcase/generated/manifest.json", wasm], check=True)
     print(f"Verified {len(checksums)} candidate files and extracted CLI/WASM behavior.")

@@ -28,6 +28,7 @@ jobs:
           python-version: "3.12"
       - run: python -B tests/conformance/check.py
       - run: python -B tests/conformance/generated.py
+      - run: python -B tests/conformance/state_actions.py
       - run: python -B tests/conformance/android_fixtures.py --output target/android-device-fixtures
       - run: python -B tests/conformance/mail_transport.py
   web:
@@ -59,6 +60,7 @@ jobs:
           path: target/showcase/
           if-no-files-found: error
       - run: node viewers/web/smoke.mjs
+      - run: node viewers/web/smoke-state.mjs
       - run: npm ci --ignore-scripts
         working-directory: viewers/web
       - run: npm --prefix viewers/web run test:schemas

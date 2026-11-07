@@ -12,7 +12,8 @@
     "required": {
       "type": "array",
       "uniqueItems": true,
-      "items": { "enum": ["raster-png", "toggle-fill"] }
+      "items": { "enum": ["raster-png", "toggle-fill", "state-actions"] },
+      "not": {"allOf":[{"contains":{"const":"toggle-fill"}},{"contains":{"const":"state-actions"}}]}
     }
   }
 }

@@ -39,6 +39,7 @@ async function start() {
     context.putImageData(image, 0, 0);
     for (const [index, control] of state.entries()) {
       controls.children[index].setAttribute("aria-pressed", String(control.pressed));
+      controls.children[index].hidden = control.visible === false;
     }
   }
 

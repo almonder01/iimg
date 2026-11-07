@@ -1,5 +1,7 @@
 # IIMG Core candidate security model
 
+Draft state actions use a distinct critical STAC chunk, at most 32 KiB, with 32 bounded integer states, 64 controls, eight distinct state writes per group and one indexed binding per object. References/ranges/styles validate before execution; actions cannot dispatch events, execute code, schedule work or perform I/O. Hidden objects still count in worst-case render work and decoded-asset budgets. Hidden targets are excluded from focus/activation. See [RFC 0003](../rfcs/0003-state-actions.md). Authoring checks scene/interaction payload lengths before constructing additional detection/serialization trees. Core changes remain subject to independent security review; internal differential tests are not that review.
+
 Treat every input file, URI stream, PNG, source document and event trace as untrusted. The format carries declarative geometry and bounded state transitions. File bytes grant no authority to perform network access, execute code or read other files.
 
 | Boundary | Current controls | Evidence |

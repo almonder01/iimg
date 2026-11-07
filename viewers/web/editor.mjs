@@ -1,3 +1,4 @@
+import { mountStateTools } from "./state-editor.mjs";
 // A source editor for the existing Core vocabulary. Its WASM instance is private:
 // changing the design must not change the image open in the viewer.
 export function mountEditor(root, source, wasm) {
@@ -32,6 +33,12 @@ export function mountEditor(root, source, wasm) {
   const hex = (color) => `#${color.map((v) => v.toString(16).padStart(2, "0")).join("")}`;
   const object = () => model?.scene.objects.find((shape) => shape.id === selected);
   const controls = (value) => value.interaction?.controls ?? [];
+  const advanced = () => !!model?.interaction?.states;
+  const stateTools = mountStateTools(root, { model: () => model, selected: () => selected, edit,
+    message: (text) => { status.textContent = text; }, hex, rgb, core: () => {
+      const field = document.querySelector("#author-v1");
+      if (!field.checked) { field.checked = true; field.dispatchEvent(new Event("change", { bubbles: true })); }
+    } });
 
   function recoveryMessage(text) { get("recovery-status").textContent = text; }
   function readRecovery() {
@@ -126,6 +133,7 @@ export function mountEditor(root, source, wasm) {
     const enabled = get("interactive").checked && object()?.type !== "image";
     get("label").disabled = get("active").disabled = !enabled;
     get("label").required = enabled;
+    if (advanced()) get("label").disabled = get("active").disabled = true;
   }
 
   function inspect() {
@@ -153,13 +161,14 @@ export function mountEditor(root, source, wasm) {
       get("fill").disabled = shape.type === "image";
       get("fill").value = hex(shape.fill ?? [0, 0, 0]);
       const control = controls(model).find((entry) => entry.target === shape.id);
-      get("interactive").disabled = shape.type === "image";
+      get("interactive").disabled = shape.type === "image" || advanced();
       get("interactive").checked = !!control;
       get("label").value = control?.label ?? shape.id;
       get("active").value = hex(control?.active_fill ?? [248, 113, 113]);
     } else { get("object-name").textContent = "Select an object"; }
     toggleFields();
     selectionBox();
+    stateTools.refresh();
   }
 
   function remember(text) {
@@ -238,6 +247,7 @@ export function mountEditor(root, source, wasm) {
     for (const name of ["properties", "add-rect", "add-circle", "delete", "forward", "backward", "undo", "redo"]) get(name).disabled = true;
     get("canvas-form").querySelector("button").disabled = true;
     status.textContent = "Checking source…";
+    stateTools.refresh();
   }
 
   source.addEventListener("input", () => {
@@ -372,6 +382,7 @@ export function mountEditor(root, source, wasm) {
         }
       }
       if (shape.type !== "image") shape.fill = rgb(get("fill").value);
+      if (next.interaction?.states) return;
       const entries = controls(next).filter((entry) => entry.target !== selected);
       const old = controls(next).findIndex((entry) => entry.target === selected);
       if (get("interactive").checked && shape.type !== "image") {
@@ -383,11 +394,20 @@ export function mountEditor(root, source, wasm) {
     });
   });
 
-  get("delete").addEventListener("click", () => edit((next) => {
+  get("delete").addEventListener("click", () => {
+    if (advanced() && controls(model).length === 1 && controls(model)[0].target === selected) {
+      status.textContent = "Add another state control before deleting the last one."; return;
+    }
+    edit((next) => {
     next.scene.objects = next.scene.objects.filter((shape) => shape.id !== selected);
     const entries = controls(next).filter((entry) => entry.target !== selected);
+    if (next.interaction?.states) {
+      next.interaction.controls = entries;
+      next.interaction.bindings = next.interaction.bindings.filter((binding) => binding.target !== selected);
+      return;
+    }
     if (entries.length) next.interaction = { controls: entries }; else delete next.interaction;
-  }));
+  }); });
   for (const [name, direction] of [["backward", -1], ["forward", 1]]) {
     get(name).addEventListener("click", () => edit((next) => {
       const index = next.scene.objects.findIndex((shape) => shape.id === selected);

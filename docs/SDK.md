@@ -4,6 +4,8 @@ The reference SDK consists of the Rust core and a WebAssembly host adapter. The 
 
 The [JSON schemas](../spec/schemas/README.md) support editor integration and structural checks. Complete readers enforce the lexical, resource and semantic rules documented there.
 
+The opt-in draft `state-actions` capability uses a distinct critical `STAC` chunk; it does not reinterpret INTR. `Runtime::control_visible(index)` exposes whether a published control can receive focus/activation. WASM `describe()` includes `visible` for each control in the unchanged index order. Hosts must hide invisible semantic buttons and preserve ordinal indices when dispatching focus. `Shape::id()` supplies the validated identifier. See [RFC 0003](../rfcs/0003-state-actions.md) for grouped actions, bindings, reset and limits. Older tested pre-extension CLI/WASM rejects full STAC rendering and can extract/display its exact initial PNG.
+
 ## Rust host
 
 Add a path dependency on `crates/iimg-core` when developing in this checkout. Generate the API reference and run its executable example from the repository root.

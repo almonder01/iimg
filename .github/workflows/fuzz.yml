@@ -21,7 +21,7 @@ jobs:
       - run: cargo fetch --locked --manifest-path fuzz/Cargo.toml
       - run: |
           mkdir -p fuzz/corpus/decode
-          cp examples/hello.iimg tests/fixtures/v0.2/*.iimg tests/fixtures/v1.0/*.iimg fuzz/corpus/decode/
+          cp examples/hello.iimg tests/fixtures/v0.2/*.iimg tests/fixtures/v1.0/*.iimg tests/fixtures/state-actions/*.iimg fuzz/corpus/decode/
           mkdir -p fuzz/corpus/author
           cp examples/*.source.json fuzz/corpus/author/
       - name: Fuzz decoder and authoring under AddressSanitizer
