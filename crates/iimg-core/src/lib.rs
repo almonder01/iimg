@@ -46,6 +46,7 @@ use std::fmt;
 pub mod author;
 pub mod interaction;
 mod json;
+mod state;
 pub mod visual;
 pub const MAGIC: &[u8; 8] = b"IIMG\r\n\x1a\n";
 pub const MAX_FILE: usize = 16 * 1024 * 1024;
@@ -101,7 +102,10 @@ fn valid_kind(k: &[u8; 4]) -> bool {
         .all(|b| b.is_ascii_uppercase() || b.is_ascii_lowercase())
 }
 fn known(k: &[u8; 4]) -> bool {
-    matches!(k, b"META" | b"PREV" | b"SCNE" | b"INTR" | b"ASST" | b"IEND")
+    matches!(
+        k,
+        b"META" | b"PREV" | b"SCNE" | b"INTR" | b"STAC" | b"ASST" | b"IEND"
+    )
 }
 
 fn check_chunk(
@@ -132,7 +136,7 @@ fn check_visual_order(chunks: &[Chunk]) -> Result<(), Error> {
         stage = match &chunk.kind {
             b"SCNE" if stage == 0 => 1,
             b"ASST" if stage == 1 => 2,
-            b"INTR" if (1..=2).contains(&stage) => 3,
+            b"INTR" | b"STAC" if (1..=2).contains(&stage) => 3,
             b"IEND" if stage > 0 => return Ok(()),
             kind if !known(kind) => stage,
             _ => return Err(Error::BadOrdering),

@@ -7,7 +7,7 @@ import zlib
 
 IIMG_MAGIC = b"IIMG\r\n\x1a\n"
 PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
-CORE = {b"META", b"PREV", b"SCNE", b"ASST", b"INTR", b"IEND"}
+CORE = {b"META", b"PREV", b"SCNE", b"ASST", b"INTR", b"STAC", b"IEND"}
 PROFILES = {(0, 2): "iimg-visual-0.2", (1, 0): "iimg-core-1"}
 
 
@@ -58,7 +58,9 @@ def envelope(data, preview_only=False):
     if visual:
         known = [kind for kind in kinds if kind in CORE]
         expected = [b"META", b"PREV", b"SCNE"]
-        expected.extend(kind for kind in (b"ASST", b"INTR") if kind in known)
+        expected.extend(kind for kind in (b"ASST", b"INTR", b"STAC") if kind in known)
+        if b"INTR" in known and b"STAC" in known:
+            raise Invalid("conflicting interaction chunks")
         if kinds[1] != b"PREV" or known != expected + [b"IEND"]:
             raise Invalid("invalid visual chunk order")
     return version, records
@@ -114,8 +116,10 @@ def metadata(data, version, preview_only=False):
     if not isinstance(required, list) or not all(isinstance(item, str) for item in required):
         raise Invalid("invalid capability list")
     if not preview_only:
-        if set(required) - {"raster-png", "toggle-fill"} or len(set(required)) != len(required):
+        if set(required) - {"raster-png", "toggle-fill", "state-actions"} or len(set(required)) != len(required):
             raise Invalid("unsupported or duplicate capability")
+        if "state-actions" in required and (version != (1, 0) or "toggle-fill" in required):
+            raise Invalid("invalid state capability")
     return width, height
 
 
@@ -293,6 +297,70 @@ def controls_payload(data, targets):
     return controls
 
 
+def states_payload(data, targets):
+    payload = strict_json(data, 32 * 1024)
+    fields(payload, "states", "controls", "bindings")
+    states, controls, bindings = (payload[key] for key in ("states", "controls", "bindings"))
+    for values, low, high in ((states, 1, 32), (controls, 1, 64), (bindings, 0, 256)):
+        if not isinstance(values, list) or not low <= len(values) <= high:
+            raise Invalid("state payload count")
+    variables = {}
+    for state in states:
+        fields(state, "id", "initial", "max")
+        name = identifier(state["id"])
+        if name in variables:
+            raise Invalid("duplicate state")
+        maximum = integer(state["max"], 1, 15)
+        integer(state["initial"], 0, maximum)
+        variables[name] = state
+    controlled = set()
+    for control in controls:
+        fields(control, "target", "label", "actions")
+        target, label, actions = control["target"], control["label"], control["actions"]
+        if not isinstance(target, str) or target not in targets or target in controlled:
+            raise Invalid("invalid state control target")
+        controlled.add(target)
+        if (not isinstance(label, str) or not label.strip() or len(label.encode("utf-8")) > 256
+                or any(ord(c) < 32 or 127 <= ord(c) <= 159 for c in label)):
+            raise Invalid("invalid state control label")
+        if not isinstance(actions, list) or not 1 <= len(actions) <= 8:
+            raise Invalid("state action count")
+        written = set()
+        for action in actions:
+            if not isinstance(action, dict):
+                raise Invalid("invalid state action")
+            kind = action.get("type")
+            if kind == "cycle":
+                fields(action, "type", "state")
+            elif kind == "set":
+                fields(action, "type", "state", "value")
+            else:
+                raise Invalid("unknown state action")
+            name = action["state"]
+            if not isinstance(name, str) or name not in variables or name in written:
+                raise Invalid("invalid state action reference")
+            written.add(name)
+            if kind == "set":
+                integer(action["value"], 0, variables[name]["max"])
+    bound = set()
+    for binding in bindings:
+        fields(binding, "target", "state", "values")
+        target, name, values = binding["target"], binding["state"], binding["values"]
+        if not isinstance(target, str) or target not in targets or target in bound:
+            raise Invalid("invalid binding target")
+        bound.add(target)
+        if not isinstance(name, str) or name not in variables or not isinstance(values, list) or len(values) != variables[name]["max"] + 1:
+            raise Invalid("invalid binding values")
+        for style in values:
+            if not isinstance(style, dict) or "visible" not in style or set(style) - {"visible", "fill"} or type(style["visible"]) is not bool:
+                raise Invalid("invalid binding style")
+            if style.get("fill") is not None:
+                if targets[target] == "image":
+                    raise Invalid("image fill override")
+                color(style["fill"])
+    return payload
+
+
 def validate(data):
     version, records = envelope(data)
     if version == (0, 1):
@@ -300,12 +368,15 @@ def validate(data):
     payloads = dict(records)
     width, height = metadata(payloads[b"META"], version)
     capabilities = strict_json(payloads[b"META"], 4096)["required"]
-    for name, kind in (("raster-png", b"ASST"), ("toggle-fill", b"INTR")):
-        if (name in capabilities) != (kind in payloads):
+    for enabled, kind in (("raster-png" in capabilities, b"ASST"),
+                          ("toggle-fill" in capabilities, b"INTR"), ("state-actions" in capabilities, b"STAC")):
+        if enabled != (kind in payloads):
             raise Invalid("capability and payload disagree")
     assets = asset_table(payloads[b"ASST"]) if b"ASST" in payloads else {}
     _, targets = scene_payload(payloads[b"SCNE"], width, height, assets)
-    if b"INTR" in payloads:
+    if b"STAC" in payloads:
+        states_payload(payloads[b"STAC"], targets)
+    elif b"INTR" in payloads:
         controls_payload(payloads[b"INTR"], targets)
     decode_png(payloads[b"PREV"], width, height)
 
@@ -337,11 +408,41 @@ def replay_fixture(data, trace):
     payloads = dict(records)
     scene = strict_json(payloads[b"SCNE"], 128 * 1024)
     assets = asset_table(payloads[b"ASST"]) if b"ASST" in payloads else {}
-    controls = strict_json(payloads[b"INTR"], 32 * 1024)["controls"]
+    interaction = strict_json(payloads[b"STAC"] if b"STAC" in payloads else payloads[b"INTR"], 32 * 1024)
+    controls = interaction["controls"]
+    machine = "states" in interaction
+    definitions = {state["id"]: state for state in interaction.get("states", [])}
+    states = {name: state["initial"] for name, state in definitions.items()}
+    bindings = {binding["target"]: binding for binding in interaction.get("bindings", [])}
     events = trace_events(trace)
     targets = {control["target"]: index for index, control in enumerate(controls)}
     pressed = [False] * len(controls)
     focus = None
+
+    def style(target):
+        binding = bindings.get(target)
+        return binding["values"][states[binding["state"]]] if binding else {}
+
+    def visible(target):
+        return style(target).get("visible", True)
+
+    def activate(index):
+        nonlocal focus
+        if not visible(controls[index]["target"]):
+            return
+        if machine:
+            for action in controls[index]["actions"]:
+                name = action["state"]
+                states[name] = action["value"] if action["type"] == "set" else (states[name] + 1) % (definitions[name]["max"] + 1)
+            if focus is not None and not visible(controls[focus]["target"]):
+                focus = None
+        else:
+            pressed[index] = not pressed[index]
+
+    def traverse(step):
+        origin = focus if focus is not None else (-1 if step == 1 else 0)
+        return next((index for offset in range(1, len(controls) + 1)
+                     if visible(controls[index := (origin + offset * step) % len(controls)]["target"])), None)
 
     def hit(shape, x, y):
         x += 0.5
@@ -357,7 +458,7 @@ def replay_fixture(data, trace):
         raise Invalid("unknown fixture shape")
 
     def top(x, y):
-        return next((shape for shape in reversed(scene["objects"]) if hit(shape, x, y)), None)
+        return next((shape for shape in reversed(scene["objects"]) if visible(shape["id"]) and hit(shape, x, y)), None)
 
     for event in events:
         kind = event["type"]
@@ -365,17 +466,18 @@ def replay_fixture(data, trace):
             shape = top(event["x"], event["y"])
             if shape is not None and shape["id"] in targets:
                 focus = targets[shape["id"]]
-                pressed[focus] = not pressed[focus]
+                activate(focus)
         elif kind == "focus_next":
-            focus = 0 if focus is None else (focus + 1) % len(controls)
+            focus = traverse(1)
         elif kind == "focus_previous":
-            focus = len(controls) - 1 if focus is None else (focus - 1) % len(controls)
+            focus = traverse(-1)
         elif kind == "activate_focused":
             if focus is not None:
-                pressed[focus] = not pressed[focus]
+                activate(focus)
         elif kind == "reset":
             focus = None
             pressed = [False] * len(controls)
+            states = {name: state["initial"] for name, state in definitions.items()}
         else:
             raise Invalid("unsupported trace event")
 
@@ -391,6 +493,6 @@ def replay_fixture(data, trace):
                 pixels.extend(rgb[offset:offset + 3])
             else:
                 index = targets.get(shape["id"])
-                pixels.extend(controls[index]["active_fill"]
-                              if index is not None and pressed[index] else shape["fill"])
+                pixels.extend(style(shape["id"]).get("fill") or (controls[index]["active_fill"]
+                              if not machine and index is not None and pressed[index] else shape["fill"]))
     return f"P6\n{width} {height}\n255\n".encode() + pixels

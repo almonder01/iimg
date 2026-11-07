@@ -8,10 +8,11 @@ These [JSON Schema 2020-12](https://json-schema.org/draft/2020-12/json-schema-va
 | `metadata.schema.json` | Candidate 1.0 metadata with the currently supported capabilities |
 | `scene.schema.json` | Rectangle, circle and image objects |
 | `interaction.schema.json` | Ordered toggle controls |
+| `state-actions.schema.json` | Draft STAC state variables, action groups and visibility/color bindings |
 | `source.schema.json` | Authoring JSON accepted by the CLI and web editor |
 | `trace.schema.json` | Portable version 1 event traces |
 
-Load all six schemas into a validator before resolving references. Their IDs identify repository locations, and the test runner resolves the supplied files locally. Configure editor schema associations externally. Adding a `$schema` member to an IIMG payload or authoring source would violate its exact-field rules.
+Load all seven schemas into a validator before resolving references. Their IDs identify repository locations, and the test runner resolves the supplied files locally. Configure editor schema associations externally. Adding a `$schema` member to an IIMG payload or authoring source would violate its exact-field rules. State/action references, maximum-dependent styles, unique targets/writes and total byte/work budgets additionally require Core validation.
 
 Run the schema tests after building the WASM engine and installing the locked development dependencies.
 

@@ -17,7 +17,7 @@ def make_server(directory, port=8000):
     directory = Path(directory).resolve(strict=True)
     if not directory.is_dir():
         raise ValueError("Web directory must be a directory")
-    for name in ("index.html", "viewer.mjs", "editor.mjs", "offline.js", "iimg_web.wasm"):
+    for name in ("index.html", "viewer.mjs", "editor.mjs", "state-editor.mjs", "offline.js", "iimg_web.wasm"):
         if not (directory / name).is_file():
             raise ValueError(f"Missing web asset: {name}; build WASM or extract the complete bundle")
     return ThreadingHTTPServer(("127.0.0.1", port), partial(WebHandler, directory=str(directory)))

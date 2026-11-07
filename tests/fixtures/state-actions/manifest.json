@@ -1,0 +1,14 @@
+{
+  "license": "Apache-2.0",
+  "wire": "1.0",
+  "capability": "state-actions",
+  "bytes": 9415,
+  "sha256": "935a53165da1000736962b097ed3e69e5ad0069f92a005c8f2e80b888fcd2769",
+  "rgbSha256": {
+    "initial": "6526d412bc146ee11c8b222da65057a758cb3af4b20c4ab1a60764437a4b7e80",
+    "pointer": "296555a6f6a5509c630d29af92830cb7d43c126c556bb272714d144157a509e1",
+    "keyboard": "296555a6f6a5509c630d29af92830cb7d43c126c556bb272714d144157a509e1",
+    "reset": "6526d412bc146ee11c8b222da65057a758cb3af4b20c4ab1a60764437a4b7e80"
+  },
+  "provenance": "Independent Python envelope/PNG encoder and state evaluator; original project-authored example."
+}

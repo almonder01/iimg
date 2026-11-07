@@ -128,6 +128,14 @@ impl Scene {
         &self,
         override_fill: impl Fn(usize) -> Option<[u8; 3]>,
     ) -> Result<Vec<u8>, SceneError> {
+        self.render_with_styles(override_fill, |_| true)
+    }
+
+    pub(crate) fn render_with_styles(
+        &self,
+        override_fill: impl Fn(usize) -> Option<[u8; 3]>,
+        visible: impl Fn(usize) -> bool,
+    ) -> Result<Vec<u8>, SceneError> {
         let width = usize::from(self.width);
         let height = usize::from(self.height);
         let mut work = 0;
@@ -141,6 +149,9 @@ impl Scene {
 
         let mut pixels = self.background.repeat(width * height);
         for (index, shape) in self.objects.iter().enumerate() {
+            if !visible(index) {
+                continue;
+            }
             let (left, top, right, bottom) = shape.bounds(&self.assets);
             if let Shape::Image { asset, .. } = shape {
                 let stride = (right - left) * 3;
@@ -165,7 +176,19 @@ impl Scene {
     }
 
     pub(crate) fn hit_test(&self, x: u16, y: u16) -> Option<usize> {
-        self.objects.iter().rposition(|shape| {
+        self.hit_test_visible(x, y, |_| true)
+    }
+
+    pub(crate) fn hit_test_visible(
+        &self,
+        x: u16,
+        y: u16,
+        visible: impl Fn(usize) -> bool,
+    ) -> Option<usize> {
+        self.objects.iter().enumerate().rposition(|(index, shape)| {
+            if !visible(index) {
+                return false;
+            }
             let (left, top, right, bottom) = shape.bounds(&self.assets);
             (left..right).contains(&usize::from(x))
                 && (top..bottom).contains(&usize::from(y))
@@ -176,6 +199,12 @@ impl Scene {
 }
 
 impl Shape {
+    /// Stable identifier used by controls and bindings in this scene.
+    pub fn id(&self) -> &str {
+        match self {
+            Self::Image { id, .. } | Self::Rect { id, .. } | Self::Circle { id, .. } => id,
+        }
+    }
     // Used only with validated coordinates from a Scene.
     fn bounds(&self, assets: &HashMap<String, Raster>) -> (usize, usize, usize, usize) {
         match *self {
@@ -255,6 +284,13 @@ fn validate_metadata(doc: &Document) -> Result<Metadata, SceneError> {
     Ok(meta)
 }
 
+pub(crate) fn has_capability(doc: &Document, name: &str) -> Result<bool, SceneError> {
+    Ok(validate_metadata(doc)?
+        .required
+        .iter()
+        .any(|value| value == name))
+}
+
 /// Validate metadata, visual objects and embedded raster assets.
 pub fn validate_scene(doc: &Document) -> Result<Scene, SceneError> {
     validate_profile_scene(doc, false)
@@ -271,14 +307,18 @@ pub(crate) fn validate_profile_scene(
     }
     let asset_chunk = doc.chunks.iter().find(|chunk| &chunk.kind == b"ASST");
     let has_interaction = doc.chunks.iter().any(|chunk| &chunk.kind == b"INTR");
+    let has_states = doc.chunks.iter().any(|chunk| &chunk.kind == b"STAC");
     if required.contains("raster-png") != asset_chunk.is_some()
         || required.contains("toggle-fill") != has_interaction
+        || required.contains("state-actions") != has_states
+        || (required.contains("toggle-fill") && required.contains("state-actions"))
     {
         return Err(SceneError::InvalidCapabilities);
     }
     if required.iter().any(|&name| match name {
         "raster-png" => false,
         "toggle-fill" => !interactive,
+        "state-actions" => !interactive || (doc.major, doc.minor) != (1, 0),
         _ => true,
     }) {
         return Err(SceneError::UnsupportedProfile);

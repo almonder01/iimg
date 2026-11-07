@@ -140,8 +140,8 @@ pub extern "C" fn describe() {
     VIEWER.with_borrow_mut(|viewer| {
         viewer.output = viewer.runtime.as_ref().map_or_else(Vec::new, |runtime| {
             let (width, height) = runtime.dimensions();
-            let controls: Vec<_> = runtime.controls().map(|(target, label, pressed)| {
-                serde_json::json!({ "target": target, "label": label, "pressed": pressed })
+            let controls: Vec<_> = runtime.controls().enumerate().map(|(index, (target, label, pressed))| {
+                serde_json::json!({ "target": target, "label": label, "pressed": pressed, "visible": runtime.control_visible(index) })
             }).collect();
             serde_json::json!({
                 "width": width, "height": height,

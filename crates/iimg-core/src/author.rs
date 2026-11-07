@@ -62,12 +62,30 @@ fn compile_visual(source: &[u8], major: u8, minor: u8) -> Result<Vec<u8>, SceneE
         return Err(SceneError::PayloadTooLarge);
     }
     let source: Source = crate::json::from_slice(source).map_err(SceneError::InvalidJson)?;
+    if source.scene.get().len() > 128 * 1024
+        || source
+            .interaction
+            .as_ref()
+            .is_some_and(|value| value.get().len() > 32 * 1024)
+    {
+        return Err(SceneError::PayloadTooLarge);
+    }
     let mut required = Vec::new();
+    let mut state_actions = false;
     if !source.assets.is_empty() {
         required.push("raster-png");
     }
     if source.interaction.is_some() {
-        required.push("toggle-fill");
+        let interaction: serde_json::Value =
+            serde_json::from_str(source.interaction.as_ref().unwrap().get())
+                .map_err(SceneError::InvalidJson)?;
+        state_actions =
+            interaction.get("states").is_some() || interaction.get("bindings").is_some();
+        required.push(if state_actions {
+            "state-actions"
+        } else {
+            "toggle-fill"
+        });
     }
     let metadata = serde_json::json!({
         "profile": profile,
@@ -101,7 +119,7 @@ fn compile_visual(source: &[u8], major: u8, minor: u8) -> Result<Vec<u8>, SceneE
     }
     if let Some(interaction) = source.interaction {
         doc.chunks.push(Chunk {
-            kind: *b"INTR",
+            kind: if state_actions { *b"STAC" } else { *b"INTR" },
             data: interaction.get().as_bytes().to_vec(),
         });
     }

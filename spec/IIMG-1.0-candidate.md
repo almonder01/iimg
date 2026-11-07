@@ -6,7 +6,7 @@ Status — draft for interoperability and security review. The 1.0 wire values a
 
 All binary integers are unsigned and big-endian. A file starts with the eight bytes `49 49 4d 47 0d 0a 1a 0a`, version bytes `01 00` and two zero reserved bytes. Its length is at most 16 MiB.
 
-A chunk is `length:u32 | type:4 ASCII letters | payload:length bytes | crc:u32`. CRC-32/ISO-HDLC covers type followed by payload. Each payload is at most 8 MiB and the file has at most 1024 chunks. `META` and `PREV` occur once, in that order, as the first two chunks. The known sequence then contains one `SCNE`, optional `ASST`, optional `INTR` and one empty `IEND`. No bytes follow `IEND`.
+A chunk is `length:u32 | type:4 ASCII letters | payload:length bytes | crc:u32`. CRC-32/ISO-HDLC covers type followed by payload. Each payload is at most 8 MiB and the file has at most 1024 chunks. `META` and `PREV` occur once, in that order, as the first two chunks. The known sequence then contains one `SCNE`, optional `ASST`, optional `INTR` or `STAC` (mutually exclusive), and one empty `IEND`. No bytes follow `IEND`.
 
 Unknown lowercase-initial chunk types can be skipped after the mandatory prefix. Full readers reject unknown uppercase-initial chunks. Preview readers may skip either type after the prefix. Every reader verifies the full envelope, including CRCs after the preview. Writers should omit unknown extensions when rewriting a document unless their rules explicitly permit copying. CRC detects corruption and does not authenticate content.
 
@@ -21,6 +21,7 @@ Objects, including individual shapes, controls and replay events, use JSON objec
 | Baseline | `META`, `PREV`, `SCNE`, `IEND` | Static RGB scene with rectangle and circle objects |
 | `raster-png` | `ASST` | [Binary asset table and image objects](../rfcs/0002-raster-assets.md) |
 | `toggle-fill` | `INTR` | [Declarative controls and normalized events](IIMG-0.2-interaction.md) |
+| `state-actions` | `STAC` | [Bounded state groups, visibility and color bindings](../rfcs/0003-state-actions.md) |
 
 Optional capability chunks are present exactly when their capability is required. Each capability identifier is case-sensitive. A full reader reports malformed capability metadata when the list repeats an identifier or a known optional chunk disagrees with its declaration. Otherwise a reader that encounters an unsupported required capability reports unsupported for full rendering. A preview-only reader may ignore required capabilities and scene payloads when the metadata profile, dimensions, envelope and PNG are valid.
 
@@ -47,3 +48,7 @@ The migration validates the source profile and its preview, updates the version 
 The [machine-readable schemas](schemas/README.md) describe metadata, scene, interaction, authoring and trace structure. The complete validation rules above also apply to file readers and compilers.
 
 The versioned candidate fixture exercises both capabilities and is generated independently of the Rust writer. The conformance runner verifies candidate acceptance, preview and initial frame parity, and migration parity for both portable interaction traces. Review the limits and diagnostics, expand the candidate fixture suite, and obtain cross-platform, Android, security and release evidence before marking this specification stable.
+
+## Draft state-actions capability
+
+RFC 0003 specifies the opt-in STAC payload, limits and hidden-target focus/hit semantics. It requires Core 1.0 and cannot coexist with toggle-fill/INTR. The static PNG is generated from declared initial states. The 32 KiB state payload allows at most 32 variables, 64 controls, eight distinct state writes per control and 256 indexed bindings; values range from zero through at most 15. Hidden geometry still counts toward the complete scene work budget. Existing activation/focus/reset traces apply. This draft extends the candidate and is not an independently approved stable capability.

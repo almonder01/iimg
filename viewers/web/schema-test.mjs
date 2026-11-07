@@ -7,7 +7,7 @@ const binary = process.argv[2] ?? new URL("target/wasm32-unknown-unknown/release
 const schemaRoot = new URL("spec/schemas/", root);
 const ajv = new Ajv2020({ strict: true, allErrors: true });
 const validators = new Map();
-const schemas = ["common", "metadata", "scene", "interaction", "source", "trace"];
+const schemas = ["common", "metadata", "scene", "interaction", "state-actions", "source", "trace"];
 for (const name of schemas) {
   const schema = JSON.parse(await readFile(new URL(`${name}.schema.json`, schemaRoot)));
   ajv.addSchema(schema);
@@ -47,6 +47,11 @@ for (const mode of ["pointer", "keyboard"]) {
 }
 
 const rectangle = { type: "rect", id: "lamp", x: 0, y: 0, width: 1, height: 1, fill: [1, 2, 3] };
+const stateSource = JSON.parse(await readFile(new URL("examples/state-panel.source.json", root)));
+check("source", stateSource, true);
+check("state-actions", stateSource.interaction, true);
+check("state-actions", { ...stateSource.interaction, controls: [{target:"lamp",label:"Lamp",actions:[{type:"set",state:"x",value:16}]}] }, false);
+check("state-actions", { ...stateSource.interaction, bindings: [{target:"lamp",state:"x",values:[{visible:0},{visible:true}]}] }, false);
 const scene = { background: [0, 0, 0], objects: [rectangle] };
 const control = { target: "lamp", label: "مصباح 💡", active_fill: [4, 5, 6] };
 const source = { width: 1, height: 1, scene };
@@ -99,5 +104,5 @@ for (const text of semanticFailures) {
   new Uint8Array(wasm.memory.buffer, pointer, bytes.length).set(bytes);
   assert.equal(wasm.compile_source_v1(), 1, "Core must reject the invalid semantic or lexical input");
 }
-console.log(`Six schemas compiled in strict mode. ${positive} positive and ${negative} negative structural cases passed.`);
+console.log(`Seven schemas compiled in strict mode. ${positive} positive and ${negative} negative structural cases passed.`);
 console.log(`${semanticFailures.length} sources accepted structurally were rejected by Core semantic and lexical checks.`);

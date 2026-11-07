@@ -11,6 +11,7 @@
     "scene": { "$ref": "scene.schema.json" },
     "interaction": { "anyOf": [
       { "$ref": "interaction.schema.json" },
+      { "$ref": "state-actions.schema.json" },
       { "type": "null" }
     ] },
     "assets": {

@@ -54,7 +54,7 @@
         <button id="editor-redo" type="button" disabled>Redo</button>
       </div>
       <div class="editor-toolbar">
-        <label>Template <select id="editor-template"><option value="card">Interactive card</option><option value="signals">Signal lights</option><option value="rooms">Room lights</option></select></label>
+        <label for="editor-template">Template</label><select id="editor-template"><option value="card">Interactive card</option><option value="signals">Signal lights</option><option value="rooms">Room lights</option></select>
         <button id="editor-use-template" type="button">Use template</button>
         <label>Add PNG image <input id="editor-png" type="file" accept=".png,image/png"></label>
       </div>
@@ -102,6 +102,34 @@
       </form>
       </div>
       <p id="editor-status" role="status"></p>
+      <details id="editor-state-tools">
+        <summary>Multi-state interactions</summary>
+        <p>Named states drive visibility and colors. Select an object above to bind its style or actions. State colors override the base color. Changing a maximum extends/truncates its bound styles; out-of-range set actions reject the change. These files require Core 1.0 export.</p>
+        <button id="editor-enable-states" type="button">Convert to multi-state controls</button>
+        <div id="editor-state-fields" hidden>
+          <form id="editor-state-form" class="editor-fields">
+            <label>State ID <input id="editor-state-id" type="text" pattern="[A-Za-z0-9_-]{1,64}" required></label>
+            <label>Initial value <input id="editor-state-initial" type="number" min="0" max="15" step="1" value="0" required></label>
+            <label>Maximum value <input id="editor-state-max" type="number" min="1" max="15" step="1" value="1" required></label>
+            <button type="submit">Add or update state</button>
+          </form>
+          <label for="editor-state-list">Existing states</label><select id="editor-state-list" size="3"></select>
+          <button id="editor-delete-state" type="button">Delete unreferenced state</button>
+          <form id="editor-action-form" class="editor-fields">
+            <label>Action control name <input id="editor-action-label" type="text" dir="auto" maxlength="256" required></label>
+            <label for="editor-action-state">Action state</label><select id="editor-action-state"></select>
+            <label for="editor-action-type">Action type</label><select id="editor-action-type"><option value="cycle">Cycle value</option><option value="set">Set value</option></select>
+            <label>Set value <input id="editor-action-value" type="number" min="0" max="15" step="1" value="0" required></label>
+            <button type="submit">Add or update action</button>
+          </form>
+          <div id="editor-actions" role="group" aria-label="Selected control actions"></div>
+          <form id="editor-binding-form">
+            <label for="editor-binding-state">Binding state</label><select id="editor-binding-state"></select>
+            <div id="editor-binding-values"></div>
+            <div class="editor-toolbar"><button type="submit">Apply state binding</button><button id="editor-remove-binding" type="button">Remove state binding</button></div>
+          </form>
+        </div>
+      </details>
       <label><input id="editor-autosave" type="checkbox"> Keep a local recovery copy in this browser</label>
       <p id="editor-recovery-status" role="status">Recovery is off. Save source JSON before closing.</p>
       <div class="editor-toolbar">

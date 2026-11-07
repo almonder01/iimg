@@ -13,6 +13,7 @@ const shell = new Map([
   ["/index.html", ["index.html", "text/html"]],
   ["/viewer.mjs", ["viewer.mjs", "text/javascript"]],
   ["/editor.mjs", ["editor.mjs", "text/javascript"]],
+  ["/state-editor.mjs", ["state-editor.mjs", "text/javascript"]],
   ["/offline.js", ["offline.js", "text/javascript"]],
   ["/iimg_web.wasm", ["../../target/wasm32-unknown-unknown/release/iimg_web.wasm", "application/wasm"]],
 ]);
@@ -350,6 +351,64 @@ try {
   assert.equal(await page.evaluate((key) => localStorage.getItem(key), storageKey), null);
   assert.deepEqual(errors, []);
   console.log("Authoring usability passed templates, pointer/keyboard resize, bounded PNG import/rejection, recovery restore/opt-out/corruption and quota-failure checks offline.");
+
+  const stateSource = await readFile(new URL("../../examples/state-panel.source.json", import.meta.url), "utf8");
+  await source.fill(stateSource);
+  await page.waitForFunction(() => !document.querySelector("#editor-state-fields").hidden);
+  assert.equal(await page.getByLabel("Export as Core 1.0 candidate", { exact: true }).isChecked(), true);
+  await downloadLink.waitFor({ state: "visible" });
+  await page.getByRole("button", { name: "Validate and preview", exact: true }).click();
+  const coverControl = page.getByRole("button", { name: "إخفاء الغطاء", exact: true });
+  assert.equal(await coverControl.count(), 0);
+  await page.getByRole("button", { name: "تغيير اللون", exact: true }).click();
+  assert.deepEqual(await pixel(32, 28), [40, 80, 220, 255]);
+  await page.getByRole("button", { name: "تبديل الغطاء واللون", exact: true }).click();
+  assert.deepEqual(await pixel(32, 28), [0, 220, 220, 255]);
+  assert.deepEqual(await pixel(2, 2), [128, 0, 0, 255]);
+  await coverControl.click();
+  assert.equal(await coverControl.count(), 0);
+  assert.deepEqual(await pixel(2, 2), [0, 0, 180, 255]);
+  const selfControl = page.getByRole("button", { name: "إخفاء هذا الزر", exact: true });
+  await selfControl.focus(); await page.keyboard.press("Enter");
+  assert.equal(await selfControl.count(), 0);
+  await page.getByRole("button", { name: "Reset image", exact: true }).click();
+  await selfControl.waitFor({ state: "visible" });
+  assert.deepEqual(await pixel(2, 2), [0, 128, 0, 255]);
+  await page.locator("#editor-objects").selectOption("switch");
+  await editor.getByLabel("Left", { exact: true }).fill("21");
+  await editor.getByRole("button", { name: "Apply object", exact: true }).click();
+  assert.deepEqual(JSON.parse(await source.inputValue()).interaction, JSON.parse(stateSource).interaction);
+  await editor.getByRole("button", { name: "Undo", exact: true }).click();
+  await page.getByText("Multi-state interactions", { exact: true }).click();
+  await editor.getByLabel("Existing states", { exact: true }).selectOption("tone");
+  await editor.getByLabel("Maximum value", { exact: true }).fill("3");
+  await editor.getByRole("button", { name: "Add or update state", exact: true }).click();
+  assert.equal(JSON.parse(await source.inputValue()).interaction.bindings.find((entry) => entry.target === "lamp").values.length, 4);
+  await editor.getByRole("button", { name: "Undo", exact: true }).click();
+  await editor.getByLabel("State ID", { exact: true }).fill("extra");
+  await editor.getByLabel("Initial value", { exact: true }).fill("0");
+  await editor.getByLabel("Maximum value", { exact: true }).fill("1");
+  await editor.getByRole("button", { name: "Add or update state", exact: true }).click();
+  await page.locator("#editor-objects").selectOption("switch");
+  await editor.getByLabel("Action state", { exact: true }).selectOption("extra");
+  await editor.getByRole("button", { name: "Add or update action", exact: true }).click();
+  assert.equal(JSON.parse(await source.inputValue()).interaction.controls.find((entry) => entry.target === "switch").actions.length, 3);
+  await page.locator("#editor-objects").selectOption("lamp");
+  await editor.getByLabel("Binding state", { exact: true }).selectOption("extra");
+  await editor.getByLabel("Value 0 visible", { exact: true }).uncheck();
+  await editor.getByRole("button", { name: "Apply state binding", exact: true }).click();
+  const advanced = JSON.parse(await source.inputValue());
+  assert.equal(advanced.interaction.bindings.find((entry) => entry.target === "lamp").values[0].visible, false);
+  await downloadLink.waitFor({ state: "visible" });
+  await page.getByRole("button", { name: "Validate and preview", exact: true }).click();
+  assert.deepEqual(await pixel(32, 28), [12, 20, 32, 255]);
+  await page.getByRole("button", { name: "تبديل الغطاء واللون", exact: true }).click();
+  assert.deepEqual(await pixel(32, 28), [250, 200, 0, 255]);
+  await page.getByLabel("Export as Core 1.0 candidate", { exact: true }).uncheck();
+  await page.waitForFunction(() => document.querySelector("#author-status").textContent.includes("UnsupportedProfile"));
+  assert.equal(await downloadLink.count(), 0);
+  assert.deepEqual(errors, []);
+  console.log("State-actions viewer/editor passed grouped actions, semantic visibility, focus clearing, reset, safe geometry editing, state/action/style authoring and explicit legacy-export rejection.");
 
   const android = await browser.newContext();
   const androidPage = await android.newPage();

@@ -1,5 +1,7 @@
 # Testing and Verification Strategy
 
+State-actions acceptance runs `python -B tests/conformance/state_actions.py` and `node viewers/web/smoke-state.mjs`. Four native/Python/WASM frame outcomes and 20 semantic rejection mutations are compared against a separately encoded STAC fixture. Native tests cover focus/hit behavior, wraparound and hidden worst-case render work. Browser tests author state/actions/styles, preserve them during geometry edits, operate semantic hide/show controls, reset and reject legacy export. For optional old-reader checks, set `IIMG_OLD_WASM` to a pre-extension engine when invoking the smoke test; the tested older engine must return the exact mandatory PNG, not execute STAC. Fixture generation uses stored DEFLATE for host-independent bytes.
+
 ## Local developer checks
 
 Run from the repository root with stable Rust, rustfmt, Clippy and Python 3.12. The CLI integration tests generate temporary files and compare the historical sample byte for byte.
