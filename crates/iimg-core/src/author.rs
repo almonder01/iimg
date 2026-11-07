@@ -83,9 +83,9 @@ fn compile_visual(source: &[u8], major: u8, minor: u8) -> Result<Vec<u8>, SceneE
     if !source.assets.is_empty() {
         required.push("raster-png");
     }
-    if source.interaction.is_some() {
+    if let Some(payload) = &source.interaction {
         let interaction: serde_json::Value =
-            serde_json::from_str(source.interaction.as_ref().unwrap().get())
+            serde_json::from_str(payload.get())
                 .map_err(SceneError::InvalidJson)?;
         state_actions =
             interaction.get("states").is_some() || interaction.get("bindings").is_some();
